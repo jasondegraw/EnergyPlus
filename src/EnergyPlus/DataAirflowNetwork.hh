@@ -10,6 +10,302 @@
 
 namespace EnergyPlus {
 
+namespace AirflowNetwork {
+
+struct AirflowElement
+{
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    ) = 0;
+};
+
+struct SurfaceCrack : AirflowElement // Surface crack component
+{
+    // Members
+    std::string Name; // Name of crack component
+    std::string ExternalNodeNames; // Name of external node. Not required for internal surface
+    Real64 FlowCoef; // Air Mass Flow Coefficient
+    Real64 FlowExpo; // Air Mass Flow Exponent
+    Real64 StandardT; // Standard temperature for crack data
+    Real64 StandardP; // Standard barometric pressure for crack data
+    Real64 StandardW; // Standard humidity ratio for crack data
+
+    // Default Constructor
+    SurfaceCrack() :
+        FlowCoef(0.0),
+        FlowExpo(0.0),
+        StandardT(0.0),
+        StandardP(0.0),
+        StandardW(0.0)
+    {}
+
+    // Member Constructor
+    SurfaceCrack(
+        std::string const & Name, // Name of crack component
+        std::string const & ExternalNodeNames, // Name of external node. Not required for internal surface
+        Real64 const FlowCoef, // Air Mass Flow Coefficient
+        Real64 const FlowExpo, // Air Mass Flow exponent
+        Real64 const StandardT, // Standard temperature for crack data
+        Real64 const StandardP, // Standard barometric pressure for crack data
+        Real64 const StandardW // Standard humidity ratio for crack data
+    ) :
+        Name(Name),
+        ExternalNodeNames(ExternalNodeNames),
+        FlowCoef(FlowCoef),
+        FlowExpo(FlowExpo),
+        StandardT(StandardT),
+        StandardP(StandardP),
+        StandardW(StandardW)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    ) = 0;
+};
+
+struct DetailedOpening : AirflowElement // Large detailed opening component
+{
+    // Members
+    std::string Name; // Name of large detailed opening component
+    Real64 FlowCoef; // Air Mass Flow Coefficient When Window or Door Is Closed
+    Real64 FlowExpo; // Air Mass Flow exponent When Window or Door Is Closed
+    std::string TypeName; // Name of Large vertical opening type
+    int LVOType; // Large vertical opening type number
+    Real64 LVOValue; // Extra crack length for LVO type 1 with multiple openable parts,
+    // or Height of pivoting axis for LVO type 2
+    int NumFac; // Number of Opening Factor Values
+    Real64 OpenFac1; // Opening factor #1
+    Real64 DischCoeff1; // Discharge coefficient for opening factor #1
+    Real64 WidthFac1; // Width factor for for Opening factor #1
+    Real64 HeightFac1; // Height factor for opening factor #1
+    Real64 StartHFac1; // Start height factor for opening factor #1
+    Real64 OpenFac2; // Opening factor #2
+    Real64 DischCoeff2; // Discharge coefficient for opening factor #2
+    Real64 WidthFac2; // Width factor for for Opening factor #2
+    Real64 HeightFac2; // Height factor for opening factor #2
+    Real64 StartHFac2; // Start height factor for opening factor #2
+    Real64 OpenFac3; // Opening factor #3
+    Real64 DischCoeff3; // Discharge coefficient for opening factor #3
+    Real64 WidthFac3; // Width factor for for Opening factor #3
+    Real64 HeightFac3; // Height factor for opening factor #3
+    Real64 StartHFac3; // Start height factor for opening factor #3
+    Real64 OpenFac4; // Opening factor #4
+    Real64 DischCoeff4; // Discharge coefficient for opening factor #4
+    Real64 WidthFac4; // Width factor for for Opening factor #4
+    Real64 HeightFac4; // Height factor for opening factor #4
+    Real64 StartHFac4; // Start height factor for opening factor #4
+    Real64 OpenFactor; // Opening factor
+    int WidthErrCount; // Width error count
+    int WidthErrIndex; // Width error index
+    int HeightErrCount; // Height error count
+    int HeightErrIndex; // Height error index
+
+    // Default Constructor
+    DetailedOpening() :
+        FlowCoef(0.0),
+        FlowExpo(0.0),
+        TypeName("NONPIVOTED"),
+        LVOType(0),
+        LVOValue(0.0),
+        NumFac(0),
+        OpenFac1(0.0),
+        DischCoeff1(0.0),
+        WidthFac1(0.0),
+        HeightFac1(0.0),
+        StartHFac1(0.0),
+        OpenFac2(0.0),
+        DischCoeff2(0.0),
+        WidthFac2(0.0),
+        HeightFac2(0.0),
+        StartHFac2(0.0),
+        OpenFac3(0.0),
+        DischCoeff3(0.0),
+        WidthFac3(0.0),
+        HeightFac3(0.0),
+        StartHFac3(0.0),
+        OpenFac4(0.0),
+        DischCoeff4(0.0),
+        WidthFac4(0.0),
+        HeightFac4(0.0),
+        StartHFac4(0.0),
+        OpenFactor(0.0),
+        WidthErrCount(0),
+        WidthErrIndex(0),
+        HeightErrCount(0),
+        HeightErrIndex(0)
+    {}
+
+    // Member Constructor
+    DetailedOpening(
+        std::string const & Name, // Name of large detailed opening component
+        Real64 const FlowCoef, // Air Mass Flow Coefficient When Window or Door Is Closed
+        Real64 const FlowExpo, // Air Mass Flow exponent When Window or Door Is Closed
+        std::string const & TypeName, // Name of Large vertical opening type
+        int const LVOType, // Large vertical opening type number
+        Real64 const LVOValue, // Extra crack length for LVO type 1 with multiple openable parts,
+        int const NumFac, // Number of Opening Factor Values
+        Real64 const OpenFac1, // Opening factor #1
+        Real64 const DischCoeff1, // Discharge coefficient for opening factor #1
+        Real64 const WidthFac1, // Width factor for for Opening factor #1
+        Real64 const HeightFac1, // Height factor for opening factor #1
+        Real64 const StartHFac1, // Start height factor for opening factor #1
+        Real64 const OpenFac2, // Opening factor #2
+        Real64 const DischCoeff2, // Discharge coefficient for opening factor #2
+        Real64 const WidthFac2, // Width factor for for Opening factor #2
+        Real64 const HeightFac2, // Height factor for opening factor #2
+        Real64 const StartHFac2, // Start height factor for opening factor #2
+        Real64 const OpenFac3, // Opening factor #3
+        Real64 const DischCoeff3, // Discharge coefficient for opening factor #3
+        Real64 const WidthFac3, // Width factor for for Opening factor #3
+        Real64 const HeightFac3, // Height factor for opening factor #3
+        Real64 const StartHFac3, // Start height factor for opening factor #3
+        Real64 const OpenFac4, // Opening factor #4
+        Real64 const DischCoeff4, // Discharge coefficient for opening factor #4
+        Real64 const WidthFac4, // Width factor for for Opening factor #4
+        Real64 const HeightFac4, // Height factor for opening factor #4
+        Real64 const StartHFac4, // Start height factor for opening factor #4
+        Real64 const OpenFactor, // Opening factor
+        int const WidthErrCount, // Width error count
+        int const WidthErrIndex, // Width error index
+        int const HeightErrCount, // Height error count
+        int const HeightErrIndex // Height error index
+    ) :
+        Name(Name),
+        FlowCoef(FlowCoef),
+        FlowExpo(FlowExpo),
+        TypeName(TypeName),
+        LVOType(LVOType),
+        LVOValue(LVOValue),
+        NumFac(NumFac),
+        OpenFac1(OpenFac1),
+        DischCoeff1(DischCoeff1),
+        WidthFac1(WidthFac1),
+        HeightFac1(HeightFac1),
+        StartHFac1(StartHFac1),
+        OpenFac2(OpenFac2),
+        DischCoeff2(DischCoeff2),
+        WidthFac2(WidthFac2),
+        HeightFac2(HeightFac2),
+        StartHFac2(StartHFac2),
+        OpenFac3(OpenFac3),
+        DischCoeff3(DischCoeff3),
+        WidthFac3(WidthFac3),
+        HeightFac3(HeightFac3),
+        StartHFac3(StartHFac3),
+        OpenFac4(OpenFac4),
+        DischCoeff4(DischCoeff4),
+        WidthFac4(WidthFac4),
+        HeightFac4(HeightFac4),
+        StartHFac4(StartHFac4),
+        OpenFactor(OpenFactor),
+        WidthErrCount(WidthErrCount),
+        WidthErrIndex(WidthErrIndex),
+        HeightErrCount(HeightErrCount),
+        HeightErrIndex(HeightErrIndex)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    ) = 0;
+
+};
+
+struct SimpleOpening : AirflowElement // Large simple opening component
+{
+    // Members
+    std::string Name; // Name of large simple opening component
+    Real64 FlowCoef; // Air Mass Flow Coefficient When Window or Door Is Closed
+    Real64 FlowExpo; // Air Mass Flow exponent When Window or Door Is Closed
+    Real64 MinRhoDiff; // Minimum density difference for two-way flow
+    Real64 DischCoeff; // Discharge coefficient at full opening
+    Real64 OpenFactor; // Opening factor
+
+    // Default Constructor
+    SimpleOpening() :
+        FlowCoef(0.0),
+        FlowExpo(0.0),
+        MinRhoDiff(0.0),
+        DischCoeff(0.0),
+        OpenFactor(0.0)
+    {}
+
+    // Member Constructor
+    SimpleOpening(
+        std::string const & Name, // Name of large simple opening component
+        Real64 const FlowCoef, // Air Mass Flow Coefficient When Window or Door Is Closed
+        Real64 const FlowExpo, // Air Mass Flow exponent When Window or Door Is Closed
+        Real64 const MinRhoDiff, // Minimum density difference for two-way flow
+        Real64 const DischCoeff, // Discharge coefficient at full opening
+        Real64 const OpenFactor // Opening factor
+        ) :
+        Name(Name),
+        FlowCoef(FlowCoef),
+        FlowExpo(FlowExpo),
+        MinRhoDiff(MinRhoDiff),
+        DischCoeff(DischCoeff),
+        OpenFactor(OpenFactor)
+    {}
+
+};
+
+struct HorizontalOpening : AirflowElement // Large horizontal opening component
+{
+    // Members
+    std::string Name; // Name of large horizontal opening component
+    Real64 FlowCoef; // Air Mass Flow Coefficient When Window or Door Is Closed
+    Real64 FlowExpo; // Air Mass Flow exponent When Window or Door Is Closed
+    Real64 Slope; // Sloping plane angle
+    Real64 DischCoeff; // Discharge coefficient at full opening
+
+    // Default Constructor
+    HorizontalOpening() :
+        FlowCoef(0.0),
+        FlowExpo(0.0),
+        Slope(0.0),
+        DischCoeff(0.0)
+    {}
+
+    // Member Constructor
+    HorizontalOpening(
+        std::string const & Name, // Name of large horizontal opening component
+        Real64 const FlowCoef, // Air Mass Flow Coefficient When Window or Door Is Closed
+        Real64 const FlowExpo, // Air Mass Flow exponent When Window or Door Is Closed
+        Real64 const Slope, // Sloping plane angle
+        Real64 const DischCoeff // Discharge coefficient at full opening
+        ) :
+        Name(Name),
+        FlowCoef(FlowCoef),
+        FlowExpo(FlowExpo),
+        Slope(Slope),
+        DischCoeff(DischCoeff)
+    {}
+
+};
+
+
+}
+
 namespace DataAirflowNetwork {
 
 	// Using/Aliasing
