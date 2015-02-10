@@ -18,9 +18,9 @@ struct AirflowElement
     calcAfe(
         bool laminarInit, // Initialization flag. If true, use laminar relationship
         Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
-        int const i, // Linkage number
-        int const n, // Node 1 number
-        int const M, // Node 2 number
+        int i, // Linkage number
+        int n, // Node 1 number
+        int m, // Node 2 number
         FArray1A< Real64 > &F, // Airflow through the component [kg/s]
         FArray1A< Real64 > &DF // Partial derivative:  DF/DP
     ) = 0;
@@ -69,12 +69,12 @@ struct SurfaceCrack : AirflowElement // Surface crack component
     calcAfe(
         bool laminarInit, // Initialization flag. If true, use laminar relationship
         Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
-        int const i, // Linkage number
-        int const n, // Node 1 number
-        int const M, // Node 2 number
+        int i, // Linkage number
+        int n, // Node 1 number
+        int m, // Node 2 number
         FArray1A< Real64 > &F, // Airflow through the component [kg/s]
         FArray1A< Real64 > &DF // Partial derivative:  DF/DP
-    ) = 0;
+    );
 };
 
 struct DetailedOpening : AirflowElement // Large detailed opening component
@@ -222,12 +222,12 @@ struct DetailedOpening : AirflowElement // Large detailed opening component
     calcAfe(
         bool laminarInit, // Initialization flag. If true, use laminar relationship
         Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
-        int const i, // Linkage number
-        int const n, // Node 1 number
-        int const M, // Node 2 number
+        int i, // Linkage number
+        int n, // Node 1 number
+        int m, // Node 2 number
         FArray1A< Real64 > &F, // Airflow through the component [kg/s]
         FArray1A< Real64 > &DF // Partial derivative:  DF/DP
-    ) = 0;
+    );
 
 };
 
@@ -267,6 +267,17 @@ struct SimpleOpening : AirflowElement // Large simple opening component
         OpenFactor(OpenFactor)
     {}
 
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int i, // Linkage number
+        int n, // Node 1 number
+        int m, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
 };
 
 struct HorizontalOpening : AirflowElement // Large horizontal opening component
@@ -301,8 +312,662 @@ struct HorizontalOpening : AirflowElement // Large horizontal opening component
         DischCoeff(DischCoeff)
     {}
 
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int i, // Linkage number
+        int n, // Node 1 number
+        int m, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
 };
 
+struct SurfaceEffectiveLeakageArea : AirflowElement// Surface effective leakage area component
+{
+    // Members
+    std::string Name; // Name of effective leakage area component
+    Real64 ELA; // Effective leakage area
+    Real64 DischCoeff; // Discharge coefficient
+    Real64 RefDeltaP; // Reference pressure difference
+    Real64 FlowExpo; // Air Mass Flow exponent When Window or Door Is Closed
+    Real64 TestDeltaP; // Testing pressure difference
+    Real64 TestDisCoef; // Testing Discharge coefficient
+
+    // Default Constructor
+    SurfaceEffectiveLeakageArea() :
+        ELA(0.0),
+        DischCoeff(0.0),
+        RefDeltaP(0.0),
+        FlowExpo(0.0),
+        TestDeltaP(0.0),
+        TestDisCoef(0.0)
+    {}
+
+    // Member Constructor
+    SurfaceEffectiveLeakageArea(
+        std::string const & Name, // Name of effective leakage area component
+        Real64 const ELA, // Effective leakage area
+        Real64 const DischCoeff, // Discharge coefficient
+        Real64 const RefDeltaP, // Reference pressure difference
+        Real64 const FlowExpo, // Air Mass Flow exponent When Window or Door Is Closed
+        Real64 const TestDeltaP, // Testing pressure difference
+        Real64 const TestDisCoef // Testing Discharge coefficient
+        ) :
+        Name(Name),
+        ELA(ELA),
+        DischCoeff(DischCoeff),
+        RefDeltaP(RefDeltaP),
+        FlowExpo(FlowExpo),
+        TestDeltaP(TestDeltaP),
+        TestDisCoef(TestDisCoef)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
+};
+
+struct ZoneExhaustFan : AirflowElement// Zone exhaust fan component
+{
+    // Members
+    std::string Name; // Name of exhaust fan component
+    Real64 FlowRate; // mass flow rate
+    int SchedPtr; // Schedule pointer
+    Real64 FlowCoef; // Air Mass Flow Coefficient
+    Real64 FlowExpo; // Air Mass Flow exponent
+    Real64 StandardT; // Standard temperature for crack data
+    Real64 StandardP; // Standard borometric pressure for crack data
+    Real64 StandardW; // Standard humidity ratio for crack data
+    int InletNode; // Inlet node number
+    int OutletNode; // Outlet node number
+    int EPlusZoneNum; // Zone number
+
+    // Default Constructor
+    ZoneExhaustFan() :
+        FlowRate(0.0),
+        SchedPtr(0),
+        FlowCoef(0.0),
+        FlowExpo(0.0),
+        StandardT(0.0),
+        StandardP(0.0),
+        StandardW(0.0),
+        InletNode(0),
+        OutletNode(0),
+        EPlusZoneNum(0)
+    {}
+
+    // Member Constructor
+    ZoneExhaustFan(
+        std::string const & Name, // Name of exhaust fan component
+        Real64 const FlowRate, // mass flow rate
+        int const SchedPtr, // Schedule pointer
+        Real64 const FlowCoef, // Air Mass Flow Coefficient
+        Real64 const FlowExpo, // Air Mass Flow exponent
+        Real64 const StandardT, // Standard temperature for crack data
+        Real64 const StandardP, // Standard borometric pressure for crack data
+        Real64 const StandardW, // Standard humidity ratio for crack data
+        int const InletNode, // Inlet node number
+        int const OutletNode, // Outlet node number
+        int const EPlusZoneNum // Zone number
+        ) :
+        Name(Name),
+        FlowRate(FlowRate),
+        SchedPtr(SchedPtr),
+        FlowCoef(FlowCoef),
+        FlowExpo(FlowExpo),
+        StandardT(StandardT),
+        StandardP(StandardP),
+        StandardW(StandardW),
+        InletNode(InletNode),
+        OutletNode(OutletNode),
+        EPlusZoneNum(EPlusZoneNum)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+};
+
+/*
+struct DisSysCompLeakProp  : AirflowElement// duct leak component
+{
+    // Members
+    std::string Name; // Name of component leak
+    Real64 FlowCoef; // Air Mass Flow Coefficient
+    Real64 FlowExpo; // Air Mass Flow exponent
+
+    // Default Constructor
+    DisSysCompLeakProp() :
+        FlowCoef(0.0),
+        FlowExpo(0.0)
+    {}
+
+    // Member Constructor
+    DisSysCompLeakProp(
+        std::string const & Name, // Name of component leak
+        Real64 const FlowCoef, // Air Mass Flow Coefficient
+        Real64 const FlowExpo // Air Mass Flow exponent
+        ) :
+        Name(Name),
+        FlowCoef(FlowCoef),
+        FlowExpo(FlowExpo)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
+};
+*/
+
+struct ComponentEffectiveLeakageRatio : AirflowElement // effective leakage ratio component
+{
+    // Members
+    std::string Name; // Name of component leak
+    Real64 ELR; // Value of effective leakage ratio
+    Real64 FlowRate; // Maximum airflow rate
+    Real64 RefPres; // Reference pressure difference
+    Real64 FlowExpo; // Air Mass Flow exponent
+
+    // Default Constructor
+    ComponentEffectiveLeakageRatio() :
+        ELR(0.0),
+        FlowRate(0.0),
+        RefPres(0.0),
+        FlowExpo(0.0)
+    {}
+
+    // Member Constructor
+    ComponentEffectiveLeakageRatio(
+        std::string const & Name, // Name of component leak
+        Real64 const ELR, // Value of effective leakage ratio
+        Real64 const FlowRate, // Maximum airflow rate
+        Real64 const RefPres, // Reference pressure difference
+        Real64 const FlowExpo // Air Mass Flow exponent
+        ) :
+        Name(Name),
+        ELR(ELR),
+        FlowRate(FlowRate),
+        RefPres(RefPres),
+        FlowExpo(FlowExpo)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
+};
+
+struct Duct : AirflowElement // Duct component
+{
+    // Members
+    std::string Name; // Name of duct component
+    Real64 L; // Duct length [m]
+    Real64 D; // Hydrolic diameter [m]
+    Real64 A; // Cross section area [m2]
+    Real64 Rough; // Surface roughness [m]
+    Real64 TurDynCoef; // Turbulent dynamic loss coefficient
+    Real64 UThermal; // Overall heat transmittance [W/m2.K]
+    Real64 UMoisture; // Overall moisture transmittance [kg/m2]
+    Real64 MThermal; // Thermal capacity [J/K]
+    Real64 MMoisture; // Mositure capacity [kg]
+    Real64 LamDynCoef; // Laminar dynamic loss coefficient
+    Real64 LamFriCoef; // Laminar friction loss coefficient
+    Real64 InitLamCoef; // Coefficient of linear initialization
+    Real64 RelRough; // e/D: relative roughness,
+    Real64 RelL; // L/D: relative length,
+    Real64 g; // 1/sqrt(Darcy friction factor),
+    Real64 A1; // 1.14 - 0.868589*ln(e/D),
+
+    // Default Constructor
+    Duct() :
+        L(0.0),
+        D(0.0),
+        A(0.0),
+        Rough(0.0),
+        TurDynCoef(0.0),
+        UThermal(0.0),
+        UMoisture(0.0),
+        MThermal(0.0),
+        MMoisture(0.0),
+        LamDynCoef(0.0),
+        LamFriCoef(0.0),
+        InitLamCoef(0.0),
+        RelRough(0.0),
+        RelL(0.0),
+        g(0.0),
+        A1(0.0)
+    {}
+
+    // Member Constructor
+    Duct(
+        std::string const & Name, // Name of duct component
+        Real64 const L, // Duct length [m]
+        Real64 const D, // Hydrolic diameter [m]
+        Real64 const A, // Cross section area [m2]
+        Real64 const Rough, // Surface roughness [m]
+        Real64 const TurDynCoef, // Turbulent dynamic loss coefficient
+        Real64 const UThermal, // Overall heat transmittance [W/m2.K]
+        Real64 const UMoisture, // Overall moisture transmittance [kg/m2]
+        Real64 const MThermal, // Thermal capacity [J/K]
+        Real64 const MMoisture, // Mositure capacity [kg]
+        Real64 const LamDynCoef, // Laminar dynamic loss coefficient
+        Real64 const LamFriCoef, // Laminar friction loss coefficient
+        Real64 const InitLamCoef, // Coefficient of linear initialization
+        Real64 const RelRough, // e/D: relative roughness,
+        Real64 const RelL, // L/D: relative length,
+        Real64 const g, // 1/sqrt(Darcy friction factor),
+        Real64 const A1 // 1.14 - 0.868589*ln(e/D),
+        ) :
+        Name(Name),
+        L(L),
+        D(D),
+        A(A),
+        Rough(Rough),
+        TurDynCoef(TurDynCoef),
+        UThermal(UThermal),
+        UMoisture(UMoisture),
+        MThermal(MThermal),
+        MMoisture(MMoisture),
+        LamDynCoef(LamDynCoef),
+        LamFriCoef(LamFriCoef),
+        InitLamCoef(InitLamCoef),
+        RelRough(RelRough),
+        RelL(RelL),
+        g(g),
+        A1(A1)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
+};
+
+struct Damper : AirflowElement // Damper component
+{
+    // Members
+    std::string Name; // Name of damper component
+    Real64 LTP; // Value for laminar turbulent transition
+    Real64 LamFlow; // Laminar flow coefficient
+    Real64 TurFlow; // Turbulent flow coefficient
+    Real64 FlowExpo; // Air Mass Flow exponent
+    Real64 FlowMin; // Minimum control air mass rate
+    Real64 FlowMax; // Maximum control air mass rate
+    Real64 A0; // First polynomial coefficient of the control variable (constant coefficient)
+    Real64 A1; // Second polynomial coefficient of the control variable (linear coefficient)
+    Real64 A2; // Third polynomial coefficient of the control variable (quadratic coefficient)
+    Real64 A3; // Fourth polynomial coefficient of the control variable (cubic coefficient)
+
+    // Default Constructor
+    Damper() :
+        LTP(0.0),
+        LamFlow(0.0),
+        TurFlow(0.0),
+        FlowExpo(0.0),
+        FlowMin(0.0),
+        FlowMax(0.0),
+        A0(0.0),
+        A1(0.0),
+        A2(0.0),
+        A3(0.0)
+    {}
+
+    // Member Constructor
+    Damper(
+        std::string const & Name, // Name of damper component
+        Real64 const LTP, // Value for laminar turbulent transition
+        Real64 const LamFlow, // Laminar flow coefficient
+        Real64 const TurFlow, // Turbulent flow coefficient
+        Real64 const FlowExpo, // Air Mass Flow exponent
+        Real64 const FlowMin, // Minimum control air mass rate
+        Real64 const FlowMax, // Maximum control air mass rate
+        Real64 const A0, // First polynomial coefficient of the control variable (constant coefficient)
+        Real64 const A1, // Second polynomial coefficient of the control variable (linear coefficient)
+        Real64 const A2, // Third polynomial coefficient of the control variable (quadratic coefficient)
+        Real64 const A3 // Fourth polynomial coefficient of the control variable (cubic coefficient)
+        ) :
+        Name(Name),
+        LTP(LTP),
+        LamFlow(LamFlow),
+        TurFlow(TurFlow),
+        FlowExpo(FlowExpo),
+        FlowMin(FlowMin),
+        FlowMax(FlowMax),
+        A0(A0),
+        A1(A1),
+        A2(A2),
+        A3(A3)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
+};
+
+struct ConstantVolumeFan : AirflowElement // Constant volume fan component
+{
+    // Members
+    std::string Name; // Name of detailed fan component
+    Real64 FlowRate; // Air volume flow rate
+    Real64 Ctrl; // Control ratio
+    int FanTypeNum; // Fan type: Constant volume or ONOFF
+    int FanIndex; // Fan index
+    int InletNode; // Inlet node number
+    int OutletNode; // Outlet node number
+    Real64 MaxAirMassFlowRate; // Max Specified MAss Flow Rate of Damper [kg/s]
+
+    // Default Constructor
+    ConstantVolumeFan() :
+        FlowRate(0.0),
+        Ctrl(0.0),
+        FanTypeNum(0),
+        FanIndex(0),
+        InletNode(0),
+        OutletNode(0),
+        MaxAirMassFlowRate(0.0)
+    {}
+
+    // Member Constructor
+    ConstantVolumeFan(
+        std::string const & Name, // Name of detailed fan component
+        Real64 const FlowRate, // Air volume flow rate
+        Real64 const Ctrl, // Control ratio
+        int const FanTypeNum, // Fan type: Constant volume or ONOFF
+        int const FanIndex, // Fan index
+        int const InletNode, // Inlet node number
+        int const OutletNode, // Outlet node number
+        Real64 const MaxAirMassFlowRate // Max Specified MAss Flow Rate of Damper [kg/s]
+        ) :
+        Name(Name),
+        FlowRate(FlowRate),
+        Ctrl(Ctrl),
+        FanTypeNum(FanTypeNum),
+        FanIndex(FanIndex),
+        InletNode(InletNode),
+        OutletNode(OutletNode),
+        MaxAirMassFlowRate(MaxAirMassFlowRate)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
+};
+
+struct DetailedFan : AirflowElement // Detailed fan component
+{
+    // Members
+    std::string Name; // Name of constant volume fan component
+    Real64 FlowCoef; // Coefficient for linear initialization
+    Real64 FlowExpo; // Turbulent flow coefficient
+    Real64 RhoAir; // Reference air density
+    Real64 Qfree; // Free delivery flow at P=0
+    Real64 Pshut; // Shutoff pressure at Q=0
+    Real64 TranRat; // Flow coefficient at laminar/turbulent transition
+    int n; // Number of ranges for fan performance curve
+    FArray1D< Real64 > Coeff; // Coefficients of fan performance curve.
+    //Each range has a min flow rate and 4 coeffieincts
+
+    // Default Constructor
+    DetailedFan() :
+        FlowCoef(0.0),
+        FlowExpo(0.0),
+        RhoAir(0.0),
+        Qfree(0.0),
+        Pshut(0.0),
+        TranRat(0.0)
+    {}
+
+    // Member Constructor
+    DetailedFan(
+        std::string const & Name, // Name of constant volume fan component
+        Real64 const FlowCoef, // Coefficient for linear initialization
+        Real64 const FlowExpo, // Turbulent flow coefficient
+        Real64 const RhoAir, // Reference air density
+        Real64 const Qfree, // Free delivery flow at P=0
+        Real64 const Pshut, // Shutoff pressure at Q=0
+        Real64 const TranRat, // Flow coefficient at laminar/turbulent transition
+        int const n, // Number of ranges for fan performance curve
+        FArray1< Real64 > const & Coeff // Coefficients of fan performance curve.
+        ) :
+        Name(Name),
+        FlowCoef(FlowCoef),
+        FlowExpo(FlowExpo),
+        RhoAir(RhoAir),
+        Qfree(Qfree),
+        Pshut(Pshut),
+        TranRat(TranRat),
+        n(n),
+        Coeff(Coeff)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
+};
+
+struct Coil : AirflowElement // Coil component
+{
+    // Members
+    std::string Name; // Name of coil component
+    std::string EPlusType; // EnergyPlus coil type
+    Real64 L; // Air path length
+    Real64 D; // Air path hydraulic diameter
+
+    // Default Constructor
+    Coil() :
+        L(0.0),
+        D(0.0)
+    {}
+
+    // Member Constructor
+    Coil(
+        std::string const & Name, // Name of coil component
+        std::string const & EPlusType, // EnergyPlus coil type
+        Real64 const L, // Air path length
+        Real64 const D // Air path hydraulic diameter
+        ) :
+        Name(Name),
+        EPlusType(EPlusType),
+        L(L),
+        D(D)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
+};
+
+struct HeatExchanger : AirflowElement // Coil component
+{
+    // Members
+    std::string Name; // Name of coil component
+    std::string EPlusType; // EnergyPlus coil type
+    Real64 L; // Air path length
+    Real64 D; // Air path hydraulic diameter
+    bool CoilParentExists; // Is a coil component
+
+    // Default Constructor
+    HeatExchanger() :
+        L(0.0),
+        D(0.0),
+        CoilParentExists(false)
+    {}
+
+    // Member Constructor
+    HeatExchanger(
+        std::string const & Name, // Name of coil component
+        std::string const & EPlusType, // EnergyPlus coil type
+        Real64 const L, // Air path length
+        Real64 const D, // Air path hydraulic diameter
+        bool const CoilParentExists // Is a coil component
+        ) :
+        Name(Name),
+        EPlusType(EPlusType),
+        L(L),
+        D(D),
+        CoilParentExists(CoilParentExists)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
+};
+
+struct TerminalUnit : AirflowElement // Terminal unit component
+{
+    // Members
+    std::string Name; // Name of coil component
+    std::string EPlusType; // EnergyPlus coil type
+    Real64 L; // Air path length
+    Real64 D; // Air path hydraulic diameter
+    int DamperInletNode; // Damper inlet node number
+    int DamperOutletNode; // Damper outlet node number
+
+    // Default Constructor
+    TerminalUnit() :
+        L(0.0),
+        D(0.0),
+        DamperInletNode(0),
+        DamperOutletNode(0)
+    {}
+
+    // Member Constructor
+    TerminalUnit(
+        std::string const & Name, // Name of coil component
+        std::string const & EPlusType, // EnergyPlus coil type
+        Real64 const L, // Air path length
+        Real64 const D, // Air path hydraulic diameter
+        int const DamperInletNode, // Damper inlet node number
+        int const DamperOutletNode // Damper outlet node number
+        ) :
+        Name(Name),
+        EPlusType(EPlusType),
+        L(L),
+        D(D),
+        DamperInletNode(DamperInletNode),
+        DamperOutletNode(DamperOutletNode)
+    {}
+
+    virtual int // Returns number of flows, either 1 or 2
+    calcAfe(
+        bool laminarInit, // Initialization flag. If true, use laminar relationship
+        Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+        int const i, // Linkage number
+        int const n, // Node 1 number
+        int const M, // Node 2 number
+        FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+        FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+    );
+
+};
+
+/*
+struct DisSysCompCPDProp // Constant pressure drop component
+{
+    // Members
+    std::string Name; // Name of constant pressure drop component
+    Real64 A; // cross section area
+    Real64 DP; // Pressure difference across the component
+
+    // Default Constructor
+    DisSysCompCPDProp() :
+        A(0.0),
+        DP(0.0)
+    {}
+
+    // Member Constructor
+    DisSysCompCPDProp(
+        std::string const & Name, // Name of constant pressure drop component
+        Real64 const A, // cross section area
+        Real64 const DP // Pressure difference across the component
+        ) :
+        Name(Name),
+        A(A),
+        DP(DP)
+    {}
+
+};
+*/
 
 }
 

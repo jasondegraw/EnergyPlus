@@ -4,6 +4,7 @@
 
 #include <ObjexxFCL/gio.hh>
 #include <Psychrometrics.hh>
+#include <DataSurfaces.hh>
 #include <AirflowNetworkSolver.hh>
 
 namespace EnergyPlus {
@@ -199,6 +200,7 @@ namespace AirflowNetwork {
 using namespace DataAirflowNetwork;
 using namespace AirflowNetworkSolver;
 using namespace Psychrometrics;
+using DataSurfaces::Surface;
 
 int SurfaceCrack::calcAfe( // Returns number of flows, either 1 or 2
     bool laminarInit, // Initialization flag. If true, use laminar relationship
@@ -300,7 +302,7 @@ int SurfaceCrack::calcAfe( // Returns number of flows, either 1 or 2
     return NF;
 }
 
-int DetailedOpening::calcAfe(
+int DetailedOpening::calcAfe( // Returns number of flows, either 1 or 2
     bool laminarInit, // Initialization flag.If true, use laminar relationship
     Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
     int IL, // Linkage number
@@ -758,6 +760,445 @@ int DetailedOpening::calcAfe(
     return NF;
 }
 
+int
+SimpleOpening::calcAfe( // Returns number of flows, either 1 or 2
+    bool laminarInit, // Initialization flag. If true, use laminar relationship
+    Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+    int i, // Linkage number
+    int n, // Node 1 number
+    int m, // Node 2 number
+    FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+    FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+)
+{
+
+    // SUBROUTINE INFORMATION:
+    //       AUTHOR         George Walton
+    //       DATE WRITTEN   Extracted from AIRNET
+    //       MODIFIED       Lixing Gu, 2/1/04
+    //                      Revised the subroutine to meet E+ needs
+    //       MODIFIED       Lixing Gu, 6/8/05
+    //       RE-ENGINEERED  na
+
+    // PURPOSE OF THIS SUBROUTINE:
+    // This subroutine solves airflow for a Doorway airflow component using standard interface.
+    // A doorway may have two-way airflows. Heights measured relative to the bottom of the door.
+
+    // METHODOLOGY EMPLOYED:
+    // na
+
+    // REFERENCES:
+    // na
+
+    // USE STATEMENTS:
+    // na
+
+    // Argument array dimensioning
+    F.dim(2);
+    DF.dim(2);
+
+    // Locals
+    // SUBROUTINE ARGUMENT DEFINITIONS:
+
+    // SUBROUTINE PARAMETER DEFINITIONS:
+    Real64 const SQRT2(1.414213562373095);
+
+    // INTERFACE BLOCK SPECIFICATIONS
+    // na
+
+    // DERIVED TYPE DEFINITIONS
+    // na
+
+    // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
+    //     DPMID   - pressure drop at mid-height of doorway.
+    //     DRHO    - difference in air densities between rooms.
+    //     Y       - height of neutral plane rel. to bottom of door (m).
+    //     F0      - flow factor at the bottom of the door.
+    //     FH      - flow factor at the top of the door.
+    //     DF0     - derivative factor at the bottom of the door.
+    //     DFH     - derivative factor at the top of the door.
+    Real64 DPMID;
+    Real64 C;
+    Real64 DF0;
+    Real64 DFH;
+    Real64 DRHO;
+    Real64 GDRHO;
+    Real64 F0;
+    Real64 FH;
+    Real64 Y;
+    Real64 flowCoef;
+    Real64 width;
+    Real64 height;
+    Real64 openFactor;
+
+    // Formats
+    static gio::Fmt Format_900("(A5,9X,4E16.7)");
+    static gio::Fmt Format_903("(A5,3I3,4E16.7)");
+
+    // FLOW:
+    width = MultizoneSurfaceData(i).Width;
+    height = MultizoneSurfaceData(i).Height;
+    flowCoef = FlowCoef * 2.0 * (width + height);
+    openFactor = MultizoneSurfaceData(i).OpenFactor;
+    if (openFactor > 0.0) {
+        width *= openFactor;
+        if (Surface(MultizoneSurfaceData(i).SurfNum).Tilt < 90.0) {
+            height *= Surface(MultizoneSurfaceData(i).SurfNum).SinTilt;
+        }
     }
+
+    if (pressureDrop >= 0.0) {
+        flowCoef /= SQRTDZ(n);
+    }
+    else {
+        flowCoef /= SQRTDZ(m);
+    }
+
+    // Add window multiplier with window close
+    if (MultizoneSurfaceData(i).Multiplier > 1.0) {
+        flowCoef *= MultizoneSurfaceData(i).Multiplier;
+    }
+    // Add window multiplier with window open
+    if (openFactor > 0.0) {
+        if (MultizoneSurfaceData(i).Multiplier > 1.0) {
+            width *= MultizoneSurfaceData(i).Multiplier;
+        }
+    }
+
+    int NF = 1;
+    DRHO = RHOZ(n) - RHOZ(m);
+    GDRHO = 9.8 * DRHO;
+    if (LIST >= 4) gio::write(Unit21, Format_903) << " DOR:" << i << n << m << pressureDrop << std::abs(DRHO) << MinRhoDiff;
+    if (OpenFactor == 0.0) {
+        GenericCrack(FlowCoef, FlowExpo, laminarInit, pressureDrop, n, m, F, DF, NF);
+        return NF;
+    }
+    if (std::abs(DRHO) < MinRhoDiff || laminarInit == 1) {
+        DPMID = pressureDrop - 0.5 * height * GDRHO;
+        // Initialization or identical temps: treat as one-way flow.
+        GenericCrack(FlowCoef, FlowExpo, laminarInit, DPMID, n, m, F, DF, NF);
+        if (LIST >= 4) gio::write(Unit21, Format_900) << " Drs:" << DPMID << F(1) << DF(1);
+    }
+    else {
+        // Possible two-way flow:
+        Y = pressureDrop / GDRHO;
+        if (LIST >= 4) gio::write(Unit21, Format_900) << " DrY:" << pressureDrop << GDRHO << Y;
+        // F0 = lower flow, FH = upper flow.
+        C = SQRT2 * width * DischCoeff;
+        DF0 = C * std::sqrt(std::abs(pressureDrop)) / std::abs(GDRHO);
+        //        F0 = 0.666667d0*C*SQRT(ABS(GDRHO*Y))*ABS(Y)
+        F0 = (2.0 / 3.0) * C * std::sqrt(std::abs(GDRHO * Y)) * std::abs(Y);
+        DFH = C * std::sqrt(std::abs((height - Y) / GDRHO));
+        //        FH = 0.666667d0*DFH*ABS(GDRHO*(Height-Y))
+        FH = (2.0 / 3.0) * DFH * std::abs(GDRHO * (height - Y));
+        if (LIST >= 4) gio::write(Unit21, Format_900) << " DrF:" << F0 << DF0 << FH << DFH;
+        if (Y <= 0.0) {
+            // One-way flow (negative).
+            if (DRHO >= 0.0) {
+                F(1) = -SQRTDZ(m) * std::abs(FH - F0);
+                DF(1) = SQRTDZ(m) * std::abs(DFH - DF0);
+            }
+            else {
+                F(1) = SQRTDZ(n) * std::abs(FH - F0);
+                DF(1) = SQRTDZ(n) * std::abs(DFH - DF0);
+            }
+            if (LIST >= 4) gio::write(Unit21, Format_900) << " Dr1:" << C << F(1) << DF(1);
+        }
+        else if (Y >= height) {
+            // One-way flow (positive).
+            if (DRHO >= 0.0) {
+                F(1) = SQRTDZ(n) * std::abs(FH - F0);
+                DF(1) = SQRTDZ(n) * std::abs(DFH - DF0);
+            }
+            else {
+                F(1) = -SQRTDZ(m) * std::abs(FH - F0);
+                DF(1) = SQRTDZ(m) * std::abs(DFH - DF0);
+            }
+            if (LIST >= 4) gio::write(Unit21, Format_900) << " Dr2:" << C << F(1) << DF(1);
+        }
+        else {
+            // Two-way flow.
+            NF = 2;
+            if (DRHO >= 0.0) {
+                F(1) = -SQRTDZ(m) * FH;
+                DF(1) = SQRTDZ(m) * DFH;
+                F(2) = SQRTDZ(n) * F0;
+                DF(2) = SQRTDZ(n) * DF0;
+            }
+            else {
+                F(1) = SQRTDZ(n) * FH;
+                DF(1) = SQRTDZ(n) * DFH;
+                F(2) = -SQRTDZ(m) * F0;
+                DF(2) = SQRTDZ(m) * DF0;
+            }
+            if (LIST >= 4) gio::write(Unit21, Format_900) << " Dr3:" << C << F(1) << DF(1);
+            if (LIST >= 4) gio::write(Unit21, Format_900) << " Dr4:" << C << F(2) << DF(2);
+        }
+    }
+    return NF;
+}
+
+int
+HorizontalOpening::calcAfe( // Returns number of flows, either 1 or 2
+    bool laminarInit, // Initialization flag. If true, use laminar relationship
+    Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+    int i, // Linkage number
+    int n, // Node 1 number
+    int m, // Node 2 number
+    FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+    FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+)
+{
+    // SUBROUTINE INFORMATION:
+    //       AUTHOR         Lixing Gu
+    //       DATE WRITTEN   Apr. 2009
+    //       MODIFIED       na
+    //       MODIFIED       na
+    //       RE-ENGINEERED  na
+
+    // PURPOSE OF THIS SUBROUTINE:
+    // This subroutine solves airflow for a horizontal opening component. The subroutine was
+    // developed based on the subroutine AFEPLR of AIRNET.
+
+    // METHODOLOGY EMPLOYED:
+    // Combine forced and buyancy airflows together with a cap
+
+    // REFERENCES:
+    // Cooper, L., 1989, "Calculation of the Flow Through a Horizontal Ceiling/Floor Vent,"
+    // NISTIR 89-4052, National Institute of Standards and Technology, Gaithersburg, MD
+
+    // USE STATEMENTS:
+    using DataGlobals::Pi;
+
+    // Argument array dimensioning
+    F.dim(2);
+    DF.dim(2);
+
+    // Locals
+    // SUBROUTINE ARGUMENT DEFINITIONS:
+
+    // SUBROUTINE PARAMETER DEFINITIONS:
+
+    // INTERFACE BLOCK SPECIFICATIONS
+    // na
+
+    // DERIVED TYPE DEFINITIONS
+    // na
+
+    // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
+    Real64 RhozAver;
+    Real64 Width; // Opening width
+    Real64 Height; // Opening height
+    Real64 Fact; // Opening factor
+    Real64 fma12; // massflow in direction "from-to" [kg/s]
+    Real64 fma21; // massflow in direction "to-from" [kg/s]
+    Real64 dp1fma12; // derivative d fma12 / d Dp [kg/s/Pa]
+    Real64 dp1fma21; // derivative d fma21 / d Dp [kg/s/Pa]
+    Real64 PurgedP; // Purge pressure [Pa]
+    Real64 BuoFlow; // Buoyancy flow rate [Pa]
+    Real64 BuoFlowMax; // Maximum buoyancy flow rate [Pa]
+    Real64 dPBuoFlow; // Derivative of buoyancy flow rate [kg/s/Pa]
+    Real64 DH; // Hydraulic diameter [m]
+    Real64 Cshape; // Shape factor [dimensionless]
+    Real64 OpenArea; // Opening area [m2]
+
+    // FLOW:
+    // Get information on the horizontal opening
+    RhozAver = (RHOZ(n) + RHOZ(m)) / 2.0;
+    Width = MultizoneSurfaceData(i).Width;
+    Height = MultizoneSurfaceData(i).Height;
+    Fact = MultizoneSurfaceData(i).OpenFactor;
+    Cshape = 0.942 * Width / Height;
+    OpenArea = Width * Height * Fact * std::sin(Slope * Pi / 180.0) * (1.0 + std::cos(Slope * Pi / 180.0));
+    DH = 4.0 * (Width * Height) / 2.0 / (Width + Height) * Fact;
+
+    int NF = 1;
+    // Check which zone is higher
+
+    if (Fact == 0.0) {
+        GenericCrack(FlowCoef, FlowExpo, laminarInit, pressureDrop, n, m, F, DF, NF);
+        return NF;
+    }
+
+    fma12 = 0.0;
+    fma21 = 0.0;
+    dp1fma12 = 0.0;
+    dp1fma21 = 0.0;
+    BuoFlow = 0.0;
+    dPBuoFlow = 0.0;
+
+    if (AirflowNetworkLinkageData(i).NodeHeights(1) > AirflowNetworkLinkageData(i).NodeHeights(2)) {
+        // Node N is upper zone
+        if (RHOZ(n) > RHOZ(m)) {
+            BuoFlowMax = RhozAver * 0.055 * std::sqrt(9.81 * std::abs(RHOZ(n) - RHOZ(m)) * pow_5(DH) / RhozAver);
+            PurgedP = Cshape * Cshape * 9.81 * std::abs(RHOZ(n) - RHOZ(m)) * pow_5(DH) / (2.0 * pow_2(OpenArea));
+            if (std::abs(pressureDrop) <= PurgedP) {
+                BuoFlow = BuoFlowMax * (1.0 - std::abs(pressureDrop) / PurgedP);
+                dPBuoFlow = BuoFlowMax / PurgedP;
+            }
+        }
+    }
+    else {
+        // Node M is upper zone
+        if (RHOZ(n) < RHOZ(m)) {
+            BuoFlowMax = RhozAver * 0.055 * std::sqrt(9.81 * std::abs(RHOZ(n) - RHOZ(m)) * pow_5(DH) / RhozAver);
+            PurgedP = Cshape * Cshape * 9.81 * std::abs(RHOZ(n) - RHOZ(m)) * pow_5(DH) / (2.0 * pow_2(OpenArea));
+            if (std::abs(pressureDrop) <= PurgedP) {
+                BuoFlow = BuoFlowMax * (1.0 - std::abs(pressureDrop) / PurgedP);
+                dPBuoFlow = BuoFlowMax / PurgedP;
+            }
+        }
+    }
+
+    if (pressureDrop == 0.0) {
+        fma12 = BuoFlow;
+        fma21 = BuoFlow;
+        dp1fma12 = 0.0;
+        dp1fma21 = 0.0;
+    }
+    else if (pressureDrop > 0.0) {
+        fma12 = RHOZ(n) * OpenArea * Fact * DischCoeff * std::sqrt(2.0 * pressureDrop / RhozAver) + BuoFlow;
+        dp1fma12 = RHOZ(n) * OpenArea * DischCoeff / std::sqrt(2.0 * pressureDrop * RhozAver) + dPBuoFlow;
+        if (BuoFlow > 0.0) {
+            fma21 = BuoFlow;
+            dp1fma21 = dPBuoFlow;
+        }
+    }
+    else { // PDROP.LT.0.0
+        fma21 = RHOZ(m) * OpenArea * Fact * DischCoeff * std::sqrt(2.0 * std::abs(pressureDrop) / RhozAver) + BuoFlow;
+        dp1fma21 = -RHOZ(m) * OpenArea * DischCoeff / std::sqrt(2.0 * std::abs(pressureDrop) * RhozAver) + dPBuoFlow;
+        if (BuoFlow > 0.0) {
+            fma12 = BuoFlow;
+            dp1fma12 = dPBuoFlow;
+        }
+    }
+
+    F(1) = fma12 - fma21;
+    DF(1) = dp1fma12 - dp1fma21;
+    F(2) = 0.0;
+    if (fma12 != 0.0 && fma21 != 0.0) {
+        F(2) = fma21;
+    }
+    DF(2) = 0.0;
+    return NF;
+}
+
+int
+SurfaceEffectiveLeakageArea::calcAfe( // Returns number of flows, either 1 or 2
+    bool laminarInit, // Initialization flag. If true, use laminar relationship
+    Real64 pressureDrop, // Total pressure drop across a component (P1 - P2) [Pa]
+    int i, // Linkage number
+    int n, // Node 1 number
+    int m, // Node 2 number
+    FArray1A< Real64 > &F, // Airflow through the component [kg/s]
+    FArray1A< Real64 > &DF // Partial derivative:  DF/DP
+)
+{
+
+    // SUBROUTINE INFORMATION:
+    //       AUTHOR         George Walton
+    //       DATE WRITTEN   Extracted from AIRNET
+    //       MODIFIED       Lixing Gu, 2/1/04
+    //                      Revised the subroutine to meet E+ needs
+    //       MODIFIED       Lixing Gu, 6/8/05
+    //       RE-ENGINEERED  na
+
+    // PURPOSE OF THIS SUBROUTINE:
+    // This subroutine solves airflow for a Surface effective leakage area component
+
+    // METHODOLOGY EMPLOYED:
+    // na
+
+    // REFERENCES:
+    // na
+
+    // USE STATEMENTS:
+    // na
+
+    // Argument array dimensioning
+    F.dim(2);
+    DF.dim(2);
+
+    // Locals
+    // SUBROUTINE ARGUMENT DEFINITIONS:
+
+    // SUBROUTINE PARAMETER DEFINITIONS:
+    static Real64 const sqrt_2(std::sqrt(2.0));
+
+    // INTERFACE BLOCK SPECIFICATIONS
+    // na
+
+    // DERIVED TYPE DEFINITIONS
+    // na
+
+    // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
+    Real64 CDM;
+    Real64 FL;
+    Real64 FT;
+    Real64 flowCoef;
+
+    // Formats
+    static gio::Fmt Format_901("(A5,I3,6X,4E16.7)");
+
+    // FLOW:
+    // Get component properties
+    flowCoef = ELA * DischCoeff * sqrt_2 * std::pow(RefDeltaP, 0.5 - FlowExpo);
+
+    int NF = 1;
+    if (laminarInit == 1) {
+        // Initialization by linear relation.
+        if (pressureDrop >= 0.0) {
+            DF(1) = flowCoef * RHOZ(n) / VISCZ(n);
+        }
+        else {
+            DF(1) = flowCoef * RHOZ(m) / VISCZ(m);
+        }
+        F(1) = -DF(1) * pressureDrop;
+    }
+    else {
+        // Standard calculation.
+        if (pressureDrop >= 0.0) {
+            // Flow in positive direction.
+            // Laminar flow.
+            CDM = flowCoef * RHOZ(n) / VISCZ(n);
+            FL = CDM * pressureDrop;
+            // Turbulent flow.
+            if (FlowExpo == 0.5) {
+                FT = flowCoef * SQRTDZ(n) * std::sqrt(pressureDrop);
+            }
+            else {
+                FT = flowCoef * SQRTDZ(n) * std::pow(pressureDrop, FlowExpo);
+            }
+        }
+        else {
+            // Flow in negative direction.
+            // Laminar flow.
+            CDM = flowCoef * RHOZ(m) / VISCZ(m);
+            FL = CDM * pressureDrop;
+            // Turbulent flow.
+            if (FlowExpo == 0.5) {
+                FT = -flowCoef * SQRTDZ(m) * std::sqrt(-pressureDrop);
+            }
+            else {
+                FT = -flowCoef * SQRTDZ(m) * std::pow(-pressureDrop, FlowExpo);
+            }
+        }
+        // Select laminar or turbulent flow.
+        if (LIST >= 4) gio::write(Unit21, Format_901) << " plr: " << i << pressureDrop << FL << FT;
+        if (std::abs(FL) <= std::abs(FT)) {
+            F(1) = FL;
+            DF(1) = CDM;
+        }
+        else {
+            F(1) = FT;
+            DF(1) = FT * FlowExpo / pressureDrop;
+        }
+    }
+    return NF;
+}
+
+
+
+} // AirflowNetwork
 
 } // EnergyPlus
