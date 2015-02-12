@@ -41,6 +41,9 @@ namespace DataGlobals {
 	// Data
 	// -only module should be available to other modules and routines.
 	// Thus, all variables in this module must be PUBLIC.
+	bool runReadVars(false);
+	bool DDOnlySimulation(false);
+	bool AnnualSimulation(false);
 
 	// MODULE PARAMETER DEFINITIONS:
 	int const BeginDay( 1 );
@@ -161,6 +164,7 @@ namespace DataGlobals {
 	bool DisplayUnusedSchedules( false ); // True when selection for  "DisplayUnusedSchedules" is entered
 	bool DisplayAdvancedReportVariables( false ); // True when selection for  "DisplayAdvancedReportVariables" is entered
 	bool DisplayZoneAirHeatBalanceOffBalance( false ); // True when selection for  "DisplayZoneAirHeatBalanceOffBalance" is entered
+	bool DisplayInputInAudit( false ); // True when environmental variable "DisplayInputInAudit" is used
 	bool CreateMinimalSurfaceVariables( false ); // True when selection for  "CreateMinimalSurfaceVariables" is entered
 	Real64 CurrentTime( 0.0 ); // CurrentTime, in fractional hours, from start of day. Uses Loads time step.
 	int SimTimeSteps( 0 ); // Number of (Loads) timesteps since beginning of run period (environment).
