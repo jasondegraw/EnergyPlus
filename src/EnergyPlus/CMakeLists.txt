@@ -14,6 +14,8 @@ endif()
 
 SET( SRC
   Timer.h
+  AirflowElements.hh
+  AirflowElements.cc
   AirflowNetworkBalanceManager.cc
   AirflowNetworkBalanceManager.hh
   AirflowNetworkSolver.cc
