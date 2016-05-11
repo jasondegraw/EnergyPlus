@@ -219,6 +219,7 @@ namespace CurveManager {
 
 	// Object Data
 	Array1D< PerfomanceCurveData > PerfCurve;
+	std::vector<std::shared_ptr<Curves::Curve>> AllTheCurves;
 	Array1D< PerfCurveTableDataStruct > PerfCurveTableData;
 	Array1D< TableDataStruct > TableData;
 	Array1D< TableDataStruct > TempTableData;
@@ -729,14 +730,32 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Coeff4 = Numbers( 4 );
 			PerfCurve( CurveNum ).Var1Min = Numbers( 5 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 6 );
+
+			Curves::Cubic* curve = new Curves::Cubic();
+			curve->name = Alphas(1);
+			curve->coeff1 = Numbers(1);
+			curve->coeff2 = Numbers(2);
+			curve->coeff3 = Numbers(3);
+			curve->coeff4 = Numbers(4);
+			curve->var1Min = Numbers(5);
+			curve->var1Max = Numbers(6);
+
 			if ( NumNumbers > 6 && ! lNumericFieldBlanks( 7 ) ) {
 				PerfCurve( CurveNum ).CurveMin = Numbers( 7 );
 				PerfCurve( CurveNum ).CurveMinPresent = true;
+
+				curve->curveMin = Numbers(7);
+				curve->curveMinPresent = true;
 			}
 			if ( NumNumbers > 7 && ! lNumericFieldBlanks( 8 ) ) {
 				PerfCurve( CurveNum ).CurveMax = Numbers( 8 );
 				PerfCurve( CurveNum ).CurveMaxPresent = true;
+
+				curve->curveMax = Numbers(8);
+				curve->curveMaxPresent = true;
 			}
+
+			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
 
 			if ( Numbers( 5 ) > Numbers( 6 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -788,14 +807,34 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Coeff5 = Numbers( 5 );
 			PerfCurve( CurveNum ).Var1Min = Numbers( 6 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 7 );
+
+			Curves::Quartic* curve = new Curves::Quartic();
+
+			curve->name = Alphas(1);
+			curve->coeff1 = Numbers(1);
+			curve->coeff2 = Numbers(2);
+			curve->coeff3 = Numbers(3);
+			curve->coeff4 = Numbers(4);
+			curve->coeff5 = Numbers(5);
+			curve->var1Min = Numbers(6);
+			curve->var1Max = Numbers(7);
+
 			if ( NumNumbers > 7 && ! lNumericFieldBlanks( 8 ) ) {
 				PerfCurve( CurveNum ).CurveMin = Numbers( 8 );
 				PerfCurve( CurveNum ).CurveMinPresent = true;
+
+				curve->curveMin = Numbers(8);
+				curve->curveMinPresent = true;
 			}
 			if ( NumNumbers > 8 && ! lNumericFieldBlanks( 9 ) ) {
 				PerfCurve( CurveNum ).CurveMax = Numbers( 9 );
 				PerfCurve( CurveNum ).CurveMaxPresent = true;
+
+				curve->curveMax = Numbers(9);
+				curve->curveMaxPresent = true;
 			}
+
+			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
 
 			if ( Numbers( 6 ) > Numbers( 7 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -845,14 +884,29 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Coeff3 = Numbers( 3 );
 			PerfCurve( CurveNum ).Var1Min = Numbers( 4 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 5 );
+
+			Curves::Quadratic* curve = new Curves::Quadratic();
+
+			curve->name = Alphas(1);
+			curve->coeff1 = Numbers(1);
+			curve->coeff2 = Numbers(2);
+			curve->coeff3 = Numbers(3);
+			curve->var1Min = Numbers(4);
+			curve->var1Max = Numbers(5);
+
 			if ( NumNumbers > 5 && ! lNumericFieldBlanks( 6 ) ) {
 				PerfCurve( CurveNum ).CurveMin = Numbers( 6 );
 				PerfCurve( CurveNum ).CurveMinPresent = true;
+
+				curve->curveMin = Numbers(6);
+				curve->curveMinPresent = true;
 			}
 			if ( NumNumbers > 6 && ! lNumericFieldBlanks( 7 ) ) {
-				PerfCurve( CurveNum ).CurveMax = Numbers( 7 );
-				PerfCurve( CurveNum ).CurveMaxPresent = true;
+				curve->curveMax = Numbers( 7 );
+				curve->curveMaxPresent = true;
 			}
+
+			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
 
 			if ( Numbers( 4 ) > Numbers( 5 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1043,14 +1097,30 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Coeff2 = Numbers( 2 );
 			PerfCurve( CurveNum ).Var1Min = Numbers( 3 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 4 );
+
+			Curves::Linear* curve = new Curves::Linear();
+			curve->name = Alphas(1);
+			curve->coeff1 = Numbers(1);
+			curve->coeff2 = Numbers(2);
+			curve->var1Min = Numbers(3);
+			curve->var1Max = Numbers(4);
+
 			if ( NumNumbers > 4 && ! lNumericFieldBlanks( 5 ) ) {
 				PerfCurve( CurveNum ).CurveMin = Numbers( 5 );
 				PerfCurve( CurveNum ).CurveMinPresent = true;
+
+				curve->curveMin = Numbers(5);
+				curve->curveMinPresent = true;
 			}
 			if ( NumNumbers > 5 && ! lNumericFieldBlanks( 6 ) ) {
 				PerfCurve( CurveNum ).CurveMax = Numbers( 6 );
 				PerfCurve( CurveNum ).CurveMaxPresent = true;
+
+				curve->curveMax = Numbers(6);
+				curve->curveMaxPresent = true;
 			}
+
+			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
 
 			if ( Numbers( 3 ) > Numbers( 4 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );

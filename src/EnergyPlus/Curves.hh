@@ -150,7 +150,7 @@ namespace Curves {
 		virtual ~Curve(){}
 		virtual Type type() const = 0;
 		virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const = 0;
-		virtual Real64 value(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0)
+		virtual Real64 value(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0 ) const
 		{
 			Real64 result = compute(v1, v2, v3, v4, v5);
 			if (curveMinPresent) result = max(result, curveMin);
@@ -164,19 +164,31 @@ namespace Curves {
 	{
 		Real64 coeff1; // constant coefficient
 		Real64 coeff2; // linear coeff (1st independent variable)
+		Real64 var1Max; // maximum of 1st independent variable
+		Real64 var1Min; // minimum of 1st independent variable
 		Linear() :
 			Curve(),
 			coeff1(0.0),
-			coeff2(0.0)
+			coeff2(0.0),
+			var1Max(0.0),
+			var1Min(0.0)
 		{}
 		virtual ~Linear(){}
 		virtual Type type() const
 		{
 			return Curve::Type::Linear;
 		}
-		virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0)
+		virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const
 		{
 			return coeff1 + v1 * coeff2;
+		}
+		virtual Real64 value(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const
+		{
+			v1 = max(min(v1, var1Max), var1Min);
+			Real64 result = compute(v1, v2, v3, v4, v5);
+			if(curveMinPresent) result = max(result, curveMin);
+			if(curveMaxPresent) result = min(result, curveMax);
+			return result;
 		}
 	};
 
@@ -192,7 +204,7 @@ namespace Curves {
 		{
 			return Curve::Type::Quadratic;
 		}
-		virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0)
+		virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const
 		{
 			return coeff1 + v1 * (coeff2 + v1 * coeff3);
 		}
@@ -224,7 +236,7 @@ namespace Curves {
 		{
 			return Curve::Type::RectangularHyperbola1;
 		}
-		virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0)
+		virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const
 		{
 			Real64 curveValueNumer = coeff1 * v1;
 			Real64 curveValueDenom = coeff2 + v1;
@@ -278,7 +290,7 @@ namespace Curves {
 		{
 			return Curve::Type::Cubic;
 		}
-		virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0)
+		virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const
 		{
 			return coeff1 + v1 * (coeff2 + v1 * (coeff3 + v1 * coeff4));
 		}
