@@ -387,6 +387,7 @@ namespace CurveManager {
 	// Object Data
 	extern Array1D< PerfomanceCurveData > PerfCurve;
 	extern std::vector< std::shared_ptr<Curves::Curve> > AllTheCurves;
+	extern std::vector< std::shared_ptr<Curves::Curve> > AllThePressureCurves;
 	extern Array1D< PerfCurveTableDataStruct > PerfCurveTableData;
 	extern Array1D< TableDataStruct > TableData;
 	extern Array1D< TableDataStruct > TempTableData;
