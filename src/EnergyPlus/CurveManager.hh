@@ -71,6 +71,8 @@
 #include <EnergyPlus.hh>
 #include <DataGlobals.hh>
 
+#include <Curves.hh>
+
 namespace EnergyPlus {
 
 namespace CurveManager {
@@ -384,6 +386,7 @@ namespace CurveManager {
 
 	// Object Data
 	extern Array1D< PerfomanceCurveData > PerfCurve;
+	extern std::vector< std::shared_ptr<Curves::Curve> > AllTheCurves;
 	extern Array1D< PerfCurveTableDataStruct > PerfCurveTableData;
 	extern Array1D< TableDataStruct > TableData;
 	extern Array1D< TableDataStruct > TempTableData;

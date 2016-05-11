@@ -538,6 +538,7 @@ namespace CurveManager {
 
 		// allocate the data structure
 		PerfCurve.allocate( NumCurves );
+		AllTheCurves.resize(NumCurves);
 		PerfCurveTableData.allocate( NumLookupTables );
 		TableData.allocate( NumLookupTables );
 		TempTableData.allocate( NumTables );

@@ -55,6 +55,7 @@ SET( SRC
   CostEstimateManager.hh
   CrossVentMgr.cc
   CrossVentMgr.hh
+  Curves.hh
   CurveManager.cc
   CurveManager.hh
   DElightManagerF.cc
