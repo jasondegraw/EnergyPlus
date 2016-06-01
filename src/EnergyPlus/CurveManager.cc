@@ -585,7 +585,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var2Min = Numbers( 9 );
 			PerfCurve( CurveNum ).Var2Max = Numbers( 10 );
 
-			Curves::BiQuadratic* curve = new Curves::BiQuadratic();
+			auto curve = std::make_shared<Curves::BiQuadratic>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -613,7 +613,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 7 ) > Numbers( 8 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -687,7 +687,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var3Min = Numbers( 17 );
 			PerfCurve( CurveNum ).Var3Max = Numbers( 18 );
 
-			Curves::ChillerPartLoadWithLift* curve = new Curves::ChillerPartLoadWithLift();
+			auto curve = std::make_shared<Curves::ChillerPartLoadWithLift>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -723,7 +723,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( NumAlphas >= 2 ) {
 				if ( ! IsCurveInputTypeValid( Alphas( 2 ) ) ) {
@@ -780,7 +780,8 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 5 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 6 );
 
-			Curves::Cubic* curve = new Curves::Cubic();
+			auto curve = std::make_shared<Curves::Cubic>();
+
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -804,7 +805,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 5 ) > Numbers( 6 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -857,7 +858,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 6 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 7 );
 
-			Curves::Quartic* curve = new Curves::Quartic();
+			auto curve = std::make_shared<Curves::Quartic>();
 
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
@@ -883,7 +884,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 6 ) > Numbers( 7 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -934,7 +935,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 4 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 5 );
 
-			Curves::Quadratic* curve = new Curves::Quadratic();
+			auto curve = std::make_shared<Curves::Quadratic>();
 
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
@@ -955,7 +956,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 4 ) > Numbers( 5 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1011,7 +1012,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var2Min = Numbers( 9 );
 			PerfCurve( CurveNum ).Var2Max = Numbers( 10 );
 
-			Curves::QuadraticLinear* curve = new Curves::QuadraticLinear();
+			auto curve = std::make_shared<Curves::QuadraticLinear>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -1039,7 +1040,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 7 ) > Numbers( 8 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1104,7 +1105,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var2Min = Numbers( 9 );
 			PerfCurve( CurveNum ).Var2Max = Numbers( 10 );
 
-			Curves::CubicLinear* curve = new Curves::CubicLinear();
+			auto curve = std::make_shared<Curves::CubicLinear>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -1132,7 +1133,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 7 ) > Numbers( 8 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1191,7 +1192,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 3 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 4 );
 
-			Curves::Linear* curve = new Curves::Linear();
+			auto curve = std::make_shared<Curves::Linear>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -1213,7 +1214,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 3 ) > Numbers( 4 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1272,7 +1273,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var2Min = Numbers( 13 );
 			PerfCurve( CurveNum ).Var2Max = Numbers( 14 );
 
-			Curves::BiCubic* curve = new Curves::BiCubic();
+			auto curve = std::make_shared<Curves::BiCubic>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -1304,7 +1305,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 11 ) > Numbers( 12 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1395,7 +1396,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var3Min = Numbers( 32 );
 			PerfCurve( CurveNum ).Var3Max = Numbers( 33 );
 
-			Curves::TriQuadratic* curve = new Curves::TriQuadratic();
+			auto curve = std::make_shared<Curves::TriQuadratic>();
 			curve->name = Alphas(1);
 			curve->coeffA0 = Numbers(1);
 			curve->coeffA1 = Numbers(2);
@@ -1446,7 +1447,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 28 ) > Numbers( 29 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1525,7 +1526,8 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var4Min = Numbers( 12 );
 			PerfCurve( CurveNum ).Var4Max = Numbers( 13 );
 
-			Curves::QuadLinear* curve = new Curves::QuadLinear();
+			auto curve = std::make_shared<Curves::QuadLinear>();
+
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -1556,7 +1558,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 6 ) > Numbers( 7 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1637,7 +1639,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 4 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 5 );
 
-			Curves::Exponent* curve = new Curves::Exponent();
+			auto curve = std::make_shared<Curves::Exponent>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -1660,7 +1662,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( NumAlphas >= 2 ) {
 				if ( ! IsCurveInputTypeValid( Alphas( 2 ) ) ) {
@@ -1709,7 +1711,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var2Min = Numbers( 7 );
 			PerfCurve( CurveNum ).Var2Max = Numbers( 8 );
 
-			Curves::FanPressureRise* curve = new Curves::FanPressureRise();
+			auto curve = std::make_shared<Curves::FanPressureRise>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -1735,7 +1737,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 5 ) > Numbers( 6 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1782,7 +1784,8 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 5 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 6 );
 
-			Curves::ExponentialSkewNormal* curve = new Curves::ExponentialSkewNormal();
+			auto curve = std::make_shared<Curves::ExponentialSkewNormal>();
+
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -1806,7 +1809,7 @@ namespace CurveManager {
 				curve->curveMinPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 5 ) > Numbers( 6 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1859,7 +1862,8 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 6 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 7 );
 
-			Curves::Sigmoid* curve = new Curves::Sigmoid();
+			auto curve = std::make_shared<Curves::Sigmoid>();
+
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -1884,7 +1888,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 6 ) > Numbers( 7 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -1935,7 +1939,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 4 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 5 );
 
-			Curves::RectangularHyperbola1* curve = new Curves::RectangularHyperbola1();
+			auto curve = std::make_shared<Curves::RectangularHyperbola1>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -1958,7 +1962,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 4 ) > Numbers( 5 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -2009,7 +2013,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 4 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 5 );
 
-			Curves::RectangularHyperbola2* curve = new Curves::RectangularHyperbola2();
+			auto curve = std::make_shared<Curves::RectangularHyperbola2>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -2032,7 +2036,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 4 ) > Numbers( 5 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -2083,7 +2087,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 4 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 5 );
 
-			Curves::ExponentialDecay* curve = new Curves::ExponentialDecay();
+			auto curve = std::make_shared<Curves::ExponentialDecay>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -2106,7 +2110,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			if ( Numbers( 4 ) > Numbers( 5 ) ) { // error
 				ShowSevereError( "GetCurveInput: For " + CurrentModuleObject + ": " + Alphas( 1 ) );
@@ -2159,7 +2163,7 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 6 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 7 );
 
-			Curves::DoubleExponentialDecay* curve = new Curves::DoubleExponentialDecay();
+			auto curve = std::make_shared<Curves::DoubleExponentialDecay>();
 			curve->name = Alphas(1);
 			curve->coeff1 = Numbers(1);
 			curve->coeff2 = Numbers(2);
@@ -2184,7 +2188,7 @@ namespace CurveManager {
 				curve->curveMaxPresent = true;
 			}
 
-			AllTheCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllTheCurves[CurveNum - 1] = curve;
 
 			//  IF (Numbers(4) > Numbers(5)) THEN  ! error
 			//    CALL ShowSevereError('GetCurveInput: For '//TRIM(CurrentModuleObject)//': '//TRIM(Alphas(1)))
@@ -5825,7 +5829,7 @@ Label999: ;
 			PressureCurve( CurveNum ).EquivLength = Numbers( 3 );
 			PressureCurve( CurveNum ).EquivRoughness = Numbers( 4 );
 
-			Curves::PlantPressure* curve = new Curves::PlantPressure();
+			auto curve = std::make_shared<Curves::PlantPressure>();
 			curve->name = Alphas(1);
 			curve->equivDiameter = Numbers(1);
 			curve->minorLossCoeff = Numbers(2);
@@ -5841,7 +5845,7 @@ Label999: ;
 					curve->constantF = Numbers(5);
 				}
 			}
-			AllThePressureCurves[CurveNum - 1] = std::shared_ptr<Curves::Curve>(curve);
+			AllThePressureCurves[CurveNum - 1] = curve;
 		}
 
 		NumPressureCurves = NumPressure;

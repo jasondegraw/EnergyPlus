@@ -68,177 +68,191 @@ namespace EnergyPlus {
 
 namespace Curves {
 
-	Real64 calculateMoodyFrictionFactor(Real64 const ReynoldsNumber, Real64 const RoughnessRatio)
-	{
+Real64 calculateMoodyFrictionFactor(Real64 const ReynoldsNumber, Real64 const RoughnessRatio)
+{
 
-		// FUNCTION INFORMATION:
-		//       AUTHOR         Edwin Lee
-		//       DATE WRITTEN   August 2009
-		//       MODIFIED       na
-		//       RE-ENGINEERED  na
+	// FUNCTION INFORMATION:
+	//       AUTHOR         Edwin Lee
+	//       DATE WRITTEN   August 2009
+	//       MODIFIED       na
+	//       RE-ENGINEERED  na
 
-		// PURPOSE OF THIS FUNCTION:
-		// This will evaluate the moody friction factor based on Reynolds number and roughness ratio
+	// PURPOSE OF THIS FUNCTION:
+	// This will evaluate the moody friction factor based on Reynolds number and roughness ratio
 
-		// METHODOLOGY EMPLOYED:
-		// General empirical correlations for friction factor based on Moody Chart data
+	// METHODOLOGY EMPLOYED:
+	// General empirical correlations for friction factor based on Moody Chart data
 
-		// REFERENCES:
-		// Haaland, SE (1983). "Simple and Explicit Formulas for the Friction Factor in Turbulent Flow".
-		//   Trans. ASIVIE, J. of Fluids Engineering 103: 89-90.
+	// REFERENCES:
+	// Haaland, SE (1983). "Simple and Explicit Formulas for the Friction Factor in Turbulent Flow".
+	//   Trans. ASIVIE, J. of Fluids Engineering 103: 89-90.
 
-		// Return value
-		Real64 CalculateMoodyFrictionFactor;
+	// Return value
+	Real64 CalculateMoodyFrictionFactor;
 
-		// Locals
-		// FUNCTION ARGUMENT DEFINITIONS:
+	// Locals
+	// FUNCTION ARGUMENT DEFINITIONS:
 
-		// FUNCTION PARAMETER DEFINITIONS:
-		// na
+	// FUNCTION PARAMETER DEFINITIONS:
+	// na
 
-		// INTERFACE BLOCK SPECIFICATIONS:
-		// na
+	// INTERFACE BLOCK SPECIFICATIONS:
+	// na
 
-		// DERIVED TYPE DEFINITIONS:
-		// na
+	// DERIVED TYPE DEFINITIONS:
+	// na
 
-		// FUNCTION LOCAL VARIABLE DECLARATIONS:
-		Real64 Term1;
-		Real64 Term2;
-		Real64 Term3;
-		std::string RR;
-		std::string Re;
-		static bool FrictionFactorErrorHasOccurred(false);
+	// FUNCTION LOCAL VARIABLE DECLARATIONS:
+	static bool FrictionFactorErrorHasOccurred(false);
 
-		//Check for no flow before calculating values
-		if (ReynoldsNumber == 0.0) {
-			CalculateMoodyFrictionFactor = 0.0;
-			return CalculateMoodyFrictionFactor;
-		}
-
-		//Check for no roughness also here
-		if (RoughnessRatio == 0.0) {
-			CalculateMoodyFrictionFactor = 0.0;
-			return CalculateMoodyFrictionFactor;
-		}
-
-		//Calculate the friction factor
-		Term1 = std::pow(RoughnessRatio / 3.7, 1.11);
-		Term2 = 6.9 / ReynoldsNumber;
-		Term3 = -1.8 * std::log10(Term1 + Term2);
-		if (Term3 != 0.0) {
-			CalculateMoodyFrictionFactor = std::pow(Term3, -2.0);
-		} else {
-			if (!FrictionFactorErrorHasOccurred) {
-				RR = General::RoundSigDigits(RoughnessRatio, 7);
-				Re = General::RoundSigDigits(ReynoldsNumber, 1);
-				ShowSevereError("Plant Pressure System: Error in moody friction factor calculation");
-				ShowContinueError("Current Conditions: Roughness Ratio=" + RR + "; Reynolds Number=" + Re);
-				ShowContinueError("These conditions resulted in an unhandled numeric issue.");
-				ShowContinueError("Please contact EnergyPlus support/development team to raise an alert about this issue");
-				ShowContinueError("This issue will occur only one time.  The friction factor has been reset to 0.04 for calculations");
-				FrictionFactorErrorHasOccurred = true;
-			}
-			CalculateMoodyFrictionFactor = 0.04;
-		}
-
-		return CalculateMoodyFrictionFactor;
-
+	//Check for no flow before calculating values
+	if (ReynoldsNumber == 0.0) {
+		return 0.0;
 	}
 
-	Real64 PlantPressure::value(Real64 massFlow, Real64 density, Real64 viscosity, Real64, Real64)
-	{
+	//Check for no roughness also here
+	if (RoughnessRatio == 0.0) {
+		return 0.0;
+	}
 
-		// FUNCTION INFORMATION:
-		//       AUTHOR         Edwin Lee
-		//       DATE WRITTEN   August 2009
-		//       MODIFIED       na
-		//       RE-ENGINEERED  na
-
-		// PURPOSE OF THIS FUNCTION:
-		// This will evaluate the pressure drop for components which use pressure information
-
-		// METHODOLOGY EMPLOYED:
-		// Friction factor pressure drop equation:
-		// DP = [f*(L/D) + K] * (rho * V^2) / 2
-
-		// REFERENCES:
-		// na
-
-		// Using/Aliasing
-
-		// Return value
-		Real64 PressureCurveValue;
-
-		// Locals
-		// FUNCTION ARGUMENT DEFINITIONS:
-
-		// FUNCTION PARAMETER DEFINITIONS:
-		// na
-
-		// INTERFACE BLOCK SPECIFICATIONS:
-		// na
-
-		// DERIVED TYPE DEFINITIONS:
-		// na
-
-		// FUNCTION LOCAL VARIABLE DECLARATIONS:
-		//Real64 Diameter;
-		//Real64 MinorLossCoeff;
-		//Real64 Length;
-		//Real64 Roughness;
-		//bool IsConstFPresent;
-		//Real64 ConstantF;
-		Real64 frictionFactor;
-		//Real64 CrossSectArea;
-		//Real64 Velocity;
-		//Real64 ReynoldsNumber;
-		//Real64 RoughnessRatio;
-
-		//Retrieve data from structure
-		//Diameter = PressureCurve(PressureCurveIndex).EquivDiameter;
-		//MinorLossCoeff = PressureCurve(PressureCurveIndex).MinorLossCoeff;
-		//Length = PressureCurve(PressureCurveIndex).EquivLength;
-		//Roughness = PressureCurve(PressureCurveIndex).EquivRoughness;
-		//IsConstFPresent = PressureCurve(PressureCurveIndex).ConstantFPresent;
-		//ConstantF = PressureCurve(PressureCurveIndex).ConstantF;
-
-		//Intermediate calculations
-		Real64 crossSectArea = (DataGlobals::Pi / 4.0) * pow_2(equivDiameter);
-		Real64 velocity = massFlow / (density * crossSectArea);
-		Real64 ReynoldsNumber = density * equivDiameter * velocity / viscosity; //assuming mu here
-		Real64 roughnessRatio = equivRoughness / equivDiameter;
-
-		//If we don't have any flow then exit out
-		if (massFlow < DataBranchAirLoopPlant::MassFlowTolerance) {
-			curveInput1 = massFlow;
-			curveInput2 = density;
-			curveInput3 = velocity;
-			curveOutput = 0.0;
-			return 0.0;
+	//Calculate the friction factor
+	Real64 Term1 = std::pow(RoughnessRatio / 3.7, 1.11);
+	Real64 Term2 = 6.9 / ReynoldsNumber;
+	Real64 Term3 = -1.8 * std::log10(Term1 + Term2);
+	if (Term3 != 0.0) {
+		CalculateMoodyFrictionFactor = std::pow(Term3, -2.0);
+	} else {
+		if (!FrictionFactorErrorHasOccurred) {
+			std::string RR = General::RoundSigDigits(RoughnessRatio, 7);
+			std::string Re = General::RoundSigDigits(ReynoldsNumber, 1);
+			ShowSevereError("Plant Pressure System: Error in moody friction factor calculation");
+			ShowContinueError("Current Conditions: Roughness Ratio=" + RR + "; Reynolds Number=" + Re);
+			ShowContinueError("These conditions resulted in an unhandled numeric issue.");
+			ShowContinueError("Please contact EnergyPlus support/development team to raise an alert about this issue");
+			ShowContinueError("This issue will occur only one time.  The friction factor has been reset to 0.04 for calculations");
+			FrictionFactorErrorHasOccurred = true;
 		}
+		CalculateMoodyFrictionFactor = 0.04;
+	}
 
-		//Calculate the friction factor
-		if (constantFPresent) { //use the constant value
-			frictionFactor = constantF;
-		} else { // must calculate f
-			frictionFactor = calculateMoodyFrictionFactor(ReynoldsNumber, roughnessRatio);
-		}
+	return CalculateMoodyFrictionFactor;
 
-		//Pressure drop calculation
-		PressureCurveValue = (frictionFactor * (equivLength / equivDiameter) + minorLossCoeff) * (density * pow_2(velocity))*0.5;
+}
 
-		if (EMSOverrideOn) {
-			PressureCurveValue = EMSOverrideCurveValue;
-		}
+Real64 PlantPressure::value(Real64 massFlow, Real64 density, Real64 viscosity, Real64, Real64)
+{
 
+	// FUNCTION INFORMATION:
+	//       AUTHOR         Edwin Lee
+	//       DATE WRITTEN   August 2009
+	//       MODIFIED       na
+	//       RE-ENGINEERED  na
+
+	// PURPOSE OF THIS FUNCTION:
+	// This will evaluate the pressure drop for components which use pressure information
+
+	// METHODOLOGY EMPLOYED:
+	// Friction factor pressure drop equation:
+	// DP = [f*(L/D) + K] * (rho * V^2) / 2
+
+	// REFERENCES:
+	// na
+
+	// Using/Aliasing
+
+	// Return value
+	Real64 PressureCurveValue;
+
+	// Locals
+	// FUNCTION ARGUMENT DEFINITIONS:
+
+	// FUNCTION PARAMETER DEFINITIONS:
+	// na
+
+	// INTERFACE BLOCK SPECIFICATIONS:
+	// na
+
+	// DERIVED TYPE DEFINITIONS:
+	// na
+
+	// FUNCTION LOCAL VARIABLE DECLARATIONS:
+	//Real64 Diameter;
+	//Real64 MinorLossCoeff;
+	//Real64 Length;
+	//Real64 Roughness;
+	//bool IsConstFPresent;
+	//Real64 ConstantF;
+	Real64 frictionFactor;
+	//Real64 CrossSectArea;
+	//Real64 Velocity;
+	//Real64 ReynoldsNumber;
+	//Real64 RoughnessRatio;
+
+	//Retrieve data from structure
+	//Diameter = PressureCurve(PressureCurveIndex).EquivDiameter;
+	//MinorLossCoeff = PressureCurve(PressureCurveIndex).MinorLossCoeff;
+	//Length = PressureCurve(PressureCurveIndex).EquivLength;
+	//Roughness = PressureCurve(PressureCurveIndex).EquivRoughness;
+	//IsConstFPresent = PressureCurve(PressureCurveIndex).ConstantFPresent;
+	//ConstantF = PressureCurve(PressureCurveIndex).ConstantF;
+
+	//Intermediate calculations
+	Real64 crossSectArea = (DataGlobals::Pi / 4.0) * pow_2(equivDiameter);
+	Real64 velocity = massFlow / (density * crossSectArea);
+	Real64 ReynoldsNumber = density * equivDiameter * velocity / viscosity; //assuming mu here
+	Real64 roughnessRatio = equivRoughness / equivDiameter;
+
+	//If we don't have any flow then exit out
+	if (massFlow < DataBranchAirLoopPlant::MassFlowTolerance) {
 		curveInput1 = massFlow;
 		curveInput2 = density;
 		curveInput3 = velocity;
-		curveOutput = PressureCurveValue;
-
-		return PressureCurveValue;
+		curveOutput = 0.0;
+		return 0.0;
 	}
+
+	//Calculate the friction factor
+	if (constantFPresent) { //use the constant value
+		frictionFactor = constantF;
+	} else { // must calculate f
+		frictionFactor = calculateMoodyFrictionFactor(ReynoldsNumber, roughnessRatio);
+	}
+
+	//Pressure drop calculation
+	PressureCurveValue = (frictionFactor * (equivLength / equivDiameter) + minorLossCoeff) * (density * pow_2(velocity))*0.5;
+
+	if (EMSOverrideOn) {
+		PressureCurveValue = EMSOverrideCurveValue;
+	}
+
+	curveInput1 = massFlow;
+	curveInput2 = density;
+	curveInput3 = velocity;
+	curveOutput = PressureCurveValue;
+
+	return PressureCurveValue;
+}
+
+static unsigned intervalByBisection(Real64 v, const std::vector<Real64> &x, unsigned i0, unsigned i1)
+{
+	unsigned delta = i1 - i0;
+	if (delta == 1) {
+		return i0;
+	}
+	unsigned mid = (unsigned)0.5*delta;
+	if (v < x[mid]) {
+		return intervalByBisection(v, x, i0, mid);
+	} else if (v == x[mid]) {
+		return mid;
+	}
+	return intervalByBisection(v, x, mid, i1);
+}
+
+Real64 Table1D::compute(Real64 v1, Real64 v2, Real64 v3, Real64 v4, Real64 v5) const
+{
+	unsigned interval = intervalByBisection(v1, x1, 0, x1.size() - 1);
+	return 0.0;
+}
 
 } // Curves
 
