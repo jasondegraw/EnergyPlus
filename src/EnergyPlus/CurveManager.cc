@@ -780,13 +780,10 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 5 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 6 );
 
-			auto curve = std::make_shared<Curves::Cubic>();
+			std::vector<Real64> coeffs = { Numbers(1), Numbers(2), Numbers(3), Numbers(4) };
+			auto curve = std::make_shared<Curves::Polynomial>(coeffs);
 
 			curve->name = Alphas(1);
-			curve->coeff1 = Numbers(1);
-			curve->coeff2 = Numbers(2);
-			curve->coeff3 = Numbers(3);
-			curve->coeff4 = Numbers(4);
 			curve->var1Min = Numbers(5);
 			curve->var1Max = Numbers(6);
 
@@ -858,14 +855,10 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 6 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 7 );
 
-			auto curve = std::make_shared<Curves::Quartic>();
+			std::vector<Real64> coeffs = { Numbers(1), Numbers(2), Numbers(3), Numbers(4), Numbers(5) };
+			auto curve = std::make_shared<Curves::Polynomial>(coeffs);
 
 			curve->name = Alphas(1);
-			curve->coeff1 = Numbers(1);
-			curve->coeff2 = Numbers(2);
-			curve->coeff3 = Numbers(3);
-			curve->coeff4 = Numbers(4);
-			curve->coeff5 = Numbers(5);
 			curve->var1Min = Numbers(6);
 			curve->var1Max = Numbers(7);
 
@@ -935,12 +928,10 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 4 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 5 );
 
-			auto curve = std::make_shared<Curves::Quadratic>();
+			std::vector<Real64> coeffs = { Numbers(1), Numbers(2), Numbers(3) };
+			auto curve = std::make_shared<Curves::Polynomial>(coeffs);
 
 			curve->name = Alphas(1);
-			curve->coeff1 = Numbers(1);
-			curve->coeff2 = Numbers(2);
-			curve->coeff3 = Numbers(3);
 			curve->var1Min = Numbers(4);
 			curve->var1Max = Numbers(5);
 
@@ -1192,10 +1183,10 @@ namespace CurveManager {
 			PerfCurve( CurveNum ).Var1Min = Numbers( 3 );
 			PerfCurve( CurveNum ).Var1Max = Numbers( 4 );
 
-			auto curve = std::make_shared<Curves::Linear>();
+			std::vector<Real64> coeffs = { Numbers(1), Numbers(2) };
+			auto curve = std::make_shared<Curves::Polynomial>(coeffs);
+
 			curve->name = Alphas(1);
-			curve->coeff1 = Numbers(1);
-			curve->coeff2 = Numbers(2);
 			curve->var1Min = Numbers(3);
 			curve->var1Max = Numbers(4);
 

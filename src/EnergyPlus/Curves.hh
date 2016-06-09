@@ -81,7 +81,7 @@ struct Curve
 		Linear, BiLinear, Quadratic, BiQuadratic, Cubic, QuadraticLinear, BiCubic, TriQuadratic,
 		Exponent, Quartic, PlantPressure, MultiVariableLookup, FanPressureRise, ExponentialSkewNormal, Sigmoid,
 		RectangularHyperbola1, RectangularHyperbola2, ExponentialDecay, DoubleExponentialDecay, QuadLinear,
-		CubicLinear, ChillerPartLoadWithLift, Table1D
+		CubicLinear, ChillerPartLoadWithLift, Table1D, Polynomial
 	};
 	enum class Interpolation {
 		Linear, Quadratic, Cubic, Quartic
@@ -199,48 +199,51 @@ struct Curve1D : public Curve
 	}
 };
 
-struct Linear : public Curve1D
+struct Polynomial : public Curve1D
+{
+	std::vector<Real64> coeffs; // all the coefficients
+	Polynomial(const std::vector<Real64> &coefficients = std::vector<Real64>()) :
+		Curve1D(),
+		coeffs(coefficients)
+	{}
+	virtual ~Polynomial(){}
+	virtual Type type() const
+	{
+		switch (coeffs.size()) {
+		case 2:
+			return Type::Linear;
+		case 3:
+			return Type::Quadratic;
+		case 4:
+			return Type::Cubic;
+		case 5:
+			return Type::Quartic;
+		default:
+			return Type::Polynomial;
+		}
+	}
+	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const
+	{
+		Real64 val = 1.0;
+		Real64 result = 0.0;
+		for (auto coeff : coeffs) {
+			result += val*coeff;
+			val *= v1;
+		}
+		return result;
+	}
+};
+
+struct Exponent : public Curve1D
 {
 	Real64 coeff1; // constant coefficient
 	Real64 coeff2; // linear coeff (1st independent variable)
-	Linear() :
+	Real64 coeff3; // quadratic coeff (1st independent variable)
+	Exponent() :
 		Curve1D(),
 		coeff1(0.0),
-		coeff2(0.0)
-	{}
-	virtual ~Linear(){}
-	virtual Type type() const
-	{
-		return Curve::Type::Linear;
-	}
-	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const
-	{
-		return coeff1 + v1 * coeff2;
-	}
-};
-
-struct Quadratic : public Linear
-{
-	Real64 coeff3; // quadratic coeff (1st independent variable)
-	Quadratic() :
-		Linear(),
+		coeff2(0.0),
 		coeff3(0.0)
-	{}
-	virtual ~Quadratic(){}
-	virtual Type type() const
-	{
-		return Curve::Type::Quadratic;
-	}
-	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const
-	{
-		return coeff1 + v1 * (coeff2 + v1 * coeff3);
-	}
-};
-
-struct Exponent : public Quadratic
-{
-	Exponent() :
-		Quadratic()
 	{}
 	virtual ~Exponent(){}
 	virtual Type type() const
@@ -253,10 +256,10 @@ struct Exponent : public Quadratic
 	}
 };
 
-struct RectangularHyperbola1 : public Quadratic
+struct RectangularHyperbola1 : public Exponent
 {
 	RectangularHyperbola1() :
-		Quadratic()
+		Exponent()
 	{}
 	virtual ~RectangularHyperbola1(){}
 	virtual Type type() const
@@ -271,10 +274,10 @@ struct RectangularHyperbola1 : public Quadratic
 	}
 };
 
-struct RectangularHyperbola2 : public Quadratic
+struct RectangularHyperbola2 : public Exponent
 {
 	RectangularHyperbola2() :
-		Quadratic()
+		Exponent()
 	{}
 	virtual ~RectangularHyperbola2(){}
 	virtual Type type() const
@@ -289,10 +292,10 @@ struct RectangularHyperbola2 : public Quadratic
 	}
 };
 
-struct ExponentialDecay : public Quadratic
+struct ExponentialDecay : public Exponent
 {
 	ExponentialDecay() :
-		Quadratic()
+		Exponent()
 	{}
 	virtual ~ExponentialDecay(){}
 	virtual Type type() const
@@ -305,28 +308,12 @@ struct ExponentialDecay : public Quadratic
 	}
 };
 
-struct Cubic : public Quadratic
+struct ExponentialSkewNormal : public Exponent
 {
 	Real64 coeff4; // linear coeff (2nd ind var) or cubic coeff
-	Cubic() :
-		Quadratic(),
-		coeff4(0.0)
-	{}
-	virtual ~Cubic(){}
-	virtual Type type() const
-	{
-		return Curve::Type::Cubic;
-	}
-	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const
-	{
-		return coeff1 + v1 * (coeff2 + v1 * (coeff3 + v1 * coeff4));
-	}
-};
-
-struct ExponentialSkewNormal : public Cubic
-{
 	ExponentialSkewNormal() :
-		Cubic()
+		Exponent(),
+		coeff4(0.0)
 	{}
 	virtual ~ExponentialSkewNormal(){}
 	virtual Type type() const
@@ -347,28 +334,12 @@ struct ExponentialSkewNormal : public Cubic
 	}
 };
 
-struct Quartic : public Cubic
+struct Sigmoid : public ExponentialSkewNormal
 {
 	Real64 coeff5; // quadratic coeff (2nd independent variable)
-	Quartic() :
-		Cubic(),
-		coeff5(0.0)
-	{}
-	virtual ~Quartic(){}
-	virtual Type type() const
-	{
-		return Curve::Type::Quartic;
-	}
-	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const
-	{
-		return coeff1 + v1 * (coeff2 + v1 * (coeff3 + v1 * (coeff4 + v1 * coeff5)));
-	}
-};
-
-struct Sigmoid : public Quartic
-{
 	Sigmoid() :
-		Quartic()
+		ExponentialSkewNormal(),
+		coeff5(0.0)
 	{}
 	virtual ~Sigmoid(){}
 	virtual Type type() const
@@ -382,10 +353,10 @@ struct Sigmoid : public Quartic
 	}
 };
 
-struct DoubleExponentialDecay : public Quartic
+struct DoubleExponentialDecay : public Sigmoid
 {
 	DoubleExponentialDecay() :
-		Quartic()
+		Sigmoid()
 	{}
 	virtual ~DoubleExponentialDecay(){}
 	virtual Type type() const
