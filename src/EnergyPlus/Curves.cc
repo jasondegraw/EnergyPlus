@@ -63,6 +63,7 @@
 #include <DataBranchAirLoopPlant.hh>
 #include <UtilityRoutines.hh>
 #include <Curves.hh>
+#include "Eigen/Dense"
 
 namespace EnergyPlus {
 
@@ -252,6 +253,36 @@ Real64 Table1D::compute(Real64 v1, Real64 v2, Real64 v3, Real64 v4, Real64 v5) c
 {
 	unsigned interval = intervalByBisection(v1, x1, 0, x1.size() - 1);
 	return 0.0;
+}
+
+Polynomial* Polynomial::leastSquaresFit(unsigned order, const std::vector<Real64> &x, const std::vector<double> &y)
+{
+	if (order < 2) {
+		// Error message
+		return nullptr;
+	}
+	unsigned n = std::min(x.size(), y.size());
+	if (order < n) {
+		// Error message
+		return nullptr;
+	}
+	Eigen::VectorXd b(n);
+	Eigen::MatrixXd A(n, order);
+	for (unsigned i = 0; i < n; i++) {
+		b[i] = y[i];
+		A(i, 0) = 1.0;
+		for (unsigned j = 1; j < order; j++) {
+			A(i, j) = A(i, j - 1)*x[i];
+		}
+	}
+	Eigen::VectorXd c = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+	std::vector<Real64> coeffs(order);
+	for (unsigned j = 0; j < order; j++) {
+		coeffs[j] = c[j];
+	}
+	Polynomial *poly =  new Polynomial(coeffs);
+	poly->m_fromTabularData = true;
+	return poly;
 }
 
 } // Curves

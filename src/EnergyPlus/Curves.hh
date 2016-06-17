@@ -204,7 +204,8 @@ struct Polynomial : public Curve1D
 	std::vector<Real64> coeffs; // all the coefficients
 	Polynomial(const std::vector<Real64> &coefficients = std::vector<Real64>()) :
 		Curve1D(),
-		coeffs(coefficients)
+		coeffs(coefficients),
+		m_fromTabularData(false)
 	{}
 	virtual ~Polynomial(){}
 	virtual Type type() const
@@ -232,6 +233,9 @@ struct Polynomial : public Curve1D
 		}
 		return result;
 	}
+	static Polynomial* leastSquaresFit(unsigned order, const std::vector<Real64> &x, const std::vector<double> &y);
+private:
+	bool m_fromTabularData;
 };
 
 struct Exponent : public Curve1D

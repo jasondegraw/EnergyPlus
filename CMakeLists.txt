@@ -155,6 +155,14 @@ IF(NOT APPLE )
   ADD_SUBDIRECTORY(third_party/FMUParser)
 ENDIF()
 ADD_SUBDIRECTORY(third_party/jsoncpp)
+include(ExternalProject)
+ExternalProject_Add(eigen
+  URL http://bitbucket.org/eigen/eigen/get/3.2.8.tar.gz
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND "")
+include_directories(${CMAKE_BINARY_DIR}/eigen-prefix/src/eigen)
+
 
 # of course E+ itself
 ADD_SUBDIRECTORY(src/EnergyPlus)
