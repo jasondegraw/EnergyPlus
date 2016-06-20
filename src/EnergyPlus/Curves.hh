@@ -81,10 +81,13 @@ struct Curve
 		Linear, BiLinear, Quadratic, BiQuadratic, Cubic, QuadraticLinear, BiCubic, TriQuadratic,
 		Exponent, Quartic, PlantPressure, MultiVariableLookup, FanPressureRise, ExponentialSkewNormal, Sigmoid,
 		RectangularHyperbola1, RectangularHyperbola2, ExponentialDecay, DoubleExponentialDecay, QuadLinear,
-		CubicLinear, ChillerPartLoadWithLift, Table1D, Polynomial
+		CubicLinear, ChillerPartLoadWithLift, Table1D, Table2D, Polynomial
 	};
 	enum class Interpolation {
 		Linear, Quadratic, Cubic, Quartic
+	};
+	enum class TableInterpolation {
+		Linear, LagrangeWithLinearExtrapolation
 	};
 	// Members
 	std::string name; // curve Name
@@ -772,8 +775,8 @@ struct Table1D : public Curve1D
 {
 	std::vector<Real64> x1; // independent variable
 	std::vector<Real64> y; // dependent variable
-	const Interpolation interpolation; // type of interpolation
-	Table1D(Interpolation interp = Interpolation::Linear) :
+	const TableInterpolation interpolation; // type of interpolation
+	Table1D(TableInterpolation interp = TableInterpolation::Linear) :
 		Curve1D(),
 		interpolation(interp)
 	{}
@@ -781,6 +784,25 @@ struct Table1D : public Curve1D
 	virtual Type type() const
 	{
 		return Curve::Type::Table1D;
+	}
+	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const;
+
+};
+
+struct Table2D : public Curve2D
+{
+	std::vector<Real64> x1; // first independent variable
+	std::vector<Real64> x2; // second independent variable
+	std::vector<Real64> y; // dependent variable
+	const TableInterpolation interpolation; // type of interpolation
+	Table2D(TableInterpolation interp = TableInterpolation::Linear) :
+		Curve2D(),
+		interpolation(interp)
+	{}
+	virtual ~Table2D(){}
+	virtual Type type() const
+	{
+		return Curve::Type::Table2D;
 	}
 	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const;
 

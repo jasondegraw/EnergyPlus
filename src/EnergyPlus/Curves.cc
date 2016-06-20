@@ -249,12 +249,6 @@ static unsigned intervalByBisection(Real64 v, const std::vector<Real64> &x, unsi
 	return intervalByBisection(v, x, mid, i1);
 }
 
-Real64 Table1D::compute(Real64 v1, Real64 v2, Real64 v3, Real64 v4, Real64 v5) const
-{
-	unsigned interval = intervalByBisection(v1, x1, 0, x1.size() - 1);
-	return 0.0;
-}
-
 Polynomial* Polynomial::leastSquaresFit(unsigned order, const std::vector<Real64> &x, const std::vector<double> &y)
 {
 	if (order < 2) {
@@ -283,6 +277,34 @@ Polynomial* Polynomial::leastSquaresFit(unsigned order, const std::vector<Real64
 	Polynomial *poly =  new Polynomial(coeffs);
 	poly->m_fromTabularData = true;
 	return poly;
+}
+
+Real64 Table1D::compute(Real64 v1, Real64 v2, Real64 v3, Real64 v4, Real64 v5) const
+{
+	unsigned interval = intervalByBisection(v1, x1, 0, x1.size() - 1);
+	switch (interpolation) {
+	case TableInterpolation::LagrangeWithLinearExtrapolation:
+		// Lagrange goes here
+		break;
+	default:
+		// Linear goes here
+		break;
+	}
+	return 0.0;
+}
+
+Real64 Table2D::compute(Real64 v1, Real64 v2, Real64 v3, Real64 v4, Real64 v5) const
+{
+	unsigned interval = intervalByBisection(v1, x1, 0, x1.size() - 1);
+	switch (interpolation) {
+	case TableInterpolation::LagrangeWithLinearExtrapolation:
+		// Lagrange goes here
+		break;
+	default:
+		// Linear goes here
+		break;
+	}
+	return 0.0;
 }
 
 } // Curves
