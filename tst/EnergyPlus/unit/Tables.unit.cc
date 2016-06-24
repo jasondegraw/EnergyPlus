@@ -2577,6 +2577,48 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_EvaluateToLimits_OneIV) {
 		"2,                       !- <none>",
 		"3,                       !- <none>",
 		"4,                       !- <none>",
+		"2;                       !- <none>",
+		"Table:MultiVariableLookup,",
+		"TestTable7,              !- Name",
+		"EvaluateCurveToLimits,   !- Interpolation Method",
+		"2,                       !- Number of Interpolation Points",
+		"Quartic,                 !- Curve Type",
+		"SingleLineIndependentVariableWithMatrix,  !- Table Data Format",
+		",                        !- External File Name",
+		"ASCENDING,               !- X1 Sort Order",
+		",                        !- X2 Sort Order",
+		",                        !- Normalization Reference",
+		"0,                       !- Minimum Value of X1",
+		"10,                      !- Maximum Value of X1",
+		",                        !- Minimum Value of X2",
+		",                        !- Maximum Value of X2",
+		",                        !- Minimum Value of X3",
+		",                        !- Maximum Value of X3",
+		",                        !- Minimum Value of X4",
+		",                        !- Maximum Value of X4",
+		",                        !- Minimum Value of X5",
+		",                        !- Maximum Value of X5",
+		",                        !- Minimum Table Output",
+		",                        !- Maximum Table Output",
+		"Dimensionless,           !- Input Unit Type for X1",
+		",                        !- Input Unit Type for X2",
+		",                        !- Input Unit Type for X3",
+		",                        !- Input Unit Type for X4",
+		",                        !- Input Unit Type for X5",
+		"Dimensionless,           !- Output Unit Type",
+		"1,                       !- Number of Independent Variables",
+		"6,                       !- Number of Values for Independent Variable X1",
+		"0,                       !- Field 1 Determined by the Number of Independent Variables",
+		"1,                       !- Field 2 Determined by the Number of Independent Variables",
+		"2,                       !- Field 3 Determined by the Number of Independent Variables",
+		"3,                       !- <none>",
+		"4,                       !- <none>",
+		"5,                       !- <none>",
+		"0,                       !- <none>",
+		"2,                       !- <none>",
+		"2,                       !- <none>",
+		"3,                       !- <none>",
+		"4,                       !- <none>",
 		"2;                       !- <none>"
 	});
 
@@ -2585,7 +2627,7 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_EvaluateToLimits_OneIV) {
 	EXPECT_EQ(0, CurveManager::NumCurves);
 	CurveManager::GetCurveInput();
 	CurveManager::GetCurvesInputFlag = false;
-	ASSERT_EQ(6, CurveManager::NumCurves);
+	ASSERT_EQ(7, CurveManager::NumCurves);
 
 	// Linear curve type
 	EXPECT_EQ("LINEAR", CurveManager::GetCurveType(1));
@@ -2720,6 +2762,29 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_EvaluateToLimits_OneIV) {
 	EXPECT_DOUBLE_EQ(0.5, CurveManager::CurveValue(6, 0)); // Value too small
 	EXPECT_DOUBLE_EQ(1.0, CurveManager::CurveValue(6, 5)); // Value too large
 
+	// Quartic curve type with extrapolation
+	EXPECT_EQ("QUARTIC", CurveManager::GetCurveType(7));
+	EXPECT_EQ("TESTTABLE7", CurveManager::GetCurveName(7));
+	EXPECT_EQ(7, CurveManager::GetCurveIndex("TESTTABLE7"));
+	error = false;
+	index = CurveManager::GetCurveCheck("TESTTABLE7", error, "TEST");
+	EXPECT_FALSE(error);
+	EXPECT_EQ(7, index);
+	CurveManager::GetCurveMinMaxValues(7, min, max);
+	EXPECT_EQ(0, min);
+	EXPECT_EQ(10, max);
+	EXPECT_EQ(CurveManager::CurveType_TableMultiIV, CurveManager::GetCurveObjectTypeNum(7));
+
+	EXPECT_NEAR(0.007936507936507936, CurveManager::CurveValue(7, 0), 1.0e-12); // In-range value
+	EXPECT_NEAR(1.96031746031746, CurveManager::CurveValue(7, 1.0), 1.0e-12); // In-range value
+	EXPECT_NEAR(0.007936507936507936, CurveManager::CurveValue(7, -10.0), 1.0e-12); // Minimum x
+	EXPECT_NEAR(-386.3015873015872, CurveManager::CurveValue(7, 5000), 1.0e-09); // Maximum x
+
+	CurveManager::SetCurveOutputMinMaxValues(7, error, 0.5, 1.0);
+	EXPECT_FALSE(error);
+	EXPECT_DOUBLE_EQ(0.5, CurveManager::CurveValue(7, 0)); // Value too small
+	EXPECT_DOUBLE_EQ(1.0, CurveManager::CurveValue(7, 5)); // Value too large
+
 	EXPECT_FALSE(has_err_output());
 }
 
@@ -2773,7 +2838,7 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_Lagrange_OneIV) {
 		"TestTable2,              !- Name",
 		"LagrangeInterpolationLinearExtrapolation,  !- Interpolation Method",
 		"2,                       !- Number of Interpolation Points",
-		"Linear,               !- Curve Type",
+		"Linear,                  !- Curve Type",
 		"SingleLineIndependentVariableWithMatrix,  !- Table Data Format",
 		",                        !- External File Name",
 		"ASCENDING,               !- X1 Sort Order",
@@ -3079,7 +3144,7 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_Linear_TwoIV) {
 		"TestTable1,              !- Name",
 		"LinearInterpolationOfTable,  !- Interpolation Method",
 		"2,                       !- Number of Interpolation Points",
-		"Linear,               !- Curve Type",
+		"Linear,                  !- Curve Type",
 		"SingleLineIndependentVariableWithMatrix,  !- Table Data Format",
 		",                        !- External File Name",
 		"ASCENDING,               !- X1 Sort Order",
@@ -3138,8 +3203,8 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_Linear_TwoIV) {
 		",                        !- Normalization Reference",
 		"0,                       !- Minimum Value of X1",
 		"5,                       !- Maximum Value of X1",
-		",                        !- Minimum Value of X2",
-		",                        !- Maximum Value of X2",
+		"0,                       !- Minimum Value of X2",
+		"3,                       !- Maximum Value of X2",
 		",                        !- Minimum Value of X3",
 		",                        !- Maximum Value of X3",
 		",                        !- Minimum Value of X4",
@@ -3398,10 +3463,12 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_Linear_TwoIV) {
 	int index = CurveManager::GetCurveCheck("TESTTABLE1", error, "TEST");
 	EXPECT_FALSE(error);
 	EXPECT_EQ(1, index);
-	Real64 min, max;
-	CurveManager::GetCurveMinMaxValues(1, min, max);
-	EXPECT_EQ(0, min);
-	EXPECT_EQ(5, max);
+	Real64 min1, max1, min2, max2;
+	CurveManager::GetCurveMinMaxValues(1, min1, max1, min2, max2);
+	EXPECT_EQ(0, min1);
+	EXPECT_EQ(5, max1);
+	EXPECT_EQ(1, min2);
+	EXPECT_EQ(2, max2);
 	EXPECT_EQ(CurveManager::CurveType_TableMultiIV, CurveManager::GetCurveObjectTypeNum(1));
 
 	EXPECT_DOUBLE_EQ(0.25, CurveManager::CurveValue(1, 0, 1.25)); // In-range value
@@ -3424,9 +3491,11 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_Linear_TwoIV) {
 	index = CurveManager::GetCurveCheck("TESTTABLE2", error, "TEST");
 	EXPECT_FALSE(error);
 	EXPECT_EQ(2, index);
-	CurveManager::GetCurveMinMaxValues(2, min, max);
-	EXPECT_EQ(0, min);
-	EXPECT_EQ(5, max);
+	CurveManager::GetCurveMinMaxValues(2, min1, max1, min2, max2);
+	EXPECT_EQ(0, min1);
+	EXPECT_EQ(5, max1);
+	EXPECT_EQ(1, min2);
+	EXPECT_EQ(2, max2);
 	EXPECT_EQ(CurveManager::CurveType_TableMultiIV, CurveManager::GetCurveObjectTypeNum(2));
 
 	EXPECT_DOUBLE_EQ(0.5, CurveManager::CurveValue(2, 0, 1.25)); // Value too small
@@ -3441,9 +3510,11 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_Linear_TwoIV) {
 	index = CurveManager::GetCurveCheck("TESTTABLE3", error, "TEST");
 	EXPECT_FALSE(error);
 	EXPECT_EQ(3, index);
-	CurveManager::GetCurveMinMaxValues(3, min, max);
-	EXPECT_EQ(0, min);
-	EXPECT_EQ(5, max);
+	CurveManager::GetCurveMinMaxValues(3, min1, max1, min2, max2);
+	EXPECT_EQ(0, min1);
+	EXPECT_EQ(5, max1);
+	EXPECT_EQ(1, min2);
+	EXPECT_EQ(2, max2);
 	EXPECT_EQ(CurveManager::CurveType_TableMultiIV, CurveManager::GetCurveObjectTypeNum(3));
 
 	EXPECT_DOUBLE_EQ(0.25, CurveManager::CurveValue(3, 0, 1.25)); // In-range value
@@ -3466,9 +3537,11 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_Linear_TwoIV) {
 	index = CurveManager::GetCurveCheck("TESTTABLE4", error, "TEST");
 	EXPECT_FALSE(error);
 	EXPECT_EQ(4, index);
-	CurveManager::GetCurveMinMaxValues(4, min, max);
-	EXPECT_EQ(0, min);
-	EXPECT_EQ(5, max);
+	CurveManager::GetCurveMinMaxValues(4, min1, max1, min2, max2);
+	EXPECT_EQ(0, min1);
+	EXPECT_EQ(5, max1);
+	EXPECT_EQ(1, min2);
+	EXPECT_EQ(2, max2);
 	EXPECT_EQ(CurveManager::CurveType_TableMultiIV, CurveManager::GetCurveObjectTypeNum(4));
 
 	EXPECT_DOUBLE_EQ(0.25, CurveManager::CurveValue(4, 0, 1.25)); // In-range value
@@ -3491,9 +3564,11 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_Linear_TwoIV) {
 	index = CurveManager::GetCurveCheck("TESTTABLE5", error, "TEST");
 	EXPECT_FALSE(error);
 	EXPECT_EQ(5, index);
-	CurveManager::GetCurveMinMaxValues(5, min, max);
-	EXPECT_EQ(0, min);
-	EXPECT_EQ(5, max);
+	CurveManager::GetCurveMinMaxValues(5, min1, max1, min2, max2);
+	EXPECT_EQ(0, min1);
+	EXPECT_EQ(5, max1);
+	EXPECT_EQ(1, min2);
+	EXPECT_EQ(2, max2);
 	EXPECT_EQ(CurveManager::CurveType_TableMultiIV, CurveManager::GetCurveObjectTypeNum(5));
 
 	EXPECT_DOUBLE_EQ(0.25, CurveManager::CurveValue(5, 0, 1.25)); // In-range value
@@ -3516,9 +3591,11 @@ TEST_F(EnergyPlusFixture, Tables_MultiVariableLookup_Linear_TwoIV) {
 	index = CurveManager::GetCurveCheck("TESTTABLE6", error, "TEST");
 	EXPECT_FALSE(error);
 	EXPECT_EQ(6, index);
-	CurveManager::GetCurveMinMaxValues(6, min, max);
-	EXPECT_EQ(0, min);
-	EXPECT_EQ(5, max);
+	CurveManager::GetCurveMinMaxValues(6, min1, max1, min2, max2);
+	EXPECT_EQ(0, min1);
+	EXPECT_EQ(5, max1);
+	EXPECT_EQ(1, min2);
+	EXPECT_EQ(2, max2);
 	EXPECT_EQ(CurveManager::CurveType_TableMultiIV, CurveManager::GetCurveObjectTypeNum(6));
 
 	EXPECT_DOUBLE_EQ(0.25, CurveManager::CurveValue(6, 0, 1.25)); // In-range value
