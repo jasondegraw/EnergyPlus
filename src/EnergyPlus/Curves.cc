@@ -307,6 +307,53 @@ Real64 Table2D::compute(Real64 v1, Real64 v2, Real64 v3, Real64 v4, Real64 v5) c
 	return 0.0;
 }
 
+Real64 Table3D::compute(Real64 v1, Real64 v2, Real64 v3, Real64 v4, Real64 v5) const
+{
+	unsigned interval = intervalByBisection(v1, x1, 0, x1.size() - 1);
+	switch(interpolation) {
+	case TableInterpolation::LagrangeWithLinearExtrapolation:
+		// Lagrange goes here
+		break;
+	default:
+		// Linear goes here
+		break;
+	}
+	return 0.0;
+}
+
+Real64 Table4D::compute(Real64 v1, Real64 v2, Real64 v3, Real64 v4, Real64 v5) const
+{
+	unsigned interval = intervalByBisection(v1, x1, 0, x1.size() - 1);
+	switch(interpolation) {
+	case TableInterpolation::LagrangeWithLinearExtrapolation:
+		// Lagrange goes here
+		break;
+	default:
+		// Linear goes here
+		break;
+	}
+	return 0.0;
+}
+
+Real64 Table5D::compute(Real64 v1, Real64 v2, Real64 v3, Real64 v4, Real64 v5) const
+{
+	unsigned interval = intervalByBisection(v1, x1, 0, x1.size() - 1);
+	switch(interpolation) {
+	case TableInterpolation::LagrangeWithLinearExtrapolation:
+		// Lagrange goes here
+		break;
+	default:
+		// Linear goes here
+		break;
+	}
+	return 0.0;
+}
+
+Real64 TableMultiVariable::value(Real64 v1, Real64 v2, Real64 v3, Real64 v4, Real64 v5)
+{
+	return 0.0;
+}
+
 } // Curves
 
 } // EnergyPlus

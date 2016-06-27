@@ -79,15 +79,15 @@ struct Curve
 {
 	enum class Type {
 		Linear, BiLinear, Quadratic, BiQuadratic, Cubic, QuadraticLinear, BiCubic, TriQuadratic,
-		Exponent, Quartic, PlantPressure, MultiVariableLookup, FanPressureRise, ExponentialSkewNormal, Sigmoid,
+		Exponent, Quartic, PlantPressure, TableMultiVariable, FanPressureRise, ExponentialSkewNormal, Sigmoid,
 		RectangularHyperbola1, RectangularHyperbola2, ExponentialDecay, DoubleExponentialDecay, QuadLinear,
-		CubicLinear, ChillerPartLoadWithLift, Table1D, Table2D, Polynomial
+		CubicLinear, ChillerPartLoadWithLift, Table1D, Table2D, Table3D, Table4D, Table5D, Polynomial
 	};
 	enum class Interpolation {
 		Linear, Quadratic, Cubic, Quartic
 	};
 	enum class TableInterpolation {
-		Linear, LagrangeWithLinearExtrapolation
+		Linear, LagrangeWithLinearExtrapolation, LagrangeQuadratic, LagrangeCubic, LagrangeQuartic
 	};
 	// Members
 	std::string name; // curve Name
@@ -805,6 +805,144 @@ struct Table2D : public Curve2D
 		return Curve::Type::Table2D;
 	}
 	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const;
+
+};
+
+struct Curve5D : public Curve4D
+{
+	Real64 var5Max; // maximum of 5th independent variable
+	Real64 var5Min; // minimum of 5th independent variable
+	Curve5D() :
+		Curve4D(),
+		var5Max(0.0),
+		var5Min(0.0)
+	{}
+	virtual ~Curve5D(){}
+	virtual Type type() const = 0;
+	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const = 0;
+	virtual Real64 value(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0)
+	{
+		curveInput1 = v1;
+		curveInput2 = v2;
+		curveInput3 = v3;
+		curveInput4 = v4;
+		curveInput5 = v5;
+		v1 = max(min(v1, var1Max), var1Min);
+		v2 = max(min(v2, var2Max), var2Min);
+		v3 = max(min(v3, var3Max), var3Min);
+		v4 = max(min(v4, var4Max), var4Min);
+		v5 = max(min(v5, var5Max), var5Min);
+		Real64 result = compute(v1, v2, v3, v4, v5);
+		if(curveMinPresent) {
+			result = max(result, curveMin);
+		}
+		if(curveMaxPresent) {
+			result = min(result, curveMax);
+		}
+		curveOutput = result;
+		return result;
+	}
+};
+
+struct Table3D : public Curve3D
+{
+	std::vector<Real64> x1; // first independent variable
+	std::vector<Real64> x2; // second independent variable
+	std::vector<Real64> x3; // second independent variable
+	std::vector<Real64> y; // dependent variable
+	const TableInterpolation interpolation; // type of interpolation
+	const unsigned order; // interpolation order
+	Table3D(TableInterpolation interp = TableInterpolation::Linear, unsigned interpolationOrder = 2) :
+		Curve3D(),
+		interpolation(interp),
+		order(interpolationOrder)
+	{}
+	virtual ~Table3D(){}
+	virtual Type type() const
+	{
+		return Curve::Type::Table3D;
+	}
+	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const;
+
+};
+
+struct Table4D : public Curve4D
+{
+	std::vector<Real64> x1; // first independent variable
+	std::vector<Real64> x2; // second independent variable
+	std::vector<Real64> x3; // third independent variable
+	std::vector<Real64> x4; // fourth independent variable
+	std::vector<Real64> y; // dependent variable
+	const TableInterpolation interpolation; // type of interpolation
+	const unsigned order; // interpolation order
+	Table4D(TableInterpolation interp = TableInterpolation::Linear, unsigned interpolationOrder = 2) :
+		Curve4D(),
+		interpolation(interp),
+		order(interpolationOrder)
+	{}
+	virtual ~Table4D(){}
+	virtual Type type() const
+	{
+		return Curve::Type::Table4D;
+	}
+	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const;
+
+};
+
+struct Table5D : public Curve5D
+{
+	std::vector<Real64> x1; // first independent variable
+	std::vector<Real64> x2; // second independent variable
+	std::vector<Real64> x3; // third independent variable
+	std::vector<Real64> x4; // fourth independent variable
+	std::vector<Real64> x5; // fifth independent variable
+	std::vector<Real64> y; // dependent variable
+	const TableInterpolation interpolation; // type of interpolation
+	const unsigned order; // interpolation order
+	Table5D(TableInterpolation interp = TableInterpolation::Linear, unsigned interpolationOrder = 2) :
+		Curve5D(),
+		interpolation(interp),
+		order(interpolationOrder)
+	{}
+	virtual ~Table5D(){}
+	virtual Type type() const
+	{
+		return Curve::Type::Table5D;
+	}
+	virtual Real64 compute(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0) const;
+
+};
+
+struct TableMultiVariable : public Curve
+{
+	Real64 var1Max; // maximum of 1st independent variable
+	Real64 var1Min; // minimum of 1st independent variable
+	Real64 var2Max; // maximum of 2nd independent variable
+	Real64 var2Min; // minimum of 2nd independent variable
+	Real64 var3Max; // maximum of 3rd independent variable
+	Real64 var3Min; // minimum of 3rd independent variable
+	Real64 var4Max; // maximum of 4th independent variable
+	Real64 var4Min; // minimum of 4th independent variable
+	Real64 var5Max; // maximum of 5th independent variable
+	Real64 var5Min; // minimum of 5th independent variable
+	unsigned independentVars; // number of independent variables
+	unsigned interpolationOrder; // number of points to interpolate (table data only)
+	const TableInterpolation interpolation; // type of interpolation
+	Array1D< Real64 > X1Var;
+	Array1D< Real64 > X2Var;
+	Array1D< Real64 > X3Var;
+	Array1D< Real64 > X4Var;
+	Array1D< Real64 > X5Var;
+	Array5D< Real64 > TableLookupZData;
+
+	// Default Constructor
+	TableMultiVariable() : Curve(), independentVars(0), interpolationOrder(0), interpolation(TableInterpolation::Linear)
+	{}
+	virtual Type type() const
+	{
+		return Curve::Type::TableMultiVariable;
+	}
+	virtual Real64 value(Real64 v1, Real64 v2 = 0, Real64 v3 = 0, Real64 v4 = 0, Real64 v5 = 0);
 
 };
 
