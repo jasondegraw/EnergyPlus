@@ -6,7 +6,7 @@ language: cpp
 # Compiler selection
 compiler:
   - gcc
-#before_install:
+before_install:
   - sudo apt-get -qq update
 # Build steps
 script:
