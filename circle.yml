@@ -1,0 +1,5 @@
+compile:
+  override:
+    - mkdir build
+    - cd build
+    - cmake -DBUILD_TESTING=ON .. && make -j 4
