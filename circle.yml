@@ -1,7 +1,7 @@
 compile:
   override:
     - mkdir build
-    - cd build && cmake -DBUILD_FORTRAN=ON -DBUILD_PACKAGE=ON -DCPACK_GENERATOR=STGZ .. && make -j 4 package
+    - cd build && cmake -DBUILD_TESTING=ON -DBUILD_FORTRAN=ON -DBUILD_PACKAGE=ON -DCPACK_GENERATOR=STGZ .. && make package
 test:
   override:
     - build/Products/energyplus_tests
