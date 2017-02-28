@@ -2,19 +2,27 @@ FROM ubuntu:14.04
 
 MAINTAINER Jason W. DeGraw jason.degraw@nrel.gov
 
-# Downloading from Github
+# Github repo
 ENV ENERGYPLUS_REPO_URL https://github.com/NREL/EnergyPlus.git
 
+
 # Set up, clone the repo, and build
-RUN apt-get update && apt-get install -y git cmake g++ python \
+RUN apt-get update && apt-get install -y git cmake g++ gfortran python \
     && mkdir energyplus \
     && cd energyplus \
     && git clone -b develop --single-branch $ENERGYPLUS_REPO_URL . \
+    && export ENERGYPLUS_SHA=$(git rev-parse --short=10 HEAD) \
+    && export MAJOR=$(grep -Po 'set\( CMAKE_VERSION_MAJOR \K[0-9] (?=\))' CMakeLists.txt) \
+    && export MINOR=$(grep -Po 'set\( CMAKE_VERSION_MINOR \K[0-9] (?=\))' CMakeLists.txt) \
+    && export PATCH=$(grep -Po 'set\( CMAKE_VERSION_PATCH \K[0-9] (?=\))' CMakeLists.txt) \
+    && export ENERGYPLUS_VERSION=$(echo $MAJOR.$MINOR.$PATCH) \
     && mkdir build \
     && cd build \
-    && cmake -DBUILD_TESTING=ON .. \
+    && cmake -DBUILD_TESTING=ON -DBUILD_PACKAGE=ON -DCPACK_GENERATOR=STGZ -DBUILD_FORTRAN=ON .. \
     && make -j 4 \
-    && make install
+    && make package \
+    && chmod +x EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-x86_64.sh \
+    && echo "y\r" | ./EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-x86_64.sh
 
 # Remove the broken symlinks
 #RUN cd /usr/local/bin \
