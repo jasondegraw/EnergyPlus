@@ -206,6 +206,9 @@ SET( SRC
   ElectricPowerServiceManager.hh
   ElectricPowerServiceManager.cc
   EnergyPlus.hh
+  ErrorCodes.hh
+  ErrorTracking.cc
+  ErrorTracking.hh
   EvaporativeCoolers.cc
   EvaporativeCoolers.hh
   EvaporativeFluidCoolers.cc
@@ -657,6 +660,8 @@ endif()
 if (WIN32)
   target_link_libraries( energypluslib Shlwapi )
 endif()
+
+target_link_libraries( energypluslib fmt ) #::fmt-header-only )
 
 # second we will create the shared library that is actually packaged with EnergyPlus
 add_library( energyplusapi SHARED  CommandLineInterface.hh CommandLineInterface.cc EnergyPlusPgm.cc public/EnergyPlusPgm.hh )

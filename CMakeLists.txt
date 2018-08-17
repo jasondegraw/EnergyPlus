@@ -179,6 +179,8 @@ IF( NOT APPLE )
   ADD_SUBDIRECTORY(third_party/FMUParser)
 ENDIF()
 ADD_SUBDIRECTORY(third_party/Windows-CalcEngine)
+ADD_SUBDIRECTORY(third_party/fmt-5.1.0)
+#INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/third_party/fmt-5.0.0/include )
 
 # Kiva
 option( BUILD_GROUND_PLOT "Build ground plotting library (for Kiva debugging only)" OFF )

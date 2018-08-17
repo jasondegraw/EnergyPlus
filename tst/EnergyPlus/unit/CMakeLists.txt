@@ -57,6 +57,7 @@ set( test_src
   ElectricBaseboardRadiator.unit.cc
   ElectricPowerServiceManager.unit.cc
   EMSManager.unit.cc
+  ErrorTracking.unit.cc
   EvaporativeCoolers.unit.cc
   ExteriorEnergyUse.unit.cc
   FanCoilUnits.unit.cc

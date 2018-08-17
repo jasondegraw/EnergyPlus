@@ -472,6 +472,13 @@ for starter in startObj:
     finders.append(finder)
     print('\tFound %d' % finder.count)
 
+# Stick to fatals to start with
+termination_group = []
+for call in finders[-1].calls[filepath]:
+    print(call.line,call.message)
+    if 'cause program termination' in call.message:
+        termination_group.append(call)
+
 ##fp = open('results.csv','w')
 ##
 ##for fcn in allnames.splitlines():
