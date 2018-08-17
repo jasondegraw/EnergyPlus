@@ -54,11 +54,11 @@
 #include <iostream>
 
 // EnergyPlus Headers
-#define NO_USING_OBJEXXFCL
 #include <EnergyPlus.hh>
 #include <UtilityRoutines.hh>
-#undef NO_USING_OBJEXXFCL
 #include <ErrorCodes.hh>
+
+#include "fmt/printf.h"
 
 namespace EnergyPlus {
 
@@ -260,9 +260,9 @@ namespace ErrorTracking {
         {
             size_t index = (size_t)code;
             if (index >= RECURRING_COUNT) {
-                return RecurringError(EventType::Error, "DEV0000", fmt::sprintf("Internal Error: Index %d out of range", index));
+                return RecurringError(EventType::Error, "DEV0000", fmtlib::sprintf("Internal Error: Index %d out of range", index));
             }
-            std::string oneLiner = fmt::vsprintf(events[index].oneLiner, fmt::make_printf_args(args...));
+            std::string oneLiner = fmtlib::vsprintf(events[index].oneLiner, fmtlib::make_printf_args(args...));
             return RecurringError(events[index].type,
                                   events[index].label,
                                   oneLiner,
@@ -290,15 +290,15 @@ namespace ErrorTracking {
         {
             size_t index = (size_t)code;
             if (index >= WARNING_COUNT) {
-                write(fmt::sprintf(" **  Error  ** [DEV0000] Internal Error: Warning index %d out of range", index));
+                write(fmtlib::sprintf(" **  Error  ** [DEV0000] Internal Error: Warning index %d out of range", index));
                 ++warningBadIndex;
                 return;
             }
             auto &object = warnings[index];
             try {
-                write(fmt::vsprintf(object.format, fmt::make_printf_args(args...)));
+                write(fmtlib::vsprintf(object.format, fmtlib::make_printf_args(args...)));
             } catch (...) {
-                write(fmt::sprintf(
+                write(fmtlib::sprintf(
                     " ** Warning ** [%s] Exception thrown during warning processing at line %d in %s", errorcodes::warningcodes[index], line, file));
                 ++warning_exceptions;
             }
@@ -308,16 +308,16 @@ namespace ErrorTracking {
         {
             size_t index = (size_t)code;
             if (index >= ERROR_COUNT) {
-                write(fmt::sprintf(" **  Error  ** [DEV0000] Internal Error: Error index %d out of range", index));
+                write(fmtlib::sprintf(" **  Error  ** [DEV0000] Internal Error: Error index %d out of range", index));
                 ++errorBadIndex;
                 return;
             }
 
             auto &object = errors[index];
             try {
-                write(fmt::vsprintf(object.format, fmt::make_printf_args(args...)));
+                write(fmtlib::vsprintf(object.format, fmtlib::make_printf_args(args...)));
             } catch (...) {
-                write(fmt::sprintf(
+                write(fmtlib::sprintf(
                     " **  Error  ** [%s] Exception thrown during error processing at line %d in %s", errorcodes::errorcodes[index], line, file));
                 ++error_exceptions;
             }
@@ -334,9 +334,9 @@ namespace ErrorTracking {
         {
             try {
                 handle->update(args...);
-                write(fmt::vsprintf(handle->format, fmt::make_printf_args(args...)));
+                write(fmtlib::vsprintf(handle->format, fmtlib::make_printf_args(args...)));
             } catch (...) {
-                write(fmt::sprintf(" **  Error  ** [%s] Exception thrown during error processing at line %d in %s", handle->label, line, file));
+                write(fmtlib::sprintf(" **  Error  ** [%s] Exception thrown during error processing at line %d in %s", handle->label, line, file));
             }
         }
         */
@@ -346,19 +346,19 @@ namespace ErrorTracking {
             size_t index = (size_t)code;
             if (index >= FATAL_COUNT) {
                 ++fatalBadIndex;
-                //ShowFatalError(fmt::sprintf(" **  Error  ** [DEV0000] Internal Error: Error index %d out of range", index));
-                ShowFatalError(fmt::sprintf("Internal Error: Error index %d out of range", index));
+                //ShowFatalError(fmtlib::sprintf(" **  Error  ** [DEV0000] Internal Error: Error index %d out of range", index));
+                ShowFatalError(fmtlib::sprintf("Internal Error: Error index %d out of range", index));
             }
 
             auto &object = fatals[index];
             ++object.count;
             std::string message;
             try {
-                message = fmt::vsprintf(object.showFormat, fmt::make_printf_args(args...));
+                message = fmtlib::vsprintf(object.showFormat, fmtlib::make_printf_args(args...));
             } catch (...) {
                 ++fatalExceptions;
                 ShowFatalError(
-                    fmt::sprintf(
+                    fmtlib::sprintf(
                     //" **  Error  ** [%s] Exception thrown during fatal processing at line %d in %s", object.label, line, file));
                     "Exception thrown during fatal processing at line %d in %s",
                     //object.label,
@@ -373,15 +373,15 @@ namespace ErrorTracking {
             std::cout << "\n===== Recurring Error Summary =====\nThe following recurring error messages occurred.\n";
             for (auto &s : stored) {
                 std::cout << s.summary << std::endl;
-                std::cout << fmt::sprintf(" **   ~~~   ** This error occurred %d total times;\n", s.count);
+                std::cout << fmtlib::sprintf(" **   ~~~   ** This error occurred %d total times;\n", s.count);
                 if (!s.max_label.empty()) {
-                    std::cout << fmt::sprintf(" **   ~~~   ** Maximum value of \"%s\": %f;\n", s.max_label, s.max_value);
+                    std::cout << fmtlib::sprintf(" **   ~~~   ** Maximum value of \"%s\": %f;\n", s.max_label, s.max_value);
                 }
                 if (!s.min_label.empty()) {
-                    std::cout << fmt::sprintf(" **   ~~~   ** Minimum value of \"%s\": %f;\n", s.min_label, s.min_value);
+                    std::cout << fmtlib::sprintf(" **   ~~~   ** Minimum value of \"%s\": %f;\n", s.min_label, s.min_value);
                 }
                 if (!s.sum_label.empty()) {
-                    std::cout << fmt::sprintf(" **   ~~~   ** Minimum value of \"%s\": %f;\n", s.sum_label, s.min_value);
+                    std::cout << fmtlib::sprintf(" **   ~~~   ** Minimum value of \"%s\": %f;\n", s.sum_label, s.min_value);
                 }
             }
         }*/
@@ -389,9 +389,9 @@ namespace ErrorTracking {
         std::string diagnostics()
         {
             std::string result("\n===== Error Diagnostic Report =====\nThe following issues occurred during error processing.");
-            // write(fmt::sprintf(" %d exceptions during fatal processing", fatal_exceptions));
-            // write(fmt::sprintf(" %d exceptions during error processing", error_exceptions));
-            // write(fmt::sprintf(" %d exceptions during warning processing", warning_exceptions));
+            // write(fmtlib::sprintf(" %d exceptions during fatal processing", fatal_exceptions));
+            // write(fmtlib::sprintf(" %d exceptions during error processing", error_exceptions));
+            // write(fmtlib::sprintf(" %d exceptions during warning processing", warning_exceptions));
         }
 
         void write(const std::string &message)

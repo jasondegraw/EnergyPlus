@@ -52,9 +52,7 @@
 
 // EnergyPlus Headers
 #include <EnergyPlus/ErrorTracking.hh>
-#define NO_USING_OBJEXXFCL
 #include "Fixtures/EnergyPlusFixture.hh"
-#undef NO_USING_OBJEXXFCL
 
 namespace EnergyPlus {
 
@@ -63,7 +61,6 @@ void throwGEN000(ErrorTracking::Tracker &tracker)
     tracker.fatal(ErrorTracking::FatalCode::GEN000, __FILE__, __LINE__, "throwGEN000");
 }
 
-
 TEST_F(EnergyPlusFixture, FatalErrors)
 {
     std::string const fatal_string = delimited_string({"   **  Fatal  ** throwGEN000: Program terminates for preceding reason(s).",
@@ -71,7 +68,7 @@ TEST_F(EnergyPlusFixture, FatalErrors)
                                                        "   ..... Reference severe error count=0",
                                                        "   ..... Last severe error="});
     std::string howmuch("too");
-    fmt::printf("Well, that was %s complicated\n", howmuch);
+    fmtlib::printf("Well, that was %s complicated\n", howmuch);
     ErrorTracking::Tracker tracker;
     ASSERT_THROW(throwGEN000(tracker), std::runtime_error);
     //tracker.fatal(ErrorTracking::FatalCode::GEN000, __FILE__, __LINE__, "FatalErrors");
