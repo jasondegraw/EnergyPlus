@@ -54,6 +54,17 @@ ErrorTracking::Tracker tracker;
 
 namespace ErrorTracking {
 
+    std::array<LoggedEvent, ERROR_COUNT> Tracker::errors
+    {
+        {
+            {
+                EventType::Error, "AFN001", 
+                "%s: An AirLoop branch, %s, has two or more fans: %s\n The AirflowNetwork model allows a single supply fan in an AirLoop only. Please make changes in the input file accordingly.",
+                "%s: An AirLoop branch, %s, has two or more fans: %s\n The AirflowNetwork model allows a single supply fan in an AirLoop only. Please make changes in the input file accordingly."
+             }
+        }
+    };
+
     std::array<LoggedEvent, FATAL_COUNT> Tracker::fatals
     {
         {

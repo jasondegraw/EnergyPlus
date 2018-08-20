@@ -49,7 +49,7 @@
 #define ErrorCodes_hh_INCLUDED
 
 #define WARNING_COUNT 0
-#define ERROR_COUNT 0
+#define ERROR_COUNT 1
 #define RECURRING_COUNT 1
 #define FATAL_COUNT 2
 
@@ -63,7 +63,7 @@ namespace ErrorTracking {
 
     enum class ErrorCode
     {
-
+        AFN001, // More than one fan on air loop, argument(s): Routine name, Branch name, Fan names (string)
     };
 
     enum class RecurringCode

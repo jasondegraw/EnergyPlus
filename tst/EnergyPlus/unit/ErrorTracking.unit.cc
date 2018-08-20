@@ -61,7 +61,7 @@ void throwGEN000(ErrorTracking::Tracker &tracker)
     tracker.fatal(ErrorTracking::FatalCode::GEN000, __FILE__, __LINE__, "throwGEN000");
 }
 
-TEST_F(EnergyPlusFixture, FatalErrors)
+TEST_F(EnergyPlusFixture, FatalError)
 {
     std::string const fatal_string = delimited_string({"   **  Fatal  ** throwGEN000: Program terminates for preceding reason(s).",
                                                        "   ...Summary of Errors that led to program termination:",
@@ -74,6 +74,40 @@ TEST_F(EnergyPlusFixture, FatalErrors)
     //tracker.fatal(ErrorTracking::FatalCode::GEN000, __FILE__, __LINE__, "FatalErrors");
     compare_err_stream(fatal_string);
     compare_cout_stream("**FATAL:throwGEN000: Program terminates for preceding reason(s).\n");
+}
+
+void throwGEN000Badly(ErrorTracking::Tracker &tracker)
+{
+    tracker.fatal(ErrorTracking::FatalCode::GEN000, __FILE__, __LINE__, 42);
+}
+
+TEST_F(EnergyPlusFixture, FatalErrorException)
+{
+    std::string const fatal_string = delimited_string({fmtlib::sprintf("   **  Fatal  ** Exception thrown during fatal processing at line 81 in %s.", __FILE__),
+                                                       "   ...Summary of Errors that led to program termination:",
+                                                       "   ..... Reference severe error count=0",
+                                                       "   ..... Last severe error="});
+    ErrorTracking::Tracker tracker;
+    ASSERT_THROW(throwGEN000Badly(tracker), std::runtime_error);
+    compare_err_stream(fatal_string);
+    compare_cout_stream(fmtlib::sprintf("**FATAL:Exception thrown during fatal processing at line 81 in %s.\n", __FILE__));
+}
+
+void throwBadError(ErrorTracking::Tracker &tracker)
+{
+    tracker.fatal(static_cast<ErrorTracking::FatalCode>(-1000), __FILE__, __LINE__, "throwBadError");
+}
+
+TEST_F(EnergyPlusFixture, FatalErrorIndexError)
+{
+    std::string const fatal_string = delimited_string({"   **  Fatal  ** Internal Error: Error index -1000 out of range.",
+                                                       "   ...Summary of Errors that led to program termination:",
+                                                       "   ..... Reference severe error count=0",
+                                                       "   ..... Last severe error="});
+    ErrorTracking::Tracker tracker;
+    ASSERT_THROW(throwBadError(tracker), std::runtime_error);
+    compare_err_stream(fatal_string);
+    compare_cout_stream("**FATAL:Internal Error: Error index -1000 out of range.\n");
 }
 
 } // namespace EnergyPlus

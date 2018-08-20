@@ -10204,10 +10204,13 @@ namespace AirflowNetworkBalanceManager {
                 if (NumOfFans > 1) break;
             }
             if (NumOfFans > 1) {
-                ShowSevereError(RoutineName + "An AirLoop branch, " + PrimaryAirSystem(1).Branch(BranchNum).Name +
-                                ", has two or more fans: " + FanNames);
-                ShowContinueError(
-                    "The AirflowNetwork model allows a single supply fan in an AirLoop only. Please make changes in the input file accordingly.");
+                // ShowSevereError(RoutineName + "An AirLoop branch, " + PrimaryAirSystem(1).Branch(BranchNum).Name +
+                //                ", has two or more fans: " + FanNames);
+                // ShowContinueError(
+                //    "The AirflowNetwork model allows a single supply fan in an AirLoop only. Please make changes in the input file
+                //    accordingly.");
+                tracker.error(
+                    ErrorTracking::ErrorCode::AFN001, __FILE__, __LINE__, routineName, PrimaryAirSystem(1).Branch(BranchNum).Name, FanNames);
                 ErrorsFound = true;
             }
 

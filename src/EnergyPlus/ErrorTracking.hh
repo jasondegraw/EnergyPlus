@@ -308,18 +308,20 @@ namespace ErrorTracking {
         {
             size_t index = (size_t)code;
             if (index >= ERROR_COUNT) {
-                write(fmtlib::sprintf(" **  Error  ** [DEV0000] Internal Error: Error index %d out of range", index));
                 ++errorBadIndex;
+                // ShowSevereError(fmtlib::sprintf(" **  Error  ** [DEV0000] Internal Error: Error index %d out of range", index));
+                ShowSevereError(fmtlib::sprintf("Internal Error: Error index %d out of range.", index));
                 return;
             }
 
             auto &object = errors[index];
             try {
-                write(fmtlib::vsprintf(object.format, fmtlib::make_printf_args(args...)));
+                ShowSevereError(fmtlib::vsprintf(object.showFormat, fmtlib::make_printf_args(args...)));
             } catch (...) {
-                write(fmtlib::sprintf(
-                    " **  Error  ** [%s] Exception thrown during error processing at line %d in %s", errorcodes::errorcodes[index], line, file));
-                ++error_exceptions;
+                ++errorExceptions;
+                //write(fmtlib::sprintf(" **  Error  ** [%s] Exception thrown during error processing at line %d in %s", object.label, line, file));
+                ShowSevereError(
+                    fmtlib::sprintf("Exception thrown during error processing at line %d in %s.", object.label, line, file));
             }
         }
 
@@ -346,8 +348,8 @@ namespace ErrorTracking {
             size_t index = (size_t)code;
             if (index >= FATAL_COUNT) {
                 ++fatalBadIndex;
-                //ShowFatalError(fmtlib::sprintf(" **  Error  ** [DEV0000] Internal Error: Error index %d out of range", index));
-                ShowFatalError(fmtlib::sprintf("Internal Error: Error index %d out of range", index));
+                //ShowFatalError(fmtlib::sprintf(" **  Error  ** [DEV0000] Internal Error: Error index %d out of range.", index));
+                ShowFatalError(fmtlib::sprintf("Internal Error: Error index %d out of range.", index));
             }
 
             auto &object = fatals[index];
@@ -359,8 +361,8 @@ namespace ErrorTracking {
                 ++fatalExceptions;
                 ShowFatalError(
                     fmtlib::sprintf(
-                    //" **  Error  ** [%s] Exception thrown during fatal processing at line %d in %s", object.label, line, file));
-                    "Exception thrown during fatal processing at line %d in %s",
+                    //" **  Error  ** [%s] Exception thrown during fatal processing at line %d in %s.", object.label, line, file));
+                    "Exception thrown during fatal processing at line %d in %s.",
                     //object.label,
                     line,
                     file));
@@ -411,7 +413,7 @@ namespace ErrorTracking {
         int warningBadIndex;
 
         // static std::array<LoggingEvent, 1> warnings;
-        // static std::array<LoggingEvent, 1> errors;
+        static std::array<LoggedEvent, ERROR_COUNT> errors;
         static std::array<LoggedEvent, FATAL_COUNT> fatals;
     };
 
