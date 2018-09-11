@@ -3761,8 +3761,36 @@ namespace General {
             while (std::getline(stream, substring, delimiter)) { // Loop and fill the results vector
                 results.push_back(substring);
             }
-            if (*(string.end() - 1) == ',') { // Add an empty string if the last char is the delimiter
+            if (*(string.end() - 1) == delimiter) { // Add an empty string if the last char is the delimiter
                 results.push_back(std::string());
+            }
+        }
+        return results;
+    }
+
+    std::vector<std::string> splitString(const std::string &string, const std::string &delimiter)
+    {
+        std::vector<std::string> results;
+        size_t skip = delimiter.size();
+        size_t length = string.size();
+        if (length > 0) { // Only do work if there is work to do
+            if (skip == 0) {
+                return { string };
+            }
+            size_t start = 0;
+            size_t end;
+            while ( (end = string.find(delimiter, start)) != std::string::npos ) { // Loop and fill the results vector
+                results.push_back(string.substr(start,end-start));
+                start = end + skip;
+                if (start == length) { // The string ended with the delimiter
+                    results.push_back(std::string());
+                    return results;
+                } else if (start + skip >= length) { // There is not enough room for another delimiter
+                    break;
+                }
+            }
+            if (start < length) { // Add in the remainder of the string
+                results.push_back(string.substr(start, length-start));
             }
         }
         return results;

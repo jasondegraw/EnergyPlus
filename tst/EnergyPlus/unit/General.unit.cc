@@ -369,4 +369,79 @@ TEST(General, nthDayOfWeekOfMonth_test)
     EXPECT_EQ(62, nthDayOfWeekOfMonth(4, 1, 3)); // first wednesday of march
 }
 
+TEST(General, SplitStringByChar)
+{
+    std::string teststring0("EnergyPlusXEnergyPlusXEnergyPlus");
+    std::string teststring1("EnergyPlusXEnergyPlusXEnergyPlusX");
+
+    auto split0 = General::splitString("", 'x');
+    EXPECT_EQ(0, split0.size());
+
+    auto split1 = General::splitString(teststring0, 'x');
+    ASSERT_EQ(1, split1.size());
+    EXPECT_EQ("EnergyPlusXEnergyPlusXEnergyPlus", split1[0]);
+
+    auto split2 = General::splitString(teststring0, 'X');
+    ASSERT_EQ(3, split2.size());
+    for (auto &str : split2) {
+        EXPECT_EQ("EnergyPlus", str);
+    }
+
+    auto split3 = General::splitString(teststring1, 'X');
+    ASSERT_EQ(4, split3.size());
+    for (size_t i = 0; i < 3; i++) {
+        EXPECT_EQ("EnergyPlus", split3[i]);
+    }
+    EXPECT_TRUE(split3[3].empty());
+}
+
+TEST(General, SplitStringByString)
+{
+    std::string teststring0("EnergyPlusXEnergyPlusXEnergyPlus");
+    std::string teststring1("EnergyPlusXEnergyPlusXEnergyPlusX");
+    std::string teststring2("EnergyPlusXEnergyPlusXEnergyPlusXEn");
+
+    auto split0 = General::splitString("", "x");
+    EXPECT_EQ(0, split0.size());
+
+    auto split1 = General::splitString(teststring0, "x");
+    ASSERT_EQ(1, split1.size());
+    EXPECT_EQ("EnergyPlusXEnergyPlusXEnergyPlus", split1[0]);
+
+    auto split2 = General::splitString(teststring0, "X");
+    ASSERT_EQ(3, split2.size());
+    for (auto &str : split2) {
+        EXPECT_EQ("EnergyPlus", str);
+    }
+
+    auto split3 = General::splitString(teststring1, "X");
+    ASSERT_EQ(4, split3.size());
+    for (size_t i = 0; i < 3; i++) {
+        EXPECT_EQ("EnergyPlus", split3[i]);
+    }
+    EXPECT_TRUE(split3[3].empty());
+
+    auto split4 = General::splitString(teststring1, "PlusX");
+    ASSERT_EQ(4, split4.size());
+    for (size_t i = 0; i < 3; i++) {
+        EXPECT_EQ("Energy", split4[i]);
+    }
+    EXPECT_TRUE(split3[3].empty());
+
+    auto split5 = General::splitString(teststring1, "Plus");
+    ASSERT_EQ(4, split5.size());
+    EXPECT_EQ("Energy", split5[0]);
+    for (size_t i = 1; i < 3; i++) {
+        EXPECT_EQ("XEnergy", split5[i]);
+    }
+    EXPECT_EQ("X", split5[3]);
+
+    auto split6 = General::splitString(teststring2, "PlusX");
+    ASSERT_EQ(4, split5.size());
+    for (size_t i = 0; i < 3; i++) {
+        EXPECT_EQ("Energy", split6[i]);
+    }
+    EXPECT_EQ("En", split6[3]);
+}
+
 } // namespace EnergyPlus

@@ -49,49 +49,105 @@
 #define ErrorTracking_hh_INCLUDED
 
 #include <array>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
 
 // EnergyPlus Headers
+#include <DataErrorTracking.hh>
+#include <DataGlobals.hh>
+#include <DataStringGlobals.hh>
 #include <EnergyPlus.hh>
-#include <UtilityRoutines.hh>
 #include <ErrorCodes.hh>
+#include <General.hh>
+#include <SQLiteProcedures.hh>
+#include <UtilityRoutines.hh>
 
+#include "fmt/format.h"
 #include "fmt/printf.h"
+
+#ifndef NDEBUG
+#define THROWASSERT(pred) (pred) ? true : throw std::runtime_error(fmtlib::sprintf("Assertion failed on line %s of %s", __FILE__, __LINE__))
+#else
+#define THROWASSERT(pred)
+#endif
 
 namespace EnergyPlus {
 
 namespace ErrorTracking {
 
-    enum class EventType
+    struct Event
     {
-        Info,
-        Debug,
-        Warning,
-        Error, // An event has occurred that will eventually require termination
-        Fatal
-    };
-
-    struct LoggedEvent
-    {
-        LoggedEvent(const EventType type,
-                    const std::string &label,
-                    const std::string &showFormat,
-                    const std::string &storeFormat)
-            : type(type), label(label), showFormat(showFormat), storeFormat(storeFormat), count(0)
+        enum class Type
         {
+            Warning,
+            Error, // An event has occurred that will eventually require termination
+            Fatal
+        };
+        Event(const Type type, const std::string &label, const std::vector<std::string> &format, const std::vector<std::string> &parameters)
+            : type(type), label(label), message(format), parameters(parameters), count(0)
+        {
+            THROWASSERT(format.size() > 0);
         }
 
-        const EventType type;                      // Type of event
-        const std::string label;                   // A string label for the event
-        const std::string showFormat;             // Format format for display to the user
-        const std::string storeFormat;            // Format format for storage formats
-        int count;                                 // The number of times this event has been logged
+        template <typename... Args> std::string format(const Args &... args)
+        {
+#ifndef NDEBUG
+            auto unexpected = unexpectedParameters(args...);
+            if (unexpected.size() > 0) {
+                std::string message = fmtlib::sprintf(" Unexpected parameters passed to event [%s]:", label);
+                for (auto &param : unexpected) {
+                    message += ' ' + param;
+                }
+                throw std::runtime_error(message);
+            }
+#endif
 
+            std::string raw_format;
+            std::string raw_message;
+
+            for (auto &str : message) {
+                raw_format += str + DataStringGlobals::NL;
+            }
+
+            try {
+                raw_message = fmtlib::format(raw_format, args...);
+            } catch (...) {
+                //++errorExceptions;
+                // write(fmtlib::sprintf(" **  Error  ** [%s] Exception thrown during error processing at line %d in %s", object.label, line, file));
+                // ShowSevereError(fmtlib::sprintf("Exception thrown during error processing at line %d in %s.", object.label, line, file));
+            }
+
+            return raw_message;
+        }
+
+#ifndef NDEBUG
+        template <typename T> std::vector<std::string> unexpectedParameters(const T &first)
+        {
+            if (std::find(parameters.begin(), parameters.end(), first.name) == parameters.end()) {
+                return std::vector<std::string>(first.name);
+            }
+            return std::vector<std::string>();
+        }
+
+        template <typename T, typename... Args> std::vector<std::string> unexpectedParameters(const T &first, const Args &... args)
+        {
+            std::vector<std::string> results = unexpectedParameters(args...);
+            if (std::find(parameters.begin(), parameters.end(), first.name) == parameters.end()) {
+                results.push_back(first.name);
+            }
+            return results;
+        }
+#endif
+
+        const Type type;                           // Type of event
+        const std::string label;                   // A string label for the event
+        const std::vector<std::string> message;    // Format string
+        const std::vector<std::string> parameters; // Parameters for the format
+        int count;                                 // The number of times this event has been logged
     };
 
-    struct TrackedEvent : public LoggedEvent
+    struct TrackedEvent : public Event
     {
         enum class Tracking
         {
@@ -104,15 +160,16 @@ namespace ErrorTracking {
             MaxSum,
             MinMaxSum
         };
-        TrackedEvent(const EventType type,
+        TrackedEvent(const Type type,
                      const std::string &label,
-                     const std::string &summaryFormat,
-                     const std::string &showFormat,
-                     const std::string &storeFormat,
-                     const std::vector<Tracking> &tracking = {},
-                     const std::array<std::string, 3> labels = {{{}, {}, {}}})
-            : LoggedEvent(type, label, showFormat, storeFormat), summaryFormat(summaryFormat), tracking(tracking), min_value(std::numeric_limits<double>::infinity()),
-              min_label(labels[0]), max_value(-std::numeric_limits<double>::infinity()), max_label(labels[1]), sum_value(0), sum_label(labels[2])
+                     const std::vector<std::string> &format,
+                     const std::vector<std::string> &parameters,
+                     // const std::vector<std::string> &additional_info,
+                     // const std::vector<std::string> &additional_parameters,
+                     const std::vector<Tracking> &tracking = {})
+            : Event(type, label, format, parameters), tracking(tracking), min_value(std::numeric_limits<double>::infinity()),
+              min_label(findMinLabel(parameters, tracking)), max_value(-std::numeric_limits<double>::infinity()),
+              max_label(findMaxLabel(parameters, tracking)), sum_value(0), sum_label(findSumLabel(parameters, tracking))
         {
         }
 
@@ -123,7 +180,43 @@ namespace ErrorTracking {
             }
         }
 
-        const std::string summaryFormat;
+        static std::string findMinLabel(const std::vector<std::string> &parameters, const std::vector<Tracking> &tracking)
+        {
+            auto iterP = parameters.begin();
+            auto iterT = tracking.end();
+            while (iterP != parameters.end() && iterT != tracking.end()) {
+                if (*iterT == Tracking::Min || *iterT == Tracking::MinMax || *iterT == Tracking::MinSum || *iterT == Tracking::MinMaxSum) {
+                    return *iterP;
+                }
+            }
+            return {};
+        }
+
+        static std::string findMaxLabel(const std::vector<std::string> &parameters, const std::vector<Tracking> &tracking)
+        {
+            auto iterP = parameters.begin();
+            auto iterT = tracking.end();
+            while (iterP != parameters.end() && iterT != tracking.end()) {
+                if (*iterT == Tracking::Max || *iterT == Tracking::MinMax || *iterT == Tracking::MaxSum || *iterT == Tracking::MinMaxSum) {
+                    return *iterP;
+                }
+            }
+            return {};
+        }
+
+        static std::string findSumLabel(const std::vector<std::string> &parameters, const std::vector<Tracking> &tracking)
+        {
+            auto iterP = parameters.begin();
+            auto iterT = tracking.end();
+            while (iterP != parameters.end() && iterT != tracking.end()) {
+                if (*iterT == Tracking::Sum || *iterT == Tracking::MinSum || *iterT == Tracking::MaxSum || *iterT == Tracking::MinMaxSum) {
+                    return *iterP;
+                }
+            }
+            return {};
+        }
+
+        const std::string summary;
         const std::vector<Tracking> tracking;
         double min_value;
         const std::string min_label;
@@ -182,6 +275,8 @@ namespace ErrorTracking {
                     max_value = std::max(max_value, val);
                     sum_value += val;
                     break;
+                case Type::None:
+                    [[fallthrough]];
                 default:
                     // None is do nothing
                     break;
@@ -240,19 +335,19 @@ namespace ErrorTracking {
             Maximum,
             Sum
         };
-        RecurringError(const TrackedEvent &event, int showlimit = std::numeric_limits<int>::infinity())
-            : TrackedEvent(event.type, event.label, event.summaryFormat, event.showFormat, event.storeFormat, event.tracking), showlimit(showlimit)
-        {
-        }
-        RecurringError(const EventType type,
+        // RecurringError(const TrackedEvent &event, int showlimit = std::numeric_limits<int>::infinity())
+        //    : TrackedEvent(event.type, event.label, event.format, event.summary, event.storeFormat, event.tracking), showlimit(showlimit)
+        //{
+        //}
+        RecurringError(const Type type,
                        const std::string &label,
-                       const std::string &summaryFormat,
-                       const std::string &showFormat,
-                       const std::string &storeFormat,
+                       const std::vector<std::string> &format,
+                       const std::vector<std::string> &parameters,
+                       const std::string &summary,
                        const std::vector<Tracking> &types = {},
                        const std::array<std::string, 3> labels = {{{}, {}, {}}},
                        int showlimit = 0)
-            : TrackedEvent(type, label, summaryFormat, showFormat, storeFormat, types, labels), showlimit(showlimit)
+            : TrackedEvent(type, label, format, parameters, types), summary(summary), showlimit(showlimit)
         {
         }
 
@@ -274,6 +369,7 @@ namespace ErrorTracking {
         }
 
         const int showlimit;
+        const std::string summary;
         static std::array<TrackedEvent, RECURRING_COUNT> events;
     };
 
@@ -314,14 +410,33 @@ namespace ErrorTracking {
                 return;
             }
 
-            auto &object = errors[index];
-            try {
-                ShowSevereError(fmtlib::vsprintf(object.showFormat, fmtlib::make_printf_args(args...)));
-            } catch (...) {
+            std::string message = errors[index].format(args...);
+            if (message.empty()) {
                 ++errorExceptions;
-                //write(fmtlib::sprintf(" **  Error  ** [%s] Exception thrown during error processing at line %d in %s", object.label, line, file));
-                ShowSevereError(
-                    fmtlib::sprintf("Exception thrown during error processing at line %d in %s.", object.label, line, file));
+                // write(fmtlib::sprintf(" **  Error  ** [%s] Exception thrown during error processing at line %d in %s", object.label, line, file));
+                message = fmtlib::sprintf("Exception thrown during error processing for code %s at line %d in %s.", errors[index].label, line, file);
+            }
+
+            last_error_message = message;
+
+            // These machinations are needed to conform to the old behavior (for now)
+            auto lines = General::splitString(message, DataStringGlobals::NL);
+            THROWASSERT(lines.size() > 0);
+            // There must be at least one line.
+            DataErrorTracking::LastSevereError = lines[0];
+            std::string show_message = " ** Severe  ** " + lines[0];
+            std::string store_message = lines[0];
+
+            for (size_t i = 1; i < lines.size(); ++i) {
+                show_message += DataStringGlobals::NL + " **   ~~~   ** " + lines[i];
+                store_message += "  " + lines[i];
+            }
+            show_message += DataStringGlobals::NL;
+
+            ShowErrorMessage(show_message);
+
+            if (sqlite) {
+                sqlite->createSQLiteErrorRecord(1, 1, store_message, 1);
             }
         }
 
@@ -348,7 +463,7 @@ namespace ErrorTracking {
             size_t index = (size_t)code;
             if (index >= FATAL_COUNT) {
                 ++fatalBadIndex;
-                //ShowFatalError(fmtlib::sprintf(" **  Error  ** [DEV0000] Internal Error: Error index %d out of range.", index));
+                // ShowFatalError(fmtlib::sprintf(" **  Error  ** [DEV0000] Internal Error: Error index %d out of range.", index));
                 ShowFatalError(fmtlib::sprintf("Internal Error: Error index %d out of range.", index));
             }
 
@@ -356,14 +471,14 @@ namespace ErrorTracking {
             ++object.count;
             std::string message;
             try {
-                message = fmtlib::vsprintf(object.showFormat, fmtlib::make_printf_args(args...));
+                // Assume that fatals are one-liners for now
+                message = fmtlib::vsprintf(object.message.at(0), fmtlib::make_printf_args(args...));
             } catch (...) {
                 ++fatalExceptions;
-                ShowFatalError(
-                    fmtlib::sprintf(
+                ShowFatalError(fmtlib::sprintf(
                     //" **  Error  ** [%s] Exception thrown during fatal processing at line %d in %s.", object.label, line, file));
                     "Exception thrown during fatal processing at line %d in %s.",
-                    //object.label,
+                    // object.label,
                     line,
                     file));
             }
@@ -401,7 +516,7 @@ namespace ErrorTracking {
             std::cout << message << std::endl;
         }
 
-        // std::string last_error_message;
+        std::string last_error_message;
 
         // std::vector<RecurringError> stored;
         int fatalExceptions;
@@ -413,13 +528,11 @@ namespace ErrorTracking {
         int warningBadIndex;
 
         // static std::array<LoggingEvent, 1> warnings;
-        static std::array<LoggedEvent, ERROR_COUNT> errors;
-        static std::array<LoggedEvent, FATAL_COUNT> fatals;
+        static std::array<Event, ERROR_COUNT> errors;
+        static std::array<Event, FATAL_COUNT> fatals;
     };
 
-
 } // namespace ErrorTracking
-
 
 extern ErrorTracking::Tracker tracker;
 

@@ -372,6 +372,7 @@ namespace General {
     }
 
     std::vector<std::string> splitString(const std::string &string, char delimiter);
+    std::vector<std::string> splitString(const std::string &string, const std::string &delimiter);
 
 } // namespace General
 

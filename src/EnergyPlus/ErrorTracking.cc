@@ -54,26 +54,43 @@ ErrorTracking::Tracker tracker;
 
 namespace ErrorTracking {
 
-    std::array<LoggedEvent, ERROR_COUNT> Tracker::errors
-    {
+    std::array<Event, ERROR_COUNT> Tracker::errors{
         {
             {
-                EventType::Error, "AFN001", 
-                "%s: An AirLoop branch, %s, has two or more fans: %s\n The AirflowNetwork model allows a single supply fan in an AirLoop only. Please make changes in the input file accordingly.",
-                "%s: An AirLoop branch, %s, has two or more fans: %s\n The AirflowNetwork model allows a single supply fan in an AirLoop only. Please make changes in the input file accordingly."
-             }
+                Event::Type::Error,
+                "EAFN001",
+                {
+                    "{Routine name}: An AirLoop branch, {Branch name}, has two or more fans: {Fans}",
+                    "The AirflowNetwork model allows a single supply fan in an AirLoop only. Please make changes in the input file accordingly."
+                },
+                {
+                    "Routine name", "Branch name", "Fans"
+                }
+            }
         }
     };
 
-    std::array<LoggedEvent, FATAL_COUNT> Tracker::fatals
-    {
+    std::array<Event, FATAL_COUNT> Tracker::fatals{
         {
             {
-                EventType::Fatal, "GEN000", "%s: Program terminates for preceding reason(s).", "%s: Program terminates for preceding reason(s)."
+                Event::Type::Fatal,
+                "FGEN000",
+                {
+                    "%s: Program terminates for preceding reason(s)."
+                },
+                {
+                    "Routine name"
+                }
             },
             {
-                EventType::Fatal, "GEN001", "%s: Errors found getting inputs. Previous error(s) cause program termination.",
+                Event::Type::Fatal,
+                "FGEN001",
+                {
                     "%s: Errors found getting inputs. Previous error(s) cause program termination."
+                },
+                {
+                    "Routine name"
+                }
             }
         }
     };

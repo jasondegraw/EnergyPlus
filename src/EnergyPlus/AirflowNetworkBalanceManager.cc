@@ -2583,14 +2583,14 @@ namespace AirflowNetworkBalanceManager {
         }
 
         for (i = 0; i < numWinDirs; ++i) {
-            StringOut = RoundSigDigits(i*angleDelta, 1);
+            StringOut = RoundSigDigits(i * angleDelta, 1);
             {
                 IOFlags flags;
                 flags.ADVANCE("No");
                 gio::write(OutputFileInits, fmtA, flags) << StringOut + ',';
             }
         }
-        StringOut = RoundSigDigits(numWinDirs*angleDelta, 1);
+        StringOut = RoundSigDigits(numWinDirs * angleDelta, 1);
         gio::write(OutputFileInits, fmtA) << StringOut;
 
         {
@@ -10209,8 +10209,12 @@ namespace AirflowNetworkBalanceManager {
                 // ShowContinueError(
                 //    "The AirflowNetwork model allows a single supply fan in an AirLoop only. Please make changes in the input file
                 //    accordingly.");
-                tracker.error(
-                    ErrorTracking::ErrorCode::AFN001, __FILE__, __LINE__, routineName, PrimaryAirSystem(1).Branch(BranchNum).Name, FanNames);
+                tracker.error(ErrorTracking::ErrorCode::AFN001,
+                              __FILE__,
+                              __LINE__,
+                              fmtlib::arg("Routine name", routineName),
+                              fmtlib::arg("Branch name", PrimaryAirSystem(1).Branch(BranchNum).Name),
+                              fmtlib::arg("Fans", FanNames));
                 ErrorsFound = true;
             }
 
