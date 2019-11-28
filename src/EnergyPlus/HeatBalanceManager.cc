@@ -4349,6 +4349,133 @@ namespace HeatBalanceManager {
 
         ConstrNum = 0;
 
+        CurrentModuleObject = "ConstructionProperty:InternalHeatSource";
+        auto instances = inputProcessor->epJSON.find(CurrentModuleObject);
+        if (instances != inputProcessor->epJSON.end()) {
+            AnyConstructInternalSourceInInput = true;
+            auto &instancesValue = instances.value();
+            for (auto instance = instancesValue.begin(); instance != instancesValue.end(); ++instance) {
+                auto const &fields = instance.value();
+                auto const &thisObjectName = UtilityRoutines::MakeUPPERCase(instance.key());
+
+                std::string construction_name = fields.at("construction_name");
+                //Real64 pressure(101325.0);
+                //if (fields.find("reference_barometric_pressure") != fields.end()) { // not required field, has default value
+                //    pressure = fields.at("reference_barometric_pressure");
+                //    if (std::abs((pressure - StdBaroPress) / StdBaroPress) > 0.1) { // 10% off
+                //        ShowWarningError(RoutineName + ": " + CurrentModuleObject + ": Pressure = " + RoundSigDigits(pressure, 0) +
+                //                         " differs by more than 10% from Standard Barometric Pressure = " + RoundSigDigits(StdBaroPress, 0) + '.');
+                //        ShowContinueError("...occurs in " + CurrentModuleObject + " = " + thisObjectName);
+                //    }
+                //    if (pressure <= 31000.0) {
+                //        ShowSevereError(RoutineName + ": " + CurrentModuleObject + ": " + thisObjectName +
+                //                        ". Reference Barometric Pressure must be greater than 31000 Pa.");
+                //        success = false;
+                //    }
+                //}
+                //Real64 humidity{fields.at("reference_humidity_ratio")};
+                // globalSolverObject.referenceConditions.emplace_back(thisObjectName, temperature, pressure, humidity);
+                //referenceConditions.emplace(std::piecewise_construct,
+                //                            std::forward_as_tuple(thisObjectName),
+                //                            std::forward_as_tuple(instance.key(), temperature, pressure, humidity));
+            }
+            // Check that there is more than one
+            //if (referenceConditions.size() == 1) {
+            //    inputProcessor->markObjectAsUsed("AirflowNetwork:MultiZone:ReferenceCrackConditions", referenceConditions.begin()->second.name);
+            //    defaultReferenceConditions = referenceConditions.begin()->second;
+
+            //} else {
+            //    conditionsAreDefaulted = false;
+            //}
+        }
+
+        if (TotSourceConstructs > 0) AnyConstructInternalSourceInInput = true;
+        for (Loop = 1; Loop <= TotSourceConstructs; ++Loop) { // Loop through all heat sources in the input...
+
+            // Get the object names for each construction from the input processor
+            inputProcessor->getObjectItem(CurrentModuleObject,
+                                          Loop,
+                                          ConstructAlphas,
+                                          ConstructNumAlpha,
+                                          DummyProps,
+                                          DummyNumProp,
+                                          IOStat,
+                                          lNumericFieldBlanks,
+                                          lAlphaFieldBlanks,
+                                          cAlphaFieldNames,
+                                          cNumericFieldNames);
+            if (GlobalNames::VerifyUniqueInterObjectName(
+                    UniqueConstructNames, ConstructAlphas(0), CurrentModuleObject, cAlphaFieldNames(1), ErrorsFound)) {
+                continue;
+            }
+
+            ++ConstrNum;
+            // Assign Construction name to the Derived Type using the zeroth position of the array
+            Construct(TotRegConstructs + ConstrNum).Name = ConstructAlphas(0);
+
+            // Obtain the source/sink data
+            if (DummyNumProp != 4) {
+                ShowSevereError(CurrentModuleObject + ": Wrong number of numerical inputs for " + Construct(ConstrNum).Name);
+                ErrorsFound = true;
+            }
+            Construct(TotRegConstructs + ConstrNum).SourceSinkPresent = true;
+            Construct(TotRegConstructs + ConstrNum).SourceAfterLayer = int(DummyProps(1));
+            Construct(TotRegConstructs + ConstrNum).TempAfterLayer = int(DummyProps(2));
+            Construct(TotRegConstructs + ConstrNum).SolutionDimensions = int(DummyProps(3));
+            if ((Construct(TotRegConstructs + ConstrNum).SolutionDimensions < 1) ||
+                (Construct(TotRegConstructs + ConstrNum).SolutionDimensions > 2)) {
+                ShowWarningError("Construction:InternalSource must be either 1- or 2-D.  Reset to 1-D solution.");
+                ShowContinueError("Construction=" + Construct(TotRegConstructs + ConstrNum).Name + " is affected.");
+                Construct(TotRegConstructs + ConstrNum).SolutionDimensions = 1;
+            }
+            Construct(TotRegConstructs + ConstrNum).ThicknessPerpend = DummyProps(4) / 2.0;
+
+            // Set the total number of layers for the construction
+            Construct(TotRegConstructs + ConstrNum).TotLayers = ConstructNumAlpha - 1;
+            if (Construct(TotRegConstructs + ConstrNum).TotLayers <= 1) {
+                ShowSevereError("Construction " + Construct(TotRegConstructs + ConstrNum).Name +
+                                " has an internal source or sink and thus must have more than a single layer");
+                ErrorsFound = true;
+            }
+            if ((Construct(TotRegConstructs + ConstrNum).SourceAfterLayer >= Construct(TotRegConstructs + ConstrNum).TotLayers) ||
+                (Construct(TotRegConstructs + ConstrNum).SourceAfterLayer <= 0)) {
+                ShowWarningError("Construction " + Construct(TotRegConstructs + ConstrNum).Name + " must have a source that is between two layers");
+                ShowContinueError("The source after layer parameter has been set to one less than the number of layers.");
+                Construct(TotRegConstructs + ConstrNum).SourceAfterLayer = Construct(TotRegConstructs + ConstrNum).TotLayers - 1;
+            }
+            if ((Construct(TotRegConstructs + ConstrNum).TempAfterLayer >= Construct(TotRegConstructs + ConstrNum).TotLayers) ||
+                (Construct(TotRegConstructs + ConstrNum).TempAfterLayer <= 0)) {
+                ShowWarningError("Construction " + Construct(TotRegConstructs + ConstrNum).Name +
+                                 " must have a temperature calculation that is between two layers");
+                ShowContinueError("The temperature calculation after layer parameter has been set to one less than the number of layers.");
+                Construct(TotRegConstructs + ConstrNum).TempAfterLayer = Construct(TotRegConstructs + ConstrNum).TotLayers - 1;
+            }
+
+            // Loop through all of the layers of the construct to match the material names.
+            // The loop index is the number minus 1
+            for (Layer = 1; Layer <= ConstructNumAlpha - 1; ++Layer) {
+
+                // Find the material in the list of materials
+
+                Construct(TotRegConstructs + ConstrNum).LayerPoint(Layer) = UtilityRoutines::FindItemInList(ConstructAlphas(Layer), Material);
+
+                if (Construct(TotRegConstructs + ConstrNum).LayerPoint(Layer) == 0) {
+                    ShowSevereError("Did not find matching material for " + CurrentModuleObject + ' ' + Construct(ConstrNum).Name +
+                                    ", missing material = " + ConstructAlphas(Layer));
+                    ErrorsFound = true;
+                } else {
+                    NominalRforNominalUCalculation(TotRegConstructs + ConstrNum) +=
+                        NominalR(Construct(TotRegConstructs + ConstrNum).LayerPoint(Layer));
+                    if (Material(Construct(TotRegConstructs + ConstrNum).LayerPoint(Layer)).Group == RegularMaterial &&
+                        !Material(Construct(TotRegConstructs + ConstrNum).LayerPoint(Layer)).ROnly) {
+                        NoRegularMaterialsUsed = false;
+                    }
+                }
+
+            } // ...end of the Layer DO loop
+
+        } // ...end of Source Construction DO loop
+
         CurrentModuleObject = "Construction:InternalSource";
         if (TotSourceConstructs > 0) AnyConstructInternalSourceInInput = true;
         for (Loop = 1; Loop <= TotSourceConstructs; ++Loop) { // Loop through all constructs with sources in the input...
