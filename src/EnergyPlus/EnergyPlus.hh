@@ -216,4 +216,67 @@ using ObjexxFCL::bit::bit_shift;
 using ObjexxFCL::bit::bit_transfer;
 using ObjexxFCL::bit::bit_xor;
 
+#include <vector>
+#include <utility>
+
+template <typename T> class DummyArray1D
+{
+public:
+    DummyArray1D()
+    {}
+
+    DummyArray1D(size_t n)
+    {
+        m_v.resize(n);
+    }
+
+    T &operator[](size_t i)
+    {
+        return m_v[i];
+    }
+
+    T &operator()(size_t i)
+    {
+        return m_v[i];
+    }
+
+    DummyArray1D &operator()(std::pair<size_t,size_t> i)
+    {
+        return this;
+    }
+
+    void dimension(size_t n)
+    {
+        m_v.resize(n);
+    }
+
+    void redimension(size_t n)
+    {
+        m_v.resize(n);
+    }
+
+    void allocate(size_t n)
+    {
+        m_v.resize(n);
+    }
+
+    void deallocate()
+    {
+        m_v.clear();
+    }
+
+    std::iterator<std::forward_iterator_tag, T> begin() // auto begin() -> decltype(std::vector<T>::iterator)
+    {
+        return m_v.begin();
+    }
+
+    std::iterator<std::forward_iterator_tag, T> end()
+    {
+        return m_v.end();
+    }
+
+private:
+    std::vector<T> m_v;
+};
+
 #endif

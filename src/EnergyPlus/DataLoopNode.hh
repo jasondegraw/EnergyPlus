@@ -113,7 +113,8 @@ namespace DataLoopNode {
     // the following assignments:  Node(somenodenumber)=Node(someothernodenumber) to
     // set/update Node conditions.  If the Node derived type would include the name
     // then the name would get changed and bad things would result...
-    extern Array1D_string NodeID;
+    //extern Array1D_string NodeID;
+    extern DummyArray1D<std::string> NodeID;
 
     // Types
 
