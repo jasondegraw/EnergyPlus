@@ -265,12 +265,12 @@ public:
         m_v.clear();
     }
 
-    std::iterator<std::forward_iterator_tag, T> begin() // auto begin() -> decltype(std::vector<T>::iterator)
+    std::iterator<std::random_access_iterator_tag, T> begin() // auto begin() -> decltype(std::vector<T>::iterator)
     {
         return m_v.begin();
     }
 
-    std::iterator<std::forward_iterator_tag, T> end()
+    std::iterator<std::random_access_iterator_tag, T> end()
     {
         return m_v.end();
     }
