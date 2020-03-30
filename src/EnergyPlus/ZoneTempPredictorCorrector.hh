@@ -52,7 +52,6 @@
 #include <vector>
 
 // ObjexxFCL Headers
-#include <ObjexxFCL/Array1D.hh>
 #include <ObjexxFCL/Array2D.hh>
 
 // EnergyPlus Headers
@@ -136,16 +135,16 @@ namespace ZoneTempPredictorCorrector {
     // Number of zone with onoff thermostat
     extern int NumOnOffCtrZone;
 
-    extern Array1D<Real64> ZoneSetPointLast;
-    extern Array1D<Real64> TempIndZnLd;
-    extern Array1D<Real64> TempDepZnLd;
-    extern Array1D<Real64> ZoneAirRelHum; // Zone relative humidity in percent
+    extern EPVector<Real64> ZoneSetPointLast;
+    extern EPVector<Real64> TempIndZnLd;
+    extern EPVector<Real64> TempDepZnLd;
+    extern EPVector<Real64> ZoneAirRelHum; // Zone relative humidity in percent
 
     // Zone temperature history - used only for oscillation test
     extern Array2D<Real64> ZoneTempHist;
-    extern Array1D<Real64> ZoneTempOscillate;
-    extern Array1D<Real64> ZoneTempOscillateDuringOccupancy;
-    extern Array1D<Real64> ZoneTempOscillateInDeadband;
+    extern EPVector<Real64> ZoneTempOscillate;
+    extern EPVector<Real64> ZoneTempOscillateDuringOccupancy;
+    extern EPVector<Real64> ZoneTempOscillateInDeadband;
     extern Real64 AnyZoneTempOscillate;
     extern Real64 AnyZoneTempOscillateDuringOccupancy;
     extern Real64 AnyZoneTempOscillateInDeadband;
@@ -196,13 +195,13 @@ namespace ZoneTempPredictorCorrector {
     {
         // Members
         bool initialized;
-        Array1D<Real64> ThermalComfortAdaptiveASH55_Upper_90;
-        Array1D<Real64> ThermalComfortAdaptiveASH55_Upper_80;
-        Array1D<Real64> ThermalComfortAdaptiveASH55_Central;
-        Array1D<Real64> ThermalComfortAdaptiveCEN15251_Upper_I;
-        Array1D<Real64> ThermalComfortAdaptiveCEN15251_Upper_II;
-        Array1D<Real64> ThermalComfortAdaptiveCEN15251_Upper_III;
-        Array1D<Real64> ThermalComfortAdaptiveCEN15251_Central;
+        EPVector<Real64> ThermalComfortAdaptiveASH55_Upper_90;
+        EPVector<Real64> ThermalComfortAdaptiveASH55_Upper_80;
+        EPVector<Real64> ThermalComfortAdaptiveASH55_Central;
+        EPVector<Real64> ThermalComfortAdaptiveCEN15251_Upper_I;
+        EPVector<Real64> ThermalComfortAdaptiveCEN15251_Upper_II;
+        EPVector<Real64> ThermalComfortAdaptiveCEN15251_Upper_III;
+        EPVector<Real64> ThermalComfortAdaptiveCEN15251_Central;
 
         // Default Constructor
         AdaptiveComfortDailySetPointSchedule() : initialized(false)
@@ -243,9 +242,9 @@ namespace ZoneTempPredictorCorrector {
 
     void CalcZoneAirTempSetPoints();
 
-    void CalculateMonthlyRunningAverageDryBulb(Array1D<Real64> &runningAverageASH, Array1D<Real64> &runningAverageCEN);
+    void CalculateMonthlyRunningAverageDryBulb(EPVector<Real64> &runningAverageASH, EPVector<Real64> &runningAverageCEN);
 
-    void CalculateAdaptiveComfortSetPointSchl(Array1D<Real64> const &runningAverageASH, Array1D<Real64> const &runningAverageCEN);
+    void CalculateAdaptiveComfortSetPointSchl(EPVector<Real64> const &runningAverageASH, EPVector<Real64> const &runningAverageCEN);
 
     void CalcPredictedSystemLoad(int const ZoneNum, Real64 RAFNFrac);
 
@@ -356,7 +355,7 @@ namespace ZoneTempPredictorCorrector {
     );
 
     Real64 PMVResidual(Real64 const Tset,
-                       Array1D<Real64> const &Par // par(1) = PMV set point
+                       EPVector<Real64> const &Par // par(1) = PMV set point
     );
 
     void AdjustCoolingSetPointforTempAndHumidityControl(int const TempControlledZoneID,

@@ -301,7 +301,7 @@ namespace BranchInputManager {
                               Array1D<std::string> &Alphas,
                               Array1D<std::string> &cAlphaFields,
                               int const NumAlphas,
-                              Array1D<int> &NodeNums,
+                              EPVector<int> &NodeNums,
                               EPVector<bool> &lAlphaBlanks);
 
     void GetBranchListInput();

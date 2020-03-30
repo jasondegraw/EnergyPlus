@@ -419,7 +419,7 @@ namespace SimAirServingZones {
         EPVector<bool> lAlphaBlanks;       // Logical array, alpha field input BLANK = .TRUE.
         std::string CurrentModuleObject; // Object type for getting and error messages
         int NumNodes;                    // number of nodes returned by GetNodeNums
-        Array1D<int> NodeNums;            // node numbers returned by GetNodeNums
+        EPVector<int> NodeNums;            // node numbers returned by GetNodeNums
         int NodeNum;                     // a node number
         int AirSysNum;                   // an air system (air loop) number
         int OANum;                       // outside air system index

@@ -124,8 +124,8 @@ namespace ZonePlenum {
     // SUBROUTINE SPECIFICATIONS FOR MODULE ZONEPLENUM
 
     // Object Data
-    Array1D<ZoneReturnPlenumConditions> ZoneRetPlenCond;
-    Array1D<ZoneSupplyPlenumConditions> ZoneSupPlenCond;
+    EPVector<ZoneReturnPlenumConditions> ZoneRetPlenCond;
+    EPVector<ZoneSupplyPlenumConditions> ZoneSupPlenCond;
 
     // MODULE SUBROUTINES:
     //*************************************************************************
@@ -331,16 +331,16 @@ namespace ZonePlenum {
         int NumNums;
         int NumArgs;
         int NumNodes;
-        Array1D<int> NodeNums;
+        EPVector<int> NodeNums;
         int MaxNums;
         int MaxAlphas;
         int NodeNum;
         int IOStat;
-        Array1D<Real64> NumArray;        // Numeric input items for object
+        EPVector<Real64> NumArray;        // Numeric input items for object
         std::string CurrentModuleObject; // for ease in getting objects
-        Array1D<std::string> AlphArray;        // Alpha input items for object
-        Array1D<std::string> cAlphaFields;     // Alpha field names
-        Array1D<std::string> cNumericFields;   // Numeric field names
+        EPVector<std::string> AlphArray;        // Alpha input items for object
+        EPVector<std::string> cAlphaFields;     // Alpha field names
+        EPVector<std::string> cNumericFields;   // Numeric field names
         EPVector<bool> lAlphaBlanks;       // Logical array, alpha field input BLANK = .TRUE.
         EPVector<bool> lNumericBlanks;     // Logical array, numeric field input BLANK = .TRUE.
         static bool ErrorsFound(false);

@@ -1353,7 +1353,7 @@ namespace BranchInputManager {
         bool ErrFound;           // Flag for error detection
         int NumAlphas;           // Used to retrieve names from IDF
         Array1D<std::string> Alphas;   // Used to retrieve names from IDF
-        Array1D<int> NodeNums;    // Possible Array of Node Numbers (only 1 allowed)
+        EPVector<int> NodeNums;    // Possible Array of Node Numbers (only 1 allowed)
         int NumNumbers;          // Used to retrieve numbers from IDF
         Array1D<Real64> Numbers; // Used to retrieve numbers from IDF
         Array1D<std::string> cAlphaFields;
@@ -1422,7 +1422,7 @@ namespace BranchInputManager {
                               Array1D<std::string> &Alphas,
                               Array1D<std::string> &cAlphaFields,
                               int const NumAlphas,
-                              Array1D<int> &NodeNums,
+                              EPVector<int> &NodeNums,
                               EPVector<bool> &lAlphaBlanks)
     {
         // Using

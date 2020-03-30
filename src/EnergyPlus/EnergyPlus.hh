@@ -338,6 +338,17 @@ bool any(EPVector<bool> const & values)
     return false;
 }
 
+template <typename T>
+inline
+bool any_eq(EPVector<T> const & values, const T &value)
+{
+    if ( values.empty() ) return false;
+    for (auto v : values) {
+        if (v == value) return true;
+    }
+    return false;
+}
+
 inline
 std::size_t count(EPVector<bool> const & values)
 {

@@ -601,7 +601,7 @@ namespace SetPointManager {
         int NumZones;       // number of zone nodes in input node list
         int ZoneNum;        // loop index for zone nodes
         int NumNodes;
-        Array1D<int> NodeNums;
+        EPVector<int> NodeNums;
         static bool NodeListError(false);
         bool ErrInList;
         int Found;

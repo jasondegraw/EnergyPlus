@@ -311,7 +311,7 @@ namespace DataZoneEquipment {
         int MaxNums;
         int NumParams;
         int NumNodes;
-        Array1D<int> NodeNums;
+        EPVector<int> NodeNums;
         int Counter;
         //////////// hoisted into namespace ////////////////////////////////////////////////
         // static bool ErrorsFound( false ); // If errors detected in input // GetZoneEquipmentDataErrorsFound

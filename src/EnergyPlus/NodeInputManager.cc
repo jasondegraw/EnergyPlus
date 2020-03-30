@@ -127,7 +127,7 @@ namespace NodeInputManager {
     Array1D<NodeListDef> NodeLists; // Node Lists
     namespace {
         bool CalcMoreNodeInfoMyOneTimeFlag(true); // one time flag
-        Array1D<int> GetOnlySingleNodeNodeNums;
+        EPVector<int> GetOnlySingleNodeNodeNums;
         bool GetOnlySingleNodeFirstTime(true);
     } // namespace
     // MODULE SUBROUTINES:
@@ -158,7 +158,7 @@ namespace NodeInputManager {
 
     void GetNodeNums(std::string const &Name,                  // Name for which to obtain information
                      int &NumNodes,                            // Number of nodes accompanying this Name
-                     Array1D<int> &NodeNumbers,                 // Node Numbers accompanying this Name
+                     EPVector<int> &NodeNumbers,               // Node Numbers accompanying this Name
                      bool &ErrorsFound,                        // True when errors are found...
                      int const NodeFluidType,                  // Fluidtype for checking/setting node FluidType
                      std::string const &NodeObjectType,        // Node Object Type (i.e. "Chiller:Electric")
@@ -235,7 +235,7 @@ namespace NodeInputManager {
             ThisOne = UtilityRoutines::FindItemInList(Name, NodeLists);
             if (ThisOne != 0) {
                 NumNodes = NodeLists(ThisOne).NumOfNodesInList;
-                NodeNumbers({1, NumNodes}) = NodeLists(ThisOne).NodeNumbers({1, NumNodes});
+                std::copy_n(NodeLists(ThisOne).NodeNumbers.begin(), NumNodes, NodeNumbers.begin());
                 for (Loop = 1; Loop <= NumNodes; ++Loop) {
                     if (NodeFluidType != NodeType_Unknown && Node(NodeNumbers(Loop)).FluidType != NodeType_Unknown) {
                         if (Node(NodeNumbers(Loop)).FluidType != NodeFluidType) {

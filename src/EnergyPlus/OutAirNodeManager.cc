@@ -107,7 +107,7 @@ namespace OutAirNodeManager {
 
     // MODULE VARIABLE DECLARATIONS:
 
-    Array1D<int> OutsideAirNodeList;     // List of all outside air inlet nodes
+    EPVector<int> OutsideAirNodeList;     // List of all outside air inlet nodes
     int NumOutsideAirNodes(0);          // Number of single outside air nodes
     bool GetOutAirNodesInputFlag(true); // Flag set to make sure you get input once
 
@@ -191,7 +191,7 @@ namespace OutAirNodeManager {
         int NumNums;   // Number of REAL(r64) numbers returned by GetObjectItem
         int NumAlphas; // Number of alphanumerics returned by GetObjectItem
         int NumParams;
-        Array1D<int> NodeNums;
+        EPVector<int> NodeNums;
         int NumNodes;
         int IOStat;  // Status flag from GetObjectItem
         int NodeNum; // index into NodeNums
@@ -205,7 +205,7 @@ namespace OutAirNodeManager {
         bool ErrInList;
         int CurSize;
         int NextFluidStreamNum; // Fluid stream index (all outside air inlet nodes need a unique fluid stream number)
-        Array1D<int> TmpNums;
+        EPVector<int> TmpNums;
         std::string CurrentModuleObject; // Object type for getting and error messages
         Array1D<std::string> Alphas;           // Alpha input items for object
         Array1D<std::string> cAlphaFields;     // Alpha field names
@@ -287,7 +287,7 @@ namespace OutAirNodeManager {
                         if (!any_eq(TmpNums, NodeNums(NodeNum))) {
                             ++ListSize;
                             if (ListSize > CurSize) {
-                                TmpNums.redimension(CurSize += 100, 0);
+                                TmpNums.dimension(CurSize += 100, 0);
                             }
                             TmpNums(ListSize) = NodeNums(NodeNum);
                         }
@@ -348,7 +348,7 @@ namespace OutAirNodeManager {
                 if (!any_eq(TmpNums, NodeNums(1))) {
                     ++ListSize;
                     if (ListSize > CurSize) {
-                        TmpNums.redimension(CurSize += 100, 0);
+                        TmpNums.dimension(CurSize += 100, 0);
                     }
                     TmpNums(ListSize) = NodeNums(1);
                 } else { // Duplicates are a problem
@@ -418,7 +418,7 @@ namespace OutAirNodeManager {
 
         if (ListSize > 0) {
             NumOutsideAirNodes = ListSize;
-            OutsideAirNodeList = TmpNums({1, ListSize});
+            std::copy_n(TmpNums.begin(), ListSize, OutsideAirNodeList.begin());
         }
     }
 
@@ -538,7 +538,7 @@ namespace OutAirNodeManager {
         // na
 
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
-        Array1D<int> TmpNums;
+        EPVector<int> TmpNums;
         int DummyNumber;
         static bool errFlag(false);
 
