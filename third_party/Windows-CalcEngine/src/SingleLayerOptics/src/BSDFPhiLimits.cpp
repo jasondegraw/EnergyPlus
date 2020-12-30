@@ -1,5 +1,6 @@
 #include "BSDFPhiLimits.hpp"
 #include "BSDFPhiAngles.hpp"
+#include <stdexcept>
 
 namespace SingleLayerOptics {
 

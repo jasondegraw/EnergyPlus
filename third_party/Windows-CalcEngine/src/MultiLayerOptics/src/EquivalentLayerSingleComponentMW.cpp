@@ -1,6 +1,7 @@
 #include "EquivalentLayerSingleComponentMW.hpp"
 #include "WCECommon.hpp"
 #include "EquivalentLayerSingleComponent.hpp"
+#include <stdexcept>
 
 using namespace FenestrationCommon;
 
