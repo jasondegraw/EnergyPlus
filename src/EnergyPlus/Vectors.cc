@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,8 +52,8 @@
 #include <ObjexxFCL/Fmath.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <Vectors.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/Vectors.hh>
 
 namespace EnergyPlus {
 
@@ -102,7 +102,6 @@ namespace Vectors {
     // OTHER NOTES: none
 
     // Using/Aliasing
-    using DataGlobals::DegToRadians;
     using namespace DataVectorTypes;
 
     // MODULE PARAMETER DEFINITIONS
@@ -122,7 +121,7 @@ namespace Vectors {
 
     // Functions
 
-    Real64 AreaPolygon(int const n, Array1A<Vector> p)
+    Real64 AreaPolygon(int const n, Array1D<Vector> &p)
     {
 
         // PURPOSE OF THIS SUBROUTINE:
@@ -136,7 +135,7 @@ namespace Vectors {
         Real64 areap;
 
         // Argument array dimensioning
-        p.dim({0, n - 1});
+        EP_SIZE_CHECK(p, n);
 
         // Locals
         // SUBROUTINE ARGUMENT DEFINITIONS:
@@ -151,8 +150,8 @@ namespace Vectors {
         Vector edgex;
         Vector csum;
 
-        edge0 = p(1) - p(0);
-        edge1 = p(2) - p(0);
+        edge0 = p[1] - p[0];
+        edge1 = p[2] - p[0];
 
         edgex = cross(edge0, edge1);
         nor = VecNormalize(edgex);
@@ -161,9 +160,9 @@ namespace Vectors {
         csum = 0.0;
 
         for (i = 0; i <= n - 2; ++i) {
-            csum += cross(p(i), p(i + 1));
+            csum += cross(p[i], p[i + 1]);
         }
-        csum += cross(p(n - 1), p(0));
+        csum += cross(p[n - 1], p[0]);
 
         areap = 0.5 * std::abs(dot(nor, csum));
 
@@ -294,14 +293,14 @@ namespace Vectors {
         vec.z = nint64(vec.z * roundto) / roundto;
     }
 
-    void DetermineAzimuthAndTilt(Array1D<Vector> const &Surf, // Surface Definition
-                                 int const EP_UNUSED(NSides), // Number of sides to surface
-                                 Real64 &Azimuth,             // Outward Normal Azimuth Angle
-                                 Real64 &Tilt,                // Tilt angle of surface
+    void DetermineAzimuthAndTilt(Array1D<Vector> const &Surf,       // Surface Definition
+                                 [[maybe_unused]] int const NSides, // Number of sides to surface
+                                 Real64 &Azimuth,                   // Outward Normal Azimuth Angle
+                                 Real64 &Tilt,                      // Tilt angle of surface
                                  Vector &lcsx,
                                  Vector &lcsy,
                                  Vector &lcsz,
-                                 Real64 const EP_UNUSED(surfaceArea),
+                                 [[maybe_unused]] Real64 const surfaceArea,
                                  Vector const &NewellSurfaceNormalVector)
     {
 
@@ -414,11 +413,11 @@ namespace Vectors {
         }
 
         tlt = std::acos(NewellSurfaceNormalVector.z);
-        tlt /= DegToRadians;
+        tlt /= DataGlobalConstants::DegToRadians;
 
         az = rotang_0;
 
-        az /= DegToRadians;
+        az /= DataGlobalConstants::DegToRadians;
         az = mod(450.0 - az, 360.0);
         az += 90.0;
         if (az < 0.0) az += 360.0;
@@ -438,10 +437,10 @@ namespace Vectors {
         Tilt = tlt;
     }
 
-    void PlaneEquation(Array1A<Vector> verts, // Structure of the surface
-                       int const nverts,      // Number of vertices in the surface
-                       PlaneEq &plane,        // Equation of plane from inputs
-                       bool &error            // returns true for degenerate surface
+    void PlaneEquation(Array1D<Vector> &verts, // Structure of the surface
+                       int const nverts,       // Number of vertices in the surface
+                       PlaneEq &plane,         // Equation of plane from inputs
+                       bool &error             // returns true for degenerate surface
     )
     {
 
@@ -453,7 +452,7 @@ namespace Vectors {
         // Graphic Gems
 
         // Argument array dimensioning
-        verts.dim({0, nverts - 1});
+        EP_SIZE_CHECK(verts, nverts);
 
         // Locals
         // SUBROUTINE ARGUMENT DEFINITIONS:
@@ -470,8 +469,8 @@ namespace Vectors {
         normal = Vector(0.0, 0.0, 0.0);
         refpt = Vector(0.0, 0.0, 0.0);
         for (i = 0; i <= nverts - 1; ++i) {
-            Vector const &u(verts(i));
-            Vector const &v(i < nverts - 1 ? verts(i + 1) : verts(0));
+            Vector const &u(verts[i]);
+            Vector const &v(i < nverts - 1 ? verts[i + 1] : verts[0]);
             normal.x += (u.y - v.y) * (u.z + v.z);
             normal.y += (u.z - v.z) * (u.x + v.x);
             normal.z += (u.x - v.x) * (u.y + v.y);
@@ -708,7 +707,7 @@ namespace Vectors {
         if (std::abs(vector1.z - vector2.z) > tolerance) areSame = false;
     }
 
-    void CalcCoPlanarNess(Array1A<Vector> Surf, int const NSides, bool &IsCoPlanar, Real64 &MaxDist, int &ErrorVertex)
+    void CalcCoPlanarNess(Array1D<Vector> &Surf, int const NSides, bool &IsCoPlanar, Real64 &MaxDist, int &ErrorVertex)
     {
 
         // SUBROUTINE INFORMATION:
@@ -732,7 +731,7 @@ namespace Vectors {
         // na
 
         // Argument array dimensioning
-        Surf.dim({1, NSides});
+        EP_SIZE_CHECK(Surf, NSides);
 
         // Locals
         // SUBROUTINE ARGUMENT DEFINITIONS:
@@ -769,6 +768,22 @@ namespace Vectors {
         }
 
         if (std::abs(MaxDist) > DistTooSmall) IsCoPlanar = false;
+    }
+
+    std::vector<int> PointsInPlane(Array1D<Vector> &BaseSurf, int const BaseSides, Array1D<Vector> &QuerySurf, int const QuerySides, bool &ErrorFound)
+    {
+        std::vector<int> pointIndices;
+
+        PlaneEq NewellPlane;
+        PlaneEquation(BaseSurf, BaseSides, NewellPlane, ErrorFound);
+
+        for (int vert = 1; vert <= QuerySides; ++vert) {
+            Real64 dist = Pt2Plane(QuerySurf(vert), NewellPlane);
+            if (std::abs(dist) < 1.e-4) { // point on query surface is co-planar with base surface
+                pointIndices.push_back(vert);
+            }
+        }
+        return pointIndices;
     }
 
     Real64 CalcPolyhedronVolume(Polyhedron const &Poly)

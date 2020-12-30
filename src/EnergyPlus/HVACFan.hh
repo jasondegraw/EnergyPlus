@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -56,24 +56,28 @@
 #include <ObjexxFCL/Optional.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <DataHVACGlobals.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/DataHVACGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
 
+// Forward declarations
+struct EnergyPlusData;
+
 namespace HVACFan {
 
-    int getFanObjectVectorIndex(std::string const &objectName);
+    int getFanObjectVectorIndex(EnergyPlusData &state, std::string const &objectName, bool const CheckFlag = true);
 
-    bool checkIfFanNameIsAFanSystem(std::string const &objectName);
+    bool checkIfFanNameIsAFanSystem(EnergyPlusData &state, std::string const &objectName);
 
     class FanSystem
     {
 
     public: // Methods
         // Constructor
-        FanSystem(std::string const &objectName);
+        FanSystem(EnergyPlusData &state, std::string const &objectName);
 
         // Destructor
         ~FanSystem()
@@ -83,7 +87,7 @@ namespace HVACFan {
         // Copy Constructor
         FanSystem(FanSystem const &) = default;
 
-        void simulate(
+        void simulate(EnergyPlusData &state,
             //		bool const firstHVACIteration,
             Optional<Real64 const> flowFraction = _,     // Flow fraction in operating mode 1
             Optional_bool_const zoneCompTurnFansOn = _,  // Turn fans ON signal from ZoneHVAC component
@@ -102,9 +106,12 @@ namespace HVACFan {
 
         Real64 maxAirMassFlowRate() const;
 
-        Real64 getFanDesignTemperatureRise() const;
+        Real64 getFanDesignTemperatureRise(EnergyPlusData &state) const;
 
-        Real64 getFanDesignHeatGain(Real64 const FanVolFlow);
+        Real64 getFanDesignHeatGain(EnergyPlusData &state, Real64 const FanVolFlow);
+
+        void
+        FanInputsForDesignHeatGain(EnergyPlusData &state, Real64 &deltaP, Real64 &motEff, Real64 &totEff, Real64 &motInAirFrac);
 
         // void
         // fanIsSecondaryDriver();
@@ -132,19 +139,22 @@ namespace HVACFan {
         Real64 deltaPress;                      // Delta Pressure Across the Fan [N/m2]
         Real64 designElecPower;                 // design electric power consumption [W]
         int powerModFuncFlowFractionCurveIndex; // pointer to performance curve or table
+        int AirLoopNum;                         // AirLoop number
+        bool AirPathFlag;                       // Yes, this fan is a part of airpath
 
         // Mass Flow Rate Control Variables
         bool fanIsSecondaryDriver; // true if this fan is used to augment flow and may pass air when off.
 
         // FEI
-        static Real64 report_fei(Real64 const designFlowRate, Real64 const designElecPower, Real64 const designDeltaPress, Real64 inletRhoAir);
+        static Real64 report_fei(EnergyPlusData &state, Real64 const designFlowRate, Real64 const designElecPower, Real64 const designDeltaPress, Real64 inletRhoAir);
 
     private: // methods
-        void init();
+        void init(EnergyPlusData &state);
 
-        void set_size();
+        void set_size(EnergyPlusData &state);
 
-        void calcSimpleSystemFan(Optional<Real64 const> flowFraction, // Flow fraction for entire timestep (not used if flow ratios are present)
+        void calcSimpleSystemFan(EnergyPlusData &state,
+                                 Optional<Real64 const> flowFraction, // Flow fraction for entire timestep (not used if flow ratios are present)
                                  Optional<Real64 const> pressureRise, // Pressure difference to use for DeltaPress
                                  Optional<Real64 const> flowRatio1,   // Flow ratio in operating mode 1
                                  Optional<Real64 const> runTimeFrac1, // Run time fraction in operating mode 1
@@ -153,7 +163,7 @@ namespace HVACFan {
                                  Optional<Real64 const> pressureRise2 // Pressure difference to use for operating mode 2
         );
 
-        void update() const;
+        void update(EnergyPlusData &state) const;
 
         void report();
 
@@ -251,5 +261,14 @@ namespace HVACFan {
 
 } // namespace HVACFan
 
+struct HVACFanData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
+
 } // namespace EnergyPlus
+
 #endif // HVACFan_hh_INCLUDED_hh_INCLUDED

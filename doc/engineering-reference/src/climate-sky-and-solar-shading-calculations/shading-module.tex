@@ -2,11 +2,7 @@
 
 \subsection{Shading and Sunlit Area Calculations}\label{shading-and-sunlit-area-calculations}
 
-When assessing heat gains in buildings due to solar radiation, it is necessary to know how much of each part of the building is shaded and how much is in direct sunlight. As an example, the figure below shows a flat roofed, L-shaped structure with a window in each of the visible sides. The sun is to the right so that walls 1 and 3 and windows a and c are completely shaded, and wall 4 and window d are completely sunlit. Wall 2 and window b are partially shaded. The sunlit area of each surface changes as the position of the sun changes during the day. The purpose of the EnergyPlus shadow algorithm is to compute these \textbf{sunlit areas}.~ Predecessors to the EnergyPlus shadowing concepts include the BLAST and TARP shadowing algorithms.
-
-The shadow algorithm is based on coordinate transformation methods similar to Groth and Lokmanhekim and the shadow overlap method of Walton.
-
-Using the \textbf{ShadowCalculation} object, you can set how often the shadowing calculations are performed. Calculating them every timestep (TimestepFrequency options) is obviously the most accurate but is also be the most time consuming.~ Using a greater length of time (number of days) before calculating again can yield speedier results.~ For lengths of time greater than one day, the solar position values (e.g.~equation of time, sun position angles) are averaged over that time period for the shadowing calculations. For dynamic shading, TimestepFrequency is required to capture changes in shading transmittance.
+When assessing heat gains in buildings due to solar radiation, it is necessary to know how much of each part of the building is shaded and how much is in direct sunlight. As an example, the figure below shows a flat roofed, L-shaped structure with a window in each of the visible sides. The sun is to the right so that walls 1 and 3 and windows a and c are completely shaded, and wall 4 and window d are completely sunlit. Wall 2 and window b are partially shaded. The sunlit area of each surface changes as the position of the sun changes during the day. The purpose of the EnergyPlus shadow algorithms is to compute these \textbf{sunlit areas}.~ Predecessors to the EnergyPlus shadowing concepts include the BLAST and TARP shadowing algorithms.
 
 \begin{figure}[hbtp] % fig 38
 \centering
@@ -21,7 +17,7 @@ Current solar position is described in terms of three direction cosines that are
 The fractional year is calculated, in radians:
 
 \begin{equation}
-\gamma  = \frac{{2\pi }}{{366}}(day_of_year)
+\gamma  = \frac{{2\pi }}{{366}}(day~of~year)
 \end{equation}
 
 From this fractional year, the equation of time and solar declination angle are calculated.~ For each time step (time value = fractional hour), the hour angle is calculated from:
@@ -37,13 +33,13 @@ Solar HourAngle (\emph{H}) gives the apparent solar time for the current time pe
 % table 23
 \begin{longtable}[c]{@{}ll@{}}
 \caption{Relationship of Angles (degrees) to Time \label{table:relationship-of-angles-degrees-to-time}} \tabularnewline
-\toprule 
+\toprule
 Unit of Angle & Equivalent time \tabularnewline
 \midrule
 \endfirsthead
 
 \caption[]{Relationship of Angles (degrees) to Time} \tabularnewline
-\toprule 
+\toprule
 Unit of Angle & Equivalent time \tabularnewline
 \midrule
 \endhead
@@ -73,10 +69,6 @@ Similarly collinear points (or as noted below, points within 1 mm distance) are 
 
 Collinear -- points that essentially form a ``line'' rather than a surface shape.
 
-Resolution of 1mm or less -- near collinear points.
-
-Note that the resolution on surfaces/shadowing is 1 mm -- using resolution beyond that will result in truncation of the shadowing.
-
 \begin{figure}[hbtp] % fig 40
 \centering
 \includegraphics[width=0.9\textwidth, height=0.9\textheight, keepaspectratio=true]{media/image605.png}
@@ -87,7 +79,7 @@ The GlobalGeometryRules object specifies to EnergyPlus how the surface vertices 
 
 \subsubsection{Relative Coordinate Transformation}\label{relative-coordinate-transformation}
 
-When vertices are specified in ``relative'' coordinates, there can be a ``building'' north axis as well as a ``zone'' north axis.~ The building north axis/coordinate system is a rotation of y\(_{b}\) degrees from the global/world coordinate system.~ The global coordinates of zone origins are related to the building relative coordinates by:
+When vertices are specified in ``relative'' coordinates, there can be a ``building'' north axis as well as a ``zone'' north axis.~ The building north axis/coordinate system is a rotation of $\psi_b$ degrees from the global/world coordinate system.~ The global coordinates of zone origins are related to the building relative coordinates by:
 
 \begin{equation}
 {X_{zo}} = {X_{br}}\cdot \cos {\psi_b} - {Y_{br}}\cdot \sin {\psi_b}
@@ -143,7 +135,7 @@ Y = {Y_{so}} + {X_{sr}}\cdot \sin \psi  - {Y_{sr}}\cdot \cos \psi \cdot \cos \ph
 Z = {Z_{so}} + {Y_{sr}}\cdot \sin \phi
 \end{equation}
 
-\subsubsection{World Coordinates è Relative Coordinates}\label{world-coordinates-uxe8-relative-coordinates}
+\subsubsection{World Coordinates to Relative Coordinates}\label{world-coordinates-to-relative-coordinates}
 
 Vertices in the global coordinate system can be transformed to the coordinate system relative to a given surface by
 
@@ -169,9 +161,23 @@ Vertices in the global coordinate system can be transformed to the coordinate sy
 
 \begin{equation}
 {Z_{sr}} =  - {X'}\cdot \sin \psi \cdot \sin \phi  + {Y'}\cdot \cos \psi \cdot \sin \phi  + {Z'}\cdot \cos \phi
+\label{eq:ZsrEquation}
 \end{equation}
 
 \subsection{Shadow Projection}\label{shadow-projection}
+
+Using the \textbf{ShadowCalculation} object, you can set how often the shadowing calculations are performed. Calculating them every timestep (Timestep frequency option) is obviously the most accurate but is also be the most time consuming.~ Using a greater length of time (number of days) before calculating again can yield speedier results.~ For lengths of time greater than one day, the solar position values (e.g.~equation of time, sun position angles) are averaged over that time period for the shadowing calculations. For dynamic shading, Timestep frequency is required to capture changes in shading transmittance.
+
+EnergyPlus provides four methods for calculating sunlit fractions:
+
+\begin{enumerate}
+    \item Polygon Clipping: The shadow algorithm is based on coordinate transformation methods similar to Groth and Lokmanhekim and the shadow overlap method of Walton.
+    \item Pixel Counting: GPU-rendering based calculations based on the method developed by Jones et al 2011.
+    \item Scheduled: Pre-calculated sunlit fractions are input through a schedule in the \textbf{SurfaceProperty:LocalEnvironment} object.
+    \item Imported: Pre-calculated sunlit fractions are input through a \textbf{Schedule:File:Shading} object.
+\end{enumerate}
+
+\subsection{Polygon Clipping}
 
 All architectural forms are represented by plane polygons. This can give good accuracy even for curved surfaces: a sphere can be approximated by the 20 nodes of an icosahedron with only 3 percent error in the shadow area cast by the sphere. Consider how a solid object, which is composed of a set of enclosing plane polygons, casts a shadow. Figure~\ref{fig:basic-shadowing-concept-structure} shows a box shaped structure on a horizontal surface. The structure consists of a top (surface 1) and four vertical surfaces (2 and 3 visible to the observer and 4 and 5 not visible). The sun is positioned behind and to the right of the structure and a shadow is cast onto the horizontal surface (the ground).
 
@@ -183,7 +189,7 @@ Surfaces 1, 4, and 5 are in sunlight; 2 and 3 are in shade. It is possible to th
 \caption{Basic shadowing concept structure \protect \label{fig:basic-shadowing-concept-structure}}
 \end{figure}
 
-The expressions in equation are the direction cosines of the surface:
+The expressions in Equation~\ref{eq:ZsrEquation} are the direction cosines of the surface:
 
 \begin{equation}
 C{W_1} = \sin \psi \cdot \cos \phi
@@ -239,7 +245,9 @@ b =  - \cos \psi \cdot \cos \phi \cdot C{S_1} - \sin \psi \cdot \cos \phi \cdot 
 
 More explicitly, a casting surface -- a shadow casting surface or general casting surface -- is one that casts a shadow on other surfaces. A receiving surface -- a shadow receiving surface -- is one that receives shadows from other surfaces (i.e.~casting surfaces). A back surface -- an inside surface -- is one that may be partially sunlit/receive solar transmission for interior solar distribution.
 
-\subsection{Homogeneous Coordinates}\label{homogeneous-coordinates}
+Note that the resolution on surfaces/shadowing is 1 mm -- using resolution beyond that will result in truncation of the shadowing.
+
+\subsubsection{Homogeneous Coordinates}\label{homogeneous-coordinates}
 
 Two-dimensional homogeneous coordinate techniques are used to determine the vertices of shadow overlaps. In homogeneous coordinates, points and lines are represented by a single form that allows simple vector operations between those forms {[}Newman-Sproul{]}.~ A point (X, Y) is represented by a three element vector (x, y, w) where x = w*X, y = w*Y, and w is any real number except zero. A line is also represented by a three element vector (a, b, c). The directed line (a, b, c) from point (x\(_{1}\), y\(_{1}\), w\(_{1}\)) to point (x\(_{2}\), y\(_{2}\), w\(_{2}\)) is given by:
 
@@ -267,15 +275,17 @@ the point is to the left of the line.~ If it is less than zero, the point is to 
 
 Note that the use of homogeneous coordinates as outlined above provides a consistent method and notation for defining points and lines, for determining intercepts, and for determining whether a point lies to the left, to the right, or on a line.~ Normalization provides the means for transforming to and from homogeneous notation and Cartesian coordinates.~ Thus, if (X, Y) is a Cartesian coordinate pair, its homogeneous coordinates are (X, Y, 1).~ Similarly, the homogeneous coordinates (x, y, w) can be transformed to the Cartesian point with coordinates (x/w, y/w).
 
-\subsection{Polygon Clipping Algorithms}\label{polygon-clipping-algorithms}
+\subsubsection{Polygon Clipping Algorithms}\label{polygon-clipping-algorithms}
 
-Two methods for polygon clipping (treating of overlapping shadows) are currently in use in EnergyPlus.
+Three methods for polygon clipping (treating of overlapping shadows) are currently in use in EnergyPlus.
 
 \begin{itemize}
 \item
-  Convex Weiler - Atherton
+  Convex Weiler-Atherton
 \item
-  Sutherland -- Hodgman
+  Sutherland-Hodgman
+\item
+  Slater-Barsky (for rectangular surfaces only)
 \end{itemize}
 
 The original EnergyPlus method for polygon clipping is a special version of the Weiler-Atherton model (Weiler, Atherton, 1977). It was developed to be sufficiently general to clip concave polygons with holes. The implementation in the current version of EnergyPlus, however, does not support concave shadowing surfaces or holes. The relative computational complexity is preserved -- the algorithm is carried out in four steps. For example, if A and B are polygons (see Figure~\ref{fig:point-a-vertex-of-a-enclosed-by-b}).
@@ -290,7 +300,54 @@ The original EnergyPlus method for polygon clipping is a special version of the 
 
 The Sutherland-Hodgman algorithm (Sutherland, Hodgman, 1974) is less complex compared to the Weiler-Atherton method and is well-suited to clipping convex polygons. In actuality, only convex shading surfaces are currently supported by EnergyPlus. Let X be a polygon called the ``subject polygon'' (SP) and Y be a polygon called the ``clipping polygon'' (CP). The method performs the computation by iterating over the edges of the CP and removing points from the SP that fall in the clipping plane, i.e.~points that fall to the left of the edge of the CP. Intersections between the clip edge and the edges of the SP are added appropriately, and points falling outside of the clipping plane, i.e.~to the right of the edge of the CP, are added the output polygon as well. This resultant polygon is stored and the process is repeated for the rest of the clip edges in CP. The process is analogous to cutting off pieces of the SP one-by-one with respect to each edge of the CP. The result is ordered and identical to the polygon produced by the Weiler-Atherton method.
 
-\subsection{Overlapping Shadows}\label{overlapping-shadows}
+The Slater-Barsky algorithm (Slater, M., Barsky, B.A., 1994) can also be chosen for clipping surfaces which are rectangular. The algorithm further saves computational cost. It relies on converting the line segment to be clipped into a parametric equation. Below is the general form for the x- and y- components of a parametric line:
+
+\begin{equation}
+x = x_0 + t \Delta x
+\end{equation}
+
+\begin{equation}
+y = y_0 + t \Delta y
+\end{equation}
+
+Letting our subject line be starting at ($x_0$, $y_0$) and ending at ($x_1$, $x_1$):
+
+\begin{equation}
+\Delta x = x_1 - x_0
+\end{equation}
+
+\begin{equation}
+\Delta y = y_1 - y_0
+\end{equation}
+
+Distances from the endpoints to the edges of the clipping rectangle that collide with the line are used to obtain two values of $t$ that parameterize the equation, representing the pair of new endpoints.
+
+Once we have the two values of $t, t_1$ and $t_2$, we can calculate the clipped line endpoints (Note that $t_2$ > $t_1$).
+
+\begin{equation}
+x'_1 = x_0 + t_1 \Delta x
+\end{equation}
+\begin{equation}
+y'_1 = y_0 + t_1 \Delta y
+\end{equation}
+\begin{equation}
+x'_2 = x_0 + t_2 \Delta x
+\end{equation}
+\begin{equation}
+y'_2 = y_0 + t_2 \Delta y
+\end{equation}
+
+The Slater-Barsky algorithm uses space subdivision to reduce the number of pre-emptive calculations. We break the plane into 9 parts, where region (4) is the clipping region.
+
+
+| 6 | 7 | 8 | \\
+| 3 | 4 | 5 | \\
+| 0 | 1 | 2 | \\
+
+
+With this method, calculating deltas and plugging in the final parametric equations can be skipped if the subject line obeys certain conditions. For example, if the line begins in region (0) and ends in region (6), then no new endpoints need to be calculated.
+
+\subsubsection{Overlapping Shadows}\label{overlapping-shadows}
 
 After transforming the shadows onto the plane of the receiving surface, the basic job of the shadow algorithm is to determine the area of the overlap between the polygons representing the shadows and the polygon representing the receiving surface. Concave surfaces are supported only for exterior wall heat transfer surfaces, when using SutherlandHodgman option. Concave shading devices are not supported by the this option. Neither concave shading devices nor concave exterior wall heat transfer surfaces are supported by the ConvexWeilerAtherton clipping routine.
 
@@ -333,10 +390,10 @@ A point is enclosed by a clockwise, convex polygon if the point lies to the righ
 \caption{Figure Formed from Intercept Overlaps Between A and B \protect \label{fig:figure-formed-from-intercept-overlaps-between}}
 \end{figure}
 
-Once the vertices are determined, they must be sorted into clockwise order for the area to be computed.~ Given a closed, planar polygon of n sequential vertices (x\(_{1}\), y\(_{1}\)), (x\(_{2}\), y\(_{2}\)) \ldots{}, (x\(_{n}\), y\(_{n}\)), its \textbf{area} is given:
+Once the vertices are determined, they must be sorted into clockwise order for the area to be computed.~ Given a closed, planar polygon of n sequential vertices (x\(_{1}\), y\(_{1}\)), (x\(_{2}\), y\(_{2}\)), \ldots{}, (x\(_{n}\), y\(_{n}\)), its \textbf{area} is given:
 
 \begin{equation}
-Area = {\textstyle{1 \over 2}}\sum\limits_{i = 1}^n {({x_i}{y_{i + 1}} - {x_{i + 1}}{y_i})}
+Area = {\frac{1}{2}}\sum\limits_{i = 1}^n {({x_i}{y_{i + 1}} - {x_{i + 1}}{y_i})}
 \end{equation}
 
 where (x\(_{n+1}\),y\(_{n+1}\)) = (x\(_{1}\), y\(_{1}\))
@@ -356,13 +413,13 @@ The following convention was adopted:
 % table 24
 \begin{longtable}[c]{@{}ll@{}}
 \caption{Surface / Area Characteristic / Convention \label{table:surface-area-characteristic-convention}} \tabularnewline
-\toprule 
+\toprule
 Surface Characteristic & Area Convention \tabularnewline
 \midrule
 \endfirsthead
 
 \caption[]{Surface / Area Characteristic / Convention} \tabularnewline
-\toprule 
+\toprule
 Surface Characteristic & Area Convention \tabularnewline
 \midrule
 \endhead
@@ -387,6 +444,18 @@ It is easy to determine the sunlit area of a window once all the shadow and over
 
 When the SutherlandHodgman option is selected, the overlap is computed using the Sutherland-Hodgman algorithm for polygon clipping when. Let X be a polygon called the ``subject polygon'' (SP) and Y be a polygon called the ``clipping polygon'' (CP). The method performs the computation by iterating over the edges of the CP and removing points from the SP that fall in the clipping plane, i.e.~points that fall to the left of the edge of the CP. If it is to the left of any edge, it the point does not overlap with the CP. Intersections between the clip edge and the edges of the SP are added appropriately, and points falling outside of the clipping plane, i.e.~to the right of the edge of the CP, are added the output polygon as well. This resultant polygon is stored and the process is repeated for the rest of the clip edges in CP. The process is analogous to cutting off pieces of the SP one-by-one with respect to each edge of the CP. Note that the SP may be concave, but the CP may not. This means that the exterior wall surfaces may be concave, while shading devices may not be concave.
 
+\subsection{Pixel Counting}
+
+Determination of surface shading is a common task performed by modern graphics processors. Digital graphic rendering generates a depth map for each pixel in a scene to determine the portion of each polygon that is visible within a single view of the scene. When a scene is rendered from the perspective of the sun along the direction of its beams, visible pixels represent the sunlit portions of a surface. This is the same technique used to determine and render shadows within video games and other graphics applications. The application of this technique was originally applied to building energy simulation by Jones et al (2011). They refer to the method as ``Pixel Counting'' because the number of pixels of a given surface is a proxy for the sunlit area of that surface:
+
+\begin{equation}
+A_s \approx \frac{N \cdot A_p}{\cos{\theta}} = \frac{PSSA}{\cos{\theta}}
+\end{equation}
+
+Where, $A_s$ = Sunlit area, $N$ = Number of visible pixels, $A_p$ = the projected area of a single pixel, $\theta$ = solar incidence angle of the surface, and $PSSA$ = Projected Sunlit Surface Area. The approximation is limited by the resolution of the rendering.
+
+For more information on the Pixel Counting method, refer to Jones et al 2011.
+
 \subsection{Solar Gains}\label{solar-gains-000}
 
 The total solar gain on any exterior surface is a combination of the absorption of direct and diffuse solar radiation given by
@@ -397,7 +466,7 @@ The total solar gain on any exterior surface is a combination of the absorption 
 
 where
 
-a = solar absorptance of the surface
+$\alpha$ = solar absorptance of the surface
 
 A = angle of incidence of the sun's rays
 
@@ -469,7 +538,7 @@ This case is the same interior distribution as the preceding option but uses ext
 
 \subsection{Details of the Interior Solar Distribution Calculation}\label{details-of-the-interior-solar-distribution-calculation}
 
-EnergyPlus calculates the distribution of short-wave radiation in the interior of each thermal zone. This radiation consists of beam solar radiation, diffuse solar radiation, and short-wave radiation from electric lights. The program determines the amount of this radiation that is (1) absorbed on the inside face of opaque surfaces, (2) absorbed in the glass and shading device layers of the zone's exterior and interior windows, (3) transmitted through the zone's interior windows to adjacent zones, and (4) transmitted back out of the exterior windows. The effects of movable shading devices on the exterior windows are taken into account; \emph{the program does not allow shading devices on interior windows}. Most of this calculation is done in subroutine CalcInteriorSolarDistribution in the SolarShading module.
+EnergyPlus calculates the distribution of short-wave radiation in the interior of each thermal zone. This radiation consists of beam solar radiation, diffuse solar radiation, and short-wave radiation from electric lights. The program determines the amount of this radiation that is (1) absorbed on the inside face of opaque surfaces, (2) absorbed in the glass and shading device layers of the zone's exterior and interior windows, (3) transmitted through the zone's interior windows to adjacent zones, and (4) transmitted back out of the exterior windows. The effects of movable shading devices on the exterior windows are taken into account; \emph{the program does not allow shading devices on interior windows}. Most of this calculation is done in subroutine CalcInteriorSolarDistribution in the SolarShading module. EnergyPlus will use either Polygon Clipping or Pixel Counting--depending on the method of shading algorithm selected by the user--to determine interior solar distibution if full interior solar distribution is requested.
 
 \subsubsection{Initial Distribution of Diffuse Solar Transmitted through Exterior and Interior Windows}\label{initial-distribution-of-diffuse-solar-transmitted-through-exterior-and-interior-windows}
 
@@ -479,13 +548,14 @@ This new treatment of diffuse solar is intended to more accurately account for t
 
 \subsubsection{Interior Solar Radiation Absorbed by Opaque Surfaces}\label{interior-solar-radiation-absorbed-by-opaque-surfaces}
 
-The short-wave radiation absorbed on the inside face of an opaque surface (floor, wall or ceiling) is given by
+The short-wave radiation absorbed on the inside face of an opaque surface (floor, wall or ceiling) is given by:
 
 \begin{equation}
 \begin{array}{l}
 QRadSWInAbs(SurfNum) = QS(ZoneNum)*AbsIntSurf(SurfNum) \\
-\quad \quad \quad \quad+ AISurf(SurfNum)*BeamSolarRad [W/m2]
+\quad \quad \quad \quad+ AISurf(SurfNum)*BeamSolarRad [W/m^2]
 \end{array}
+\label{eq:ShortWaveRadInsideFaceOpaqueSurf}
 \end{equation}
 
 where
@@ -518,7 +588,7 @@ where
 
 \emph{A\(_{i}\)} = surface area {[}m\(^{2}\){]}
 
-\({\alpha_i}\) = inside solar absorptance for an opaque surface, or, for a window, = back diffuse transmittance plus back diffuse system absorptance of glass layers and shading device layers (if present)
+\({\alpha_i}\) = inside solar absorptance for an opaque surface, or, for a window, $\alpha_i$ = back diffuse transmittance plus back diffuse system absorptance of glass layers and shading device layers (if present)
 
 Solving this equation for \emph{QS} gives:
 
@@ -532,12 +602,12 @@ where
 VMULT(ZoneNum) = \frac{1}{{\sum\limits_{i = 1}^{{N_{surf}}} {AbsIntSur{f_i}*{A_i}} }}{\rm{    [}}{{\rm{m}}^{{\rm{ - 2}}}}]
 \end{equation}
 
-\emph{Q\(_{sw}\)} is given by
+and \emph{Q\(_{sw}\)} is given by:
 
 \begin{equation}
 \begin{array}{l}
-Q{S_{SW}} = QD(ZoneNum) + ZoneIntGain(ZoneNum)\% QLTSW \\
-\quad \quad \quad + ZoneIntGain(ZoneNum)\% T_QLTSW [W]
+{Q_{SW}} = QD(ZoneNum) + ZoneIntGain(ZoneNum)\% QLTSW \\
+\quad \quad \quad + ZoneIntGain(ZoneNum)\% T\_QLTSW [W]
 \end{array}
 \end{equation}
 
@@ -553,7 +623,7 @@ where
 
 \begin{equation}
 \begin{array}{l}
-QD(ZoneNum) = DBZone(ZoneNum)*BeamSolarRad \\
+QD(ZoneNum) = EnclSolDB(ZoneNum)*BeamSolarRad \\
 \quad \quad \quad + InitialDifSolDistReflectedW(ZoneNum)
 \end{array}
 \end{equation}
@@ -562,14 +632,14 @@ where
 
 \emph{BeamSolarRad} is the outside beam normal solar irradiance {[}W/m\(^{2}\){]}
 
-\emph{DBZone(ZoneNum)} is the diffuse solar radiation originating from beam solar that passes through the exterior windows in the zone and reflects diffusely from inside zone surfaces plus beam solar entering the zone as diffuse radiation from windows with shading devices or diffusing glass (all divided by BeamSolarRad)~~ {[}m\(^{2}\){]}
+\emph{EnclSolDB(ZoneNum)} is the diffuse solar radiation originating from beam solar that passes through the exterior windows in the zone and reflects diffusely from inside zone surfaces plus beam solar entering the zone as diffuse radiation from windows with shading devices or diffusing glass (all divided by BeamSolarRad)~~ {[}m\(^{2}\){]}
 
 \emph{InitialDifSolDistReflectedW(ZoneNum)} is the diffuse solar radiation originating from sky and sun related diffuse solar transmitted through the zone's exterior or interior windows into the zone, and reflected diffusely from inside zone surfaces.
 
-\emph{DBZone(ZoneNum)} is calculated as:
+\emph{EnclSolDB(ZoneNum)} is calculated as:
 
 \begin{equation}
-DBZone(ZoneNum) = BTOTZone - BABSZone{\rm{    [}}{{\rm{m}}^{\rm{2}}}]
+EnclSolDB(ZoneNum) = BTOTZone - BABSZone{\rm{    [}}{{\rm{m}}^{\rm{2}}}]
 \end{equation}
 
 where
@@ -581,16 +651,15 @@ where
 \emph{BTOTZone} is given by:
 
 \begin{equation}
-BTOTZone = \sum\limits_{i = 1}^{{N_{extwin}}} {TBmAl{l_i}*SunlitFrac{t_i}*CosIn{c_i}*Are{a_i}*InOutprojSLFracMul{t_i}}
+\begin{array}{rl}
+BTOTZone = & \sum\limits_{i = 1}^{{N_{extwin}}} {TBmAl{l_i}*SunlitFrac{t_i}*CosIn{c_i}*Are{a_i}*InOutprojSLFracMul{t_i}} \\
+           & +~Diffuse~entering~zone~from~beam~reflected~by~window~inside~reveal~surfaces \\
+           & +~Diffuse~transmitted~by~windows~from~beam~reflected~by~outside~reveal~surfaces \\
+           & -~Beam~absorbed~by~window~inside~reveal~surfaces \\
+\end{array}
 \end{equation}
 
-\emph{+ Diffuse entering zone from beam reflected by window inside reveal surfaces\footnote{See ``Beam Solar Reflection from Window Reveal Surfaces.''}}
-
-\emph{+ Diffuse transmitted by windows from beam reflected by outside reveal surfaces}
-
-\emph{--~ Beam absorbed by window inside reveal surfaces}
-
-Here,
+For more information on the diffuse entering the zone from beam reflected, see ``Beam Solar Reflection from Window Reveal Surfaces.''  In the above equation,
 
 \emph{TBmAll} = beam-to-beam plus beam-to-diffuse transmittance of window
 
@@ -604,15 +673,15 @@ Here,
 
 \emph{BABSZone} is given by the following sum (see Figure~\ref{fig:vertical-section-through-a-two-zone-building}):
 
-\emph{BABSZone} = ~ \emph{Beam absorbed by opaque inside surfaces}\footnote{If Solar Distribution = FullInteriorAndExterior in the Building object, the program calculates where beam solar from exterior windows falls inside the zone. Otherwise, all beam solar is assumed to fall on the floor.}
-
-\emph{~~~~~~~~~~~~~~~~~~~~~~~ + Beam transmitted through the zone's interior windows +}
-
-\emph{~~~~~~~~~~~~~~~~~~~~~~~ + Beam transmitted back out of the zone's exterior windows +}
-
-\emph{~~~~~~~~~~~~~~~~~~~~~~~ + Beam absorbed by the zone's exterior and interior windows +}
-
-\emph{~~~~~~~~~~~~~~~~~~~~~~~ + Beam absorbed by inside daylighting shelves}
+\begin{equation}
+\begin{array}{rl}
+BABSZone = & {Beam~absorbed~by~opaque~inside~surfaces}\footnote{If Solar Distribution = FullInteriorAndExterior in the Building object, the program calculates where beam solar from exterior windows falls inside the zone. Otherwise, all beam solar is assumed to fall on the floor.} \\
+           & + {Beam~transmitted~through~the~zone's~interior~windows} \\
+           & + {Beam~transmitted~back~out~of~the~zone's~exterior~windows} \\
+           & + {Beam~absorbed~by~the~zone's~exterior~and~interior~windows} \\
+           & + {Beam~absorbed~by~inside~daylighting~shelves} \\
+\end{array}
+\end{equation}
 
 \begin{figure}[hbtp] % fig 49
 \centering
@@ -624,10 +693,10 @@ If zone \emph{ZoneNum} shares interior windows with other zones, \emph{QS(ZoneNu
 
 \begin{equation}
 \begin{array}{rl}
-   QS(ZoneNum) & = QS(ZoneNum) \\
-               &+ \sum_{otherZones}\text{FractDifShortZtoZ(OtherZoneNum,ZoneNum)} \\
-               &* [QD(OtherZoneNum) + ZoneIntGain(OtherZoneNum)\% QLTSW \\
-               &\quad + ZoneIntGain(OtherZoneNum)\% T_QLTSW]
+   QS(ZoneNum) \to & QS(ZoneNum) \\
+                   &+ \sum_{otherZones}\text{FractDifShortZtoZ(OtherZoneNum,ZoneNum)} \\
+                   &* [QD(OtherZoneNum) + ZoneIntGain(OtherZoneNum)\% QLTSW \\
+                   &\quad + ZoneIntGain(OtherZoneNum)\% T\_QLTSW]
   \end{array}
 \end{equation}
 
@@ -637,9 +706,13 @@ where
 
 \paragraph{Interior Beam Radiation}\label{interior-beam-radiation}
 
-The inside beam solar irradiance factor\footnote{For the purposes of the surface heat balance calculation, any beam solar radiation absorbed by a surface is assumed to be uniformly distributed over the surface even though in reality it is likely to be concentrated in one or more discrete patches on the surface.} in is given by:
+The inside beam solar irradiance factor\footnote{For the purposes of the surface heat balance calculation, any beam solar radiation absorbed by a surface is assumed to be uniformly distributed over the surface even though in reality it is likely to be concentrated in one or more discrete patches on the surface.} in Equation~\ref{eq:ShortWaveRadInsideFaceOpaqueSurf} is given by:
 
-\(AISurf(SurfNum) = \frac{{AbsIntSurf(SurfNum)}}{{A(SurfNum)}}\sum\limits_{i = 1}^{{N_{extwin}}} {TB{m_i}*Aoverla{p_i}(SurfNum)*CosIn{c_i}}\) where
+\begin{equation}
+AISurf(SurfNum) = \frac{{AbsIntSurf(SurfNum)}}{{A(SurfNum)}}\sum\limits_{i = 1}^{{N_{extwin}}} {TB{m_i}*Aoverla{p_i}(SurfNum)*CosIn{c_i}}
+\end{equation}
+
+where
 
 \emph{i} = exterior window number
 
@@ -659,7 +732,11 @@ The inside beam solar irradiance factor\footnote{For the purposes of the surface
 
 The interior short-wave radiation absorbed by layer \emph{l} (glass, shade or blind) of a window is equal to:
 
-\(\begin{array}{l}QS(ZoneNum)*\alpha_{l,back}^{dif}(SurfNum) + \\BeamSolarRad*\frac{{\alpha_{l,back}^{beam}(SurfNum)}}{{A(SurfNum)}}\sum\limits_{i = 1}^{{N_{extwin}}} {TB{m_i}*Aoverla{p_i}(SurfNum)} *CosIn{c_i}{\rm{ [W/}}{{\rm{m}}^{\rm{2}}}]\end{array}\) where
+\begin{equation}
+\begin{array}{l}QS(ZoneNum)*\alpha_{l,back}^{dif}(SurfNum) + \\BeamSolarRad*\frac{{\alpha_{l,back}^{beam}(SurfNum)}}{{A(SurfNum)}}\sum\limits_{i = 1}^{{N_{extwin}}} {TB{m_i}*Aoverla{p_i}(SurfNum)} *CosIn{c_i}{\rm{ [W/}}{{\rm{m}}^{\rm{2}}}]\end{array}
+\end{equation}
+
+where
 
 \(\alpha_{l,back}^{dif}\) = the system diffuse solar absorptance of layer \emph{l} for irradiance from the back side
 
@@ -731,6 +808,8 @@ ASHRAE. 2007. HVAC Applications, Chapter 33, Atlanta, ASHRAE.
 
 Zhang, Qingyuan, Joe Huang, and Siwei Lang. 2002. ``Development of Typical Year Weather Data for Chinese Locations'', American Society of Heating Refrigeration and Air-Conditioning Engineers, ASHRAE Transactions, Vol 108, Part 2.
 
+Jones N., Greenberg D., Pratt K. ``Fast computer graphics techniques for calculating direct solar radiation on complex building surfaces''. Journal of Building Performance Simulation. Volume 5, Issue 5, Pages 300-312. June 26, 2011.
+
 Threlkeld, J.L. and R.C. Jordan. 1958. Direct solar radiation available on clear days. ASHRAE Transactions 64:45.
 
 Groth, C. C., and Lokmanhekim, M. 1969. ``Shadow ‑ A New Technique for the Calculation of Shadow Shapes and Areas by Digital Computer,'' Second Hawaii International Conference on System Sciences, Honolulu, HI, January 22‑24, 1969.
@@ -748,6 +827,8 @@ Polygon area derived from Green's Theorem.~ Graphic Gems repository.
 Weiler, Kevin, Atherton, Peter. ``Hidden Surface Removal Using Polygon Area Sorting.'' Program of Computer Graphics, Cornell University. Ithaca, NY: 1977.
 
 Sutherland, I.E., and Hodgman, G.W. 1974. ``Reentrant Polygon Clipping'', Communication of Association for Computing Machinery (CACM), vol.~17, pp.~32-42.
+
+Slater, M. and Barsky, B.A. 1994, "2D line and polygon clipping based on space subdivision". The Visual Computer, vol.10, pp.407–422.
 
 Maillot,Patrick-Gilles.** ``**A New, Fast Method For 2D Polygon Clipping: Analysis and Software Implementation.'' Sun Microsystems, inc. Mountain View, CA: 1992.
 

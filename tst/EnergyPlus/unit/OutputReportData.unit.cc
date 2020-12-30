@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -57,6 +57,7 @@
 #include <EnergyPlus/OutputProcessor.hh>
 #include <EnergyPlus/OutputReportData.hh>
 #include <EnergyPlus/UtilityRoutines.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
 
 using namespace EnergyPlus;
 using namespace ObjexxFCL;
@@ -83,27 +84,27 @@ TEST_F(EnergyPlusFixture, OutputReportData_getVariableKeys)
     Real64 extLitPow;
     Real64 extLitUse;
 
-    SetupOutputVariable("Exterior Lights Electric Energy", OutputProcessor::Unit::J, extLitUse, "Zone", "Sum", "Lite1", _, "Electricity",
+    SetupOutputVariable(*state, "Exterior Lights Electric Energy", OutputProcessor::Unit::J, extLitUse, "Zone", "Sum", "Lite1", _, "Electricity",
                         "Exterior Lights", "General");
-    SetupOutputVariable("Exterior Lights Electric Energy", OutputProcessor::Unit::J, extLitUse, "Zone", "Sum", "Lite2", _, "Electricity",
+    SetupOutputVariable(*state, "Exterior Lights Electric Energy", OutputProcessor::Unit::J, extLitUse, "Zone", "Sum", "Lite2", _, "Electricity",
                         "Exterior Lights", "General");
-    SetupOutputVariable("Exterior Lights Electric Energy", OutputProcessor::Unit::J, extLitUse, "Zone", "Sum", "Lite3", _, "Electricity",
+    SetupOutputVariable(*state, "Exterior Lights Electric Energy", OutputProcessor::Unit::J, extLitUse, "Zone", "Sum", "Lite3", _, "Electricity",
                         "Exterior Lights", "General");
-    SetupOutputVariable("Exterior Lights Electric Power", OutputProcessor::Unit::W, extLitPow, "Zone", "Average", "Lite1");
-    SetupOutputVariable("Exterior Lights Electric Power", OutputProcessor::Unit::W, extLitPow, "Zone", "Average", "Lite2");
-    SetupOutputVariable("Exterior Lights Electric Power", OutputProcessor::Unit::W, extLitPow, "Zone", "Average", "Lite3");
+    SetupOutputVariable(*state, "Exterior Lights Electric Power", OutputProcessor::Unit::W, extLitPow, "Zone", "Average", "Lite1");
+    SetupOutputVariable(*state, "Exterior Lights Electric Power", OutputProcessor::Unit::W, extLitPow, "Zone", "Average", "Lite2");
+    SetupOutputVariable(*state, "Exterior Lights Electric Power", OutputProcessor::Unit::W, extLitPow, "Zone", "Average", "Lite3");
 
     int keyCount = 0;
     int typeVar = 0;
     OutputProcessor::StoreType avgSumVar;
-    int stepTypeVar = 0;
+    OutputProcessor::TimeStepType stepTypeVar;
     OutputProcessor::Unit unitsVar = OutputProcessor::Unit::None;
 
     fldStTest.m_variMeter = "EXTERIOR LIGHTS ELECTRIC ENERGY";
-    keyCount = fldStTest.getVariableKeyCountandTypeFromFldSt(typeVar, avgSumVar, stepTypeVar, unitsVar);
+    keyCount = fldStTest.getVariableKeyCountandTypeFromFldSt(*state, typeVar, avgSumVar, stepTypeVar, unitsVar);
     EXPECT_EQ(keyCount, 3);
 
-    fldStTest.getVariableKeysFromFldSt(typeVar, keyCount, fldStTest.m_namesOfKeys, fldStTest.m_indexesForKeyVar);
+    fldStTest.getVariableKeysFromFldSt(*state, typeVar, keyCount, fldStTest.m_namesOfKeys, fldStTest.m_indexesForKeyVar);
 
     EXPECT_EQ(fldStTest.m_namesOfKeys[0], "LITE1");
     EXPECT_EQ(fldStTest.m_namesOfKeys[1], "LITE2");
@@ -113,7 +114,6 @@ TEST_F(EnergyPlusFixture, OutputReportData_getVariableKeys)
 TEST_F(EnergyPlusFixture, OutputReportData_Regex)
 {
     std::string const idf_objects = delimited_string({
-        "Version,8.6;",
         " Output:Variable,",
         "Outside Air Inlet Node,",
         "System Node Mass Flow Rate,",
@@ -158,8 +158,11 @@ TEST_F(EnergyPlusFixture, OutputReportData_Regex)
     ASSERT_TRUE(process_idf(idf_objects));
 
     EXPECT_EQ(DataOutputs::NumConsideredOutputVariables, 10);
+    // FindItemInVariableList is case-insentive, so we also test that
     EXPECT_TRUE(FindItemInVariableList("Outside Air Inlet Node", "System Node Mass Flow Rate"));
     EXPECT_TRUE(FindItemInVariableList("OUTSIDE AIR INLET NODE", "System Node Mass Flow Rate"));
+    EXPECT_TRUE(FindItemInVariableList("OutsIDE AiR InLEt NoDE", "System NoDE MaSS FLOw Rate"));
+    EXPECT_TRUE(FindItemInVariableList("OUTSIDE AIR INLET NODE", "System NODE Mass Flow RATE"));
     EXPECT_TRUE(FindItemInVariableList("Mixed Air Node", "System Node Temperature"));
     EXPECT_TRUE(FindItemInVariableList("Outside Air Inlet Node", "System Node Temperature"));
     EXPECT_TRUE(FindItemInVariableList("Outside Air Inlet Node", "Unitary System Compressor Part Load Ratio"));
@@ -178,7 +181,6 @@ TEST_F(EnergyPlusFixture, OutputReportData_Regex)
 TEST_F(EnergyPlusFixture, OutputReportData_Regex_Plus)
 {
     std::string const idf_objects = delimited_string({
-        "Version,8.6;",
         " Output:Variable,",
         "(.+)Inlet(.+),",
         "System Node Mass Flow Rate,",
@@ -220,7 +222,6 @@ TEST_F(EnergyPlusFixture, OutputReportData_Regex_Plus)
 TEST_F(EnergyPlusFixture, OutputReportData_Regex_Star)
 {
     std::string const idf_objects = delimited_string({
-        "Version,8.6;",
         " Output:Variable,",
         "(.*)Inlet(.*),",
         "System Node Mass Flow Rate,",
@@ -278,7 +279,6 @@ TEST_F(EnergyPlusFixture, OutputReportData_Regex_Star)
 TEST_F(EnergyPlusFixture, OutputReportData_Regex_Pipe)
 {
     std::string const idf_objects = delimited_string({
-        "Version,8.6;",
         " Output:Variable,",
         "SalesFloor I(nlet|NLET) Node,",
         "System Node Mass Flow Rate,",
@@ -315,7 +315,7 @@ TEST_F(EnergyPlusFixture, OutputReportData_Regex_Pipe)
 TEST_F(EnergyPlusFixture, OutputReportData_Regex_Brackets)
 {
     std::string const idf_objects = delimited_string({
-        "Version,8.6;", " Output:Variable,", "([A-Za-z] ?)+,", "System Node Mass Flow Rate,",
+        "Output:Variable,", "([A-Za-z] ?)+,", "System Node Mass Flow Rate,",
         "timestep;",    " Output:Variable,", "[A-Za-z0-9_]+,", "System Node Humidity Ratio,",
         "timestep;",    " Output:Variable,", "[A-Z]{4},",      "Unitary System Compressor Part Load Ratio,",
         "timestep;",    " Output:Variable,", "[A-Za-z]{5,6},", "Zone Air System Sensible Heating Rate,",
@@ -347,7 +347,6 @@ TEST_F(EnergyPlusFixture, OutputReportData_Regex_Brackets)
 TEST_F(EnergyPlusFixture, OutputReportData_Regex_SpecChars)
 {
     std::string const idf_objects = delimited_string({
-        "Version,8.6;",
         " Output:Variable,",
         "\\w,",
         "System Node Mass Flow Rate,",
@@ -367,7 +366,6 @@ TEST_F(EnergyPlusFixture, OutputReportData_Regex_SpecChars)
 TEST_F(EnergyPlusFixture, OutputReportData_Regex_Carrot)
 {
     std::string const idf_objects = delimited_string({
-        "Version,8.6;",
         " Output:Variable,",
         "^Inlet(.*)Node,",
         "System Node Mass Flow Rate,",
@@ -390,7 +388,6 @@ TEST_F(EnergyPlusFixture, OutputReportData_Regex_Carrot)
 TEST_F(EnergyPlusFixture, OutputReportData_Regex_Dollar)
 {
     std::string const idf_objects = delimited_string({
-        "Version,8.6;",
         " Output:Variable,",
         "(.*)Node$,",
         "System Node Mass Flow Rate,",

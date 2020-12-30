@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -57,8 +57,9 @@
 #include "Fixtures/EnergyPlusFixture.hh"
 #include <EnergyPlus/DataHVACGlobals.hh>
 #include <EnergyPlus/DataLoopNode.hh>
-#include <EnergyPlus/DataPlant.hh>
+#include <EnergyPlus/Plant/DataPlant.hh>
 #include <EnergyPlus/HVACInterfaceManager.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
 
 namespace EnergyPlus {
 TEST_F(EnergyPlusFixture, ExcessiveHeatStorage_Test)
@@ -88,7 +89,7 @@ TEST_F(EnergyPlusFixture, ExcessiveHeatStorage_Test)
 
     // LoopSideInlet_MdotCpDeltaT should be < LoopSideInlet_McpDTdt
     // Therefore CapExcessStorageTime AND TotalTime will increase by 1 timestep
-    UpdateHalfLoopInletTemp(1, 1, TankOutletTemp);
+    UpdateHalfLoopInletTemp(*state, 1, 1, TankOutletTemp);
     EXPECT_NEAR(-500, PlantLoop(1).LoopSide(2).LoopSideInlet_MdotCpDeltaT, 0.001);
     EXPECT_NEAR(2928.82, PlantLoop(1).LoopSide(2).LoopSideInlet_McpDTdt, 0.001);
     EXPECT_EQ(1, PlantLoop(1).LoopSide(2).LoopSideInlet_CapExcessStorageTime);
@@ -98,7 +99,7 @@ TEST_F(EnergyPlusFixture, ExcessiveHeatStorage_Test)
 
     // LoopSideInlet_MdotCpDeltaT should be > LoopSideInlet_McpDTdt
     // Therefore TotalTime will increase by 1 more timestep, but CapExcessStorageTime will NOT increase
-    UpdateHalfLoopInletTemp(1, 1, TankOutletTemp);
+    UpdateHalfLoopInletTemp(*state, 1, 1, TankOutletTemp);
     EXPECT_NEAR(-500, PlantLoop(1).LoopSide(2).LoopSideInlet_MdotCpDeltaT, .001);
     EXPECT_NEAR(-588.264, PlantLoop(1).LoopSide(2).LoopSideInlet_McpDTdt, .001);
     EXPECT_EQ(1, PlantLoop(1).LoopSide(2).LoopSideInlet_CapExcessStorageTime);

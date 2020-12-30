@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,8 +52,9 @@
 #include <ObjexxFCL/Array1D.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
 
@@ -198,11 +199,11 @@ namespace DataPhotovoltaics {
         Real64 BVoc0; // Temperature coefficient for module open-circuit-voltage at reference conditions
         //   (Volts/degC)
         Real64 mBVoc; // Coefficient for irradiance dependence of open-circuit-voltage-temperature
-        //  coefficient  (V/캜)
+        //  coefficient  (V/째C)
         Real64 BVmp0; // Temperature coefficient for module maximum-power-voltage at reference conditions
-        //   (V/캜)
+        //   (V/째C)
         Real64 mBVmp; // Cofficient for irradiance dependence of maximum-power-voltage-temperature
-        //   coefficient (V/캜)
+        //   coefficient (V/째C)
         Real64 DiodeFactor; // Empirically determined 'diode factor' for individual cells (unitless)
         Real64 c_2;         // Empirical coefficients relating Vmp to Ee (unitless)
         //   (coefficient relating Vmp to irradiance)
@@ -219,7 +220,7 @@ namespace DataPhotovoltaics {
         Real64 b_3; // Empirical coefficients for f1(AOI) polynomial (unitless)
         Real64 b_4; // Empirical coefficients for f1(AOI) polynomial (unitless)
         Real64 b_5; // Empirical coefficients for f1(AOI) polynomial (unitless)
-        Real64 DT0; // Temperature difference between Tc and Tm at Eo (캜),
+        Real64 DT0; // Temperature difference between Tc and Tm at Eo (째C),
         // (This is d(Tc) in Sandia database)
         Real64 fd; // Fraction of diffuse irradiance used by module (unitless)
         Real64 a;  // Empirical coefficient for module temp.at low wind,
@@ -344,7 +345,17 @@ namespace DataPhotovoltaics {
     // Object Data
     extern Array1D<PVArrayStruct> PVarray;
 
+    void clear_state();
+
 } // namespace DataPhotovoltaics
+
+struct PhotovoltaicsData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

@@ -82,28 +82,43 @@ function( ADD_SIMULATION_TEST )
   set(options ANNUAL_SIMULATION DESIGN_DAY_ONLY EXPECT_FATAL PERFORMANCE)
   set(oneValueArgs IDF_FILE EPW_FILE COST)
   set(multiValueArgs ENERGYPLUS_FLAGS)
+  # CMake Parse Arguments: will set the value of variables starting with 'ADD_SIM_TEST_', eg: 'ADD_SIM_TEST_IDF_FILE'
   cmake_parse_arguments(ADD_SIM_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
-  
-  if( DESIGN_DAY_ONLY )
+
+  if( ADD_SIM_TEST_DESIGN_DAY_ONLY )
     set(ANNUAL_SIMULATION false)
-  elseif( ADD_SIM_TEST_ANNUAL_SIMULATION OR TEST_ANNUAL_SIMULATION  )
+  # If passed argument "ANNUAL_SIMULATION" or global cache variables
+  elseif( ADD_SIM_TEST_ANNUAL_SIMULATION OR TEST_ANNUAL_SIMULATION )
     set(ANNUAL_SIMULATION true)
   else()
     set(ANNUAL_SIMULATION false)
   endif()
 
+  # Note JM 2018-11-23: -r means "Call ReadVarEso", which unless you actually have BUILD_FORTRAN=TRUE shouldn't exist
   if(ANNUAL_SIMULATION)
-   set( ENERGYPLUS_FLAGS "${ADD_SIM_TEST_ENERGYPLUS_FLAGS} -a -r" )
+   set( ENERGYPLUS_FLAGS "${ADD_SIM_TEST_ENERGYPLUS_FLAGS} -a" )
   else()
-   set( ENERGYPLUS_FLAGS "${ADD_SIM_TEST_ENERGYPLUS_FLAGS} -D -r" )
+   set( ENERGYPLUS_FLAGS "${ADD_SIM_TEST_ENERGYPLUS_FLAGS} -D" )
+  endif()
+
+  # Add -r flag if BUILD_FORTRAN is on, regardless of whether we run regression/performance tests
+  # So that it'll produce the CSV output automatically for convenience
+  if (BUILD_FORTRAN)
+    set( ENERGYPLUS_FLAGS "${ENERGYPLUS_FLAGS} -r")
+  else()
+    # Now, if you don't have BUILD_FORTRAN, but you actually need that because of regression/performance testing, we issue messages
+
+    if( ADD_SIM_TEST_PERFORMANCE )
+      # For performance testing, it's more problematic, because that'll cut on the ReadVarEso time
+      message(WARNING "Will not be able to call ReadVarEso unless BUILD_FORTRAN=TRUE, skipping flag -r.")
+    elseif(DO_REGRESSION_TESTING)
+      # DO_REGRESSION_TESTING shouldn't really occur here since EnergyPlus/CMakeLists.txt will throw an error if BUILD_FORTRAN isn't enabled
+      # Not that bad, just a dev warning
+      message(AUTHOR_WARNING "Will not be able to call ReadVarEso unless BUILD_FORTRAN=TRUE, skipping flag -r.")
+    endif()
   endif()
 
   get_filename_component(IDF_NAME "${ADD_SIM_TEST_IDF_FILE}" NAME_WE)
-
-  if ( PROFILE_GENERATE AND IDF_NAME MATCHES "^(ChilledWaterStorage-Mixed|AirflowNetwork3zVent|AirflowNetwork3zVentAutoWPC|DElightCFSWindow|PipeHeatTransfer_Outair|RadHiTempElecTermReheat|RadLoTempCFloTermReheat|RadLoTempHydrMulti10|RefBldgSmallOfficeNew2004_Chicago|WindowTestsSimple|.*CentralChillerHeaterSystem.*|EMSCustomOutputVariable|EMSTestMathAndKill)$")
-    message("Setting ANNUAL_SIMULATION to true for ${IDF_NAME} for the purpose of PGO training")
-    set(ANNUAL_SIMULATION true)
-  endif()
 
   if (ADD_SIM_TEST_PERFORMANCE)
     set(TEST_CATEGORY "performance")
@@ -120,8 +135,8 @@ function( ADD_SIMULATION_TEST )
   endif()
 
   add_test(NAME "${TEST_CATEGORY}.${IDF_NAME}" COMMAND ${CMAKE_COMMAND}
-    -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
-    -DBINARY_DIR=${CMAKE_BINARY_DIR}
+    -DSOURCE_DIR=${PROJECT_SOURCE_DIR}
+    -DBINARY_DIR=${PROJECT_BINARY_DIR}
     -DENERGYPLUS_EXE=$<TARGET_FILE:energyplus>
     -DIDF_FILE=${ADD_SIM_TEST_IDF_FILE}
     -DEPW_FILE=${ADD_SIM_TEST_EPW_FILE}
@@ -130,14 +145,8 @@ function( ADD_SIMULATION_TEST )
     -DTEST_FILE_FOLDER=${TEST_FILE_FOLDER}
     -DRUN_CALLGRIND:BOOL=${RUN_CALLGRIND}
     -DVALGRIND=${VALGRIND}
-    -P ${CMAKE_SOURCE_DIR}/cmake/RunSimulation.cmake
+    -P ${PROJECT_SOURCE_DIR}/cmake/RunSimulation.cmake
   )
-
-  # MSVC's profile generator does not work with parallel runs
-  #if( MSVC AND PROFILE_GENERATE )
-    #set_tests_properties("integration.${IDF_NAME}" PROPERTIES RUN_SERIAL true)
-  #endif()
-
 
   if (ADD_SIM_TEST_COST AND NOT ADD_SIM_TEST_COST STREQUAL "" )
     set_tests_properties("${TEST_CATEGORY}.${IDF_NAME}" PROPERTIES COST ${ADD_SIM_TEST_COST})
@@ -152,14 +161,9 @@ function( ADD_SIMULATION_TEST )
     set_tests_properties("${TEST_CATEGORY}.${IDF_NAME}" PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;FAIL;Test Failed")
   endif()
 
-  if ( PROFILE_GENERATE AND ANNUAL_SIMULATION )
-    set_tests_properties("${TEST_CATEGORY}.${IDF_NAME}" PROPERTIES TIMEOUT 4500)
-  endif()
-
-
   if( DO_REGRESSION_TESTING AND (NOT ADD_SIM_TEST_EXPECT_FATAL) )
     add_test(NAME "regression.${IDF_NAME}" COMMAND ${CMAKE_COMMAND}
-      -DBINARY_DIR=${CMAKE_BINARY_DIR}
+      -DBINARY_DIR=${PROJECT_BINARY_DIR}
       -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
       -DIDF_FILE=${ADD_SIM_TEST_IDF_FILE}
       -DREGRESSION_SCRIPT_PATH=${REGRESSION_SCRIPT_PATH}
@@ -167,7 +171,7 @@ function( ADD_SIMULATION_TEST )
       -DREGRESSION_BASELINE_SHA=${REGRESSION_BASELINE_SHA}
       -DCOMMIT_SHA=${COMMIT_SHA}
       -DDEVICE_ID=${DEVICE_ID}
-      -P ${CMAKE_SOURCE_DIR}/cmake/RunRegression.cmake
+      -P ${PROJECT_SOURCE_DIR}/cmake/RunRegression.cmake
       )
     # Note, CMake / CTest doesn't seem to validate if this dependent name actually exists,
     # but it does seem to honor the requirement
@@ -200,6 +204,7 @@ function(fixup_executable EXECUTABLE_PATH )
       execute_process(COMMAND "${CMAKE_COMMAND}" -E copy "${resolved_item_var}" "${BASE_PATH}")
       if(APPLE)
         get_filename_component(PREREQNAME "${resolved_item_var}" NAME)
+        execute_process(COMMAND "chmod" "+w" "${BASE_PATH}/${PREREQNAME}")
         execute_process(COMMAND "install_name_tool" -change "${PREREQ}" "@executable_path/${PREREQNAME}" "${EXECUTABLE_PATH}")
         foreach(PR IN LISTS PREREQUISITES)
           gp_resolve_item("" ${PR} "" "" PRPATH)
@@ -217,5 +222,4 @@ function(install_target_prereqs TARGET_NAME INSTALL_PATH)
     fixup_executable(\"\${CMAKE_INSTALL_PREFIX}/${INSTALL_PATH}/${TARGET_NAME}${CMAKE_EXECUTABLE_SUFFIX}\")
   ")
 endfunction()
-
 

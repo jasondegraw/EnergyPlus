@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -46,8 +46,10 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // EnergyPlus Headers
-#include <DataAirSystems.hh>
-#include <DataPrecisionGlobals.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
+#include <EnergyPlus/DataAirSystems.hh>
+#include <EnergyPlus/Fans.hh>
+#include <EnergyPlus/HVACFan.hh>
 
 namespace EnergyPlus {
 
@@ -73,7 +75,6 @@ namespace DataAirSystems {
     // USE STATEMENTS:
     // Use statements for data only modules (only modules that should be used here and sparingly)
     // Using/Aliasing
-    using namespace DataPrecisionGlobals;
     using namespace DataPlant;
 
     // Data
@@ -91,30 +92,27 @@ namespace DataAirSystems {
     // MODULE VARIABLE DECLARATIONS
     // For each type of air path, define an array of DefineAirPaths
 
-    // Temporary arrays
-
-    // Object Data
-    Array1D<DefinePrimaryAirSystem> PrimaryAirSystem;
-    Array1D<ConnectionPoint> DemandSideConnect;               // Connections between loops
-    Array1D<ConnectZoneComp> ZoneCompToPlant;                 // Connections between loops
-    Array1D<ConnectZoneSubComp> ZoneSubCompToPlant;           // Connections between loops
-    Array1D<ConnectZoneSubSubComp> ZoneSubSubCompToPlant;     // Connections between loops
-    Array1D<ConnectAirSysComp> AirSysCompToPlant;             // Connections between loops
-    Array1D<ConnectAirSysSubComp> AirSysSubCompToPlant;       // Connections between loops
-    Array1D<ConnectAirSysSubSubComp> AirSysSubSubCompToPlant; // Connections between loops
-
-    // Functions
-    void clear_state()
+    Real64 calcFanDesignHeatGain(EnergyPlusData &state, int const &dataFanEnumType, int const &dataFanIndex, Real64 const &desVolFlow)
     {
+        Real64 fanDesHeatLoad = 0.0; // design fan heat load (W)
 
-        PrimaryAirSystem.deallocate();
-        DemandSideConnect.deallocate();       // Connections between loops
-        ZoneCompToPlant.deallocate();         // Connections between loops
-        ZoneSubCompToPlant.deallocate();      // Connections between loops
-        ZoneSubSubCompToPlant.deallocate();   // Connections between loops
-        AirSysCompToPlant.deallocate();       // Connections between loops
-        AirSysSubCompToPlant.deallocate();    // Connections between loops
-        AirSysSubSubCompToPlant.deallocate(); // Connections
+        if (dataFanEnumType < 0 || dataFanIndex < 0 || desVolFlow == 0.0) return fanDesHeatLoad;
+
+        switch (dataFanEnumType) {
+        case DataAirSystems::structArrayLegacyFanModels: {
+            fanDesHeatLoad = Fans::FanDesHeatGain(state, dataFanIndex, desVolFlow);
+            break;
+        }
+        case DataAirSystems::objectVectorOOFanSystemModel: {
+            fanDesHeatLoad = HVACFan::fanObjs[dataFanIndex]->getFanDesignHeatGain(state, desVolFlow);
+            break;
+        }
+        case DataAirSystems::fanModelTypeNotYetSet: {
+            // do nothing
+            break;
+        }
+        } // end switch
+        return fanDesHeatLoad;
     }
 
 } // namespace DataAirSystems

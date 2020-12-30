@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -51,11 +51,14 @@
 #include <gtest/gtest.h>
 
 // EnergyPlus Headers
+#include <EnergyPlus/Data/EnergyPlusData.hh>
 #include <EnergyPlus/DataHeatBalance.hh>
 #include <EnergyPlus/DataLoopNode.hh>
+#include <EnergyPlus/DataSizing.hh>
 #include <EnergyPlus/DataSurfaceLists.hh>
 #include <EnergyPlus/DataSurfaces.hh>
 #include <EnergyPlus/HeatBalanceManager.hh>
+#include <EnergyPlus/IOFiles.hh>
 #include <EnergyPlus/ScheduleManager.hh>
 #include <EnergyPlus/SurfaceGeometry.hh>
 #include <EnergyPlus/UtilityRoutines.hh>
@@ -65,7 +68,6 @@
 
 using namespace EnergyPlus;
 using namespace ObjexxFCL;
-using namespace DataGlobals;
 using namespace EnergyPlus::VentilatedSlab;
 using namespace EnergyPlus::DataHeatBalance;
 using namespace EnergyPlus::DataLoopNode;
@@ -78,17 +80,17 @@ using namespace EnergyPlus::SurfaceGeometry;
 TEST_F(EnergyPlusFixture, VentilatedSlab_CalcVentilatedSlabCoilOutputTest)
 {
 
-    BeginEnvrnFlag = false;
+    state->dataGlobal->BeginEnvrnFlag = false;
     Real64 PowerMet = 0.0;
     Real64 LatOutputProvided = 0.0;
 
-    NumOfVentSlabs = 1;
-    VentSlab.allocate(NumOfVentSlabs);
+    state->dataVentilatedSlab->NumOfVentSlabs = 1;
+    state->dataVentilatedSlab->VentSlab.allocate(state->dataVentilatedSlab->NumOfVentSlabs);
     int Item = 1;
     int FanOutletNode = 1;
     int OutletNode = 2;
-    VentSlab(Item).FanOutletNode = FanOutletNode;
-    VentSlab(Item).RadInNode = OutletNode;
+    state->dataVentilatedSlab->VentSlab(Item).FanOutletNode = FanOutletNode;
+    state->dataVentilatedSlab->VentSlab(Item).RadInNode = OutletNode;
     Node.allocate(2);
     Node(OutletNode).MassFlowRate = 0.5;
 
@@ -105,12 +107,12 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_CalcVentilatedSlabCoilOutputTest)
     Node(FanOutletNode).HumRat = 0.003;
     Node(OutletNode).Temp = 20.0;
     Node(OutletNode).HumRat = 0.003;
-    CalcVentilatedSlabCoilOutput(Item, PowerMet, LatOutputProvided);
+    CalcVentilatedSlabCoilOutput(*state, Item, PowerMet, LatOutputProvided);
 
-    EXPECT_TRUE(VentSlab(Item).HeatCoilPower > 0.0);
-    EXPECT_TRUE(VentSlab(Item).SensCoolCoilPower == 0.0);
-    EXPECT_TRUE(VentSlab(Item).TotCoolCoilPower == 0.0);
-    EXPECT_TRUE(VentSlab(Item).LateCoolCoilPower == 0.0);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).HeatCoilPower > 0.0);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).SensCoolCoilPower == 0.0);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).TotCoolCoilPower == 0.0);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).LateCoolCoilPower == 0.0);
     EXPECT_TRUE(LatOutputProvided == 0.0);
     EXPECT_TRUE(PowerMet > 0.0);
 
@@ -119,12 +121,12 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_CalcVentilatedSlabCoilOutputTest)
     Node(FanOutletNode).HumRat = 0.003;
     Node(OutletNode).Temp = 20.0;
     Node(OutletNode).HumRat = 0.003;
-    CalcVentilatedSlabCoilOutput(Item, PowerMet, LatOutputProvided);
+    CalcVentilatedSlabCoilOutput(*state, Item, PowerMet, LatOutputProvided);
 
-    EXPECT_TRUE(VentSlab(Item).HeatCoilPower == 0.0);
-    EXPECT_TRUE(VentSlab(Item).SensCoolCoilPower > 0.0);
-    EXPECT_TRUE(VentSlab(Item).TotCoolCoilPower == VentSlab(Item).SensCoolCoilPower);
-    EXPECT_TRUE(VentSlab(Item).LateCoolCoilPower == 0.0);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).HeatCoilPower == 0.0);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).SensCoolCoilPower > 0.0);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).TotCoolCoilPower == state->dataVentilatedSlab->VentSlab(Item).SensCoolCoilPower);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).LateCoolCoilPower == 0.0);
     EXPECT_TRUE(LatOutputProvided == 0.0);
     EXPECT_TRUE(PowerMet < 0.0);
 
@@ -133,32 +135,27 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_CalcVentilatedSlabCoilOutputTest)
     Node(FanOutletNode).HumRat = 0.008;
     Node(OutletNode).Temp = 20.0;
     Node(OutletNode).HumRat = 0.003;
-    CalcVentilatedSlabCoilOutput(Item, PowerMet, LatOutputProvided);
+    CalcVentilatedSlabCoilOutput(*state, Item, PowerMet, LatOutputProvided);
 
-    EXPECT_TRUE(VentSlab(Item).HeatCoilPower == 0.0);
-    EXPECT_TRUE(VentSlab(Item).SensCoolCoilPower > 0.0);
-    EXPECT_TRUE(VentSlab(Item).TotCoolCoilPower > VentSlab(Item).SensCoolCoilPower);
-    EXPECT_TRUE(VentSlab(Item).LateCoolCoilPower > 0.0);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).HeatCoilPower == 0.0);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).SensCoolCoilPower > 0.0);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).TotCoolCoilPower > state->dataVentilatedSlab->VentSlab(Item).SensCoolCoilPower);
+    EXPECT_TRUE(state->dataVentilatedSlab->VentSlab(Item).LateCoolCoilPower > 0.0);
     EXPECT_TRUE(LatOutputProvided < 0.0);
     EXPECT_TRUE(PowerMet < 0.0);
 
-    // Deallocate everything
-    VentSlab.deallocate();
-    Node.deallocate();
 }
 
 TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
 {
 
-    BeginEnvrnFlag = false;
+    state->dataGlobal->BeginEnvrnFlag = false;
     bool ErrorsFound(false);       // function returns true on error
     int Item(1);                   // index for the current ventilated slab
     int VentSlabZoneNum(1);        // number of zone being served
     bool FirstHVACIteration(true); // TRUE if 1st HVAC simulation of system timestep
 
     std::string const idf_objects = delimited_string({
-        "  Version,8.4;",
-
         "  SimulationControl,",
         "    No,                      !- Do Zone Sizing Calculation",
         "    No,                      !- Do System Sizing Calculation",
@@ -240,19 +237,6 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
         "    ,                        !- ASHRAE Clear Sky Optical Depth for Beam Irradiance (taub) {dimensionless}",
         "    ,                        !- ASHRAE Clear Sky Optical Depth for Diffuse Irradiance (taud) {dimensionless}",
         "    1.0;                     !- Sky Clearness",
-
-        "  RunPeriod,",
-        "    ,                        !- Name",
-        "    7,                       !- Begin Month",
-        "    5,                       !- Begin Day of Month",
-        "    7,                       !- End Month",
-        "    12,                      !- End Day of Month",
-        "    UseWeatherFile,          !- Day of Week for Start Day",
-        "    Yes,                     !- Use Weather File Holidays and Special Days",
-        "    Yes,                     !- Use Weather File Daylight Saving Period",
-        "    No,                      !- Apply Weekend Holiday Rule",
-        "    Yes,                     !- Use Weather File Rain Indicators",
-        "    Yes;                     !- Use Weather File Snow Indicators",
 
         "  Site:GroundTemperature:BuildingSurface,20.03,20.03,20.13,20.30,20.43,20.52,20.62,20.77,20.78,20.55,20.44,20.20;",
 
@@ -775,6 +759,7 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
         "    2,                       !- Temperature Calculation Requested After Layer Number",
         "    1,                       !- Dimensions for the CTF Calculation",
         "    0.1524,                  !- Tube Spacing {m}",
+        "    0.0,                     !- Two-Dimensional Position of Interior Temperature Calculation Request",
         "    CLN-INS,                 !- Outside Layer",
         "    GYP1,                    !- Layer 2",
         "    GYP2,                    !- Layer 3",
@@ -786,6 +771,7 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
         "    2,                       !- Temperature Calculation Requested After Layer Number",
         "    1,                       !- Dimensions for the CTF Calculation",
         "    0.1524,                  !- Tube Spacing {m}",
+        "    0.0,                     !- Two-Dimensional Position of Interior Temperature Calculation Request",
         "    MAT-CLNG-1,              !- Outside Layer",
         "    GYP2,                    !- Layer 2",
         "    GYP1,                    !- Layer 3",
@@ -797,6 +783,7 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
         "    2,                       !- Temperature Calculation Requested After Layer Number",
         "    1,                       !- Dimensions for the CTF Calculation",
         "    0.1524,                  !- Tube Spacing {m}",
+        "    0.0,                     !- Two-Dimensional Position of Interior Temperature Calculation Request",
         "    INS - EXPANDED EXT POLYSTYRENE R12,  !- Outside Layer",
         "    CONC,                    !- Layer 2",
         "    CONC,                    !- Layer 3",
@@ -1520,7 +1507,6 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
         "    FRONT-1,                 !- Building Surface Name",
         "    ,                        !- Outside Boundary Condition Object",
         "    0.50000,                 !- View Factor to Ground",
-        "    ,                        !- Shading Control Name",
         "    ,                        !- Frame and Divider Name",
         "    1,                       !- Multiplier",
         "    4,                       !- Number of Vertices",
@@ -1536,7 +1522,6 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
         "    FRONT-1,                 !- Building Surface Name",
         "    ,                        !- Outside Boundary Condition Object",
         "    0.50000,                 !- View Factor to Ground",
-        "    ,                        !- Shading Control Name",
         "    ,                        !- Frame and Divider Name",
         "    1,                       !- Multiplier",
         "    4,                       !- Number of Vertices",
@@ -1552,7 +1537,6 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
         "    RIGHT-1,                 !- Building Surface Name",
         "    ,                        !- Outside Boundary Condition Object",
         "    0.50000,                 !- View Factor to Ground",
-        "    ,                        !- Shading Control Name",
         "    ,                        !- Frame and Divider Name",
         "    1,                       !- Multiplier",
         "    4,                       !- Number of Vertices",
@@ -1568,7 +1552,6 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
         "    BACK-1,                  !- Building Surface Name",
         "    ,                        !- Outside Boundary Condition Object",
         "    0.50000,                 !- View Factor to Ground",
-        "    ,                        !- Shading Control Name",
         "    ,                        !- Frame and Divider Name",
         "    1,                       !- Multiplier",
         "    4,                       !- Number of Vertices",
@@ -1584,7 +1567,6 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
         "    BACK-1,                  !- Building Surface Name",
         "    ,                        !- Outside Boundary Condition Object",
         "    0.50000,                 !- View Factor to Ground",
-        "    ,                        !- Shading Control Name",
         "    ,                        !- Frame and Divider Name",
         "    1,                       !- Multiplier",
         "    4,                       !- Number of Vertices",
@@ -1600,7 +1582,6 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
         "    LEFT-1,                  !- Building Surface Name",
         "    ,                        !- Outside Boundary Condition Object",
         "    0.50000,                 !- View Factor to Ground",
-        "    ,                        !- Shading Control Name",
         "    ,                        !- Frame and Divider Name",
         "    1,                       !- Multiplier",
         "    4,                       !- Number of Vertices",
@@ -2316,40 +2297,42 @@ TEST_F(EnergyPlusFixture, VentilatedSlab_InitVentilatedSlabTest)
     });
     ASSERT_TRUE(process_idf(idf_objects));
 
-    NumOfTimeStepInHour = 1; // must initialize this to get schedules initialized
-    MinutesPerTimeStep = 60; // must initialize this to get schedules initialized
-    ProcessScheduleInput();  // read schedule data
+    DataSizing::CurZoneEqNum = 1;
+    DataSizing::ZoneEqSizing.allocate(1);
+    state->dataGlobal->NumOfTimeStepInHour = 1; // must initialize this to get schedules initialized
+    state->dataGlobal->MinutesPerTimeStep = 60; // must initialize this to get schedules initialized
+    ProcessScheduleInput(*state);  // read schedule data
 
     ErrorsFound = false;
-    HeatBalanceManager::GetProjectControlData(ErrorsFound); // read project control data
+    HeatBalanceManager::GetProjectControlData(*state, ErrorsFound); // read project control data
     EXPECT_FALSE(ErrorsFound);
 
     ErrorsFound = false;
-    HeatBalanceManager::GetZoneData(ErrorsFound); // read zone data
+    HeatBalanceManager::GetZoneData(*state, ErrorsFound); // read zone data
     EXPECT_FALSE(ErrorsFound);
 
     ErrorsFound = false;
-    GetMaterialData(ErrorsFound); // read construction material data
+    GetMaterialData(*state, ErrorsFound); // read construction material data
     EXPECT_FALSE(ErrorsFound);
 
     ErrorsFound = false;
-    HeatBalanceManager::GetConstructData(ErrorsFound); // read construction data
+    HeatBalanceManager::GetConstructData(*state, ErrorsFound); // read construction data
     EXPECT_FALSE(ErrorsFound);
 
     ErrorsFound = false;
-    SetupZoneGeometry(ErrorsFound); // read zone geometry data
+    SetupZoneGeometry(*state, ErrorsFound); // read zone geometry data
     EXPECT_FALSE(ErrorsFound);
 
     ErrorsFound = false;
-    GetSurfaceListsInputs(); // read surface data
+    GetSurfaceListsInputs(*state); // read surface data
     EXPECT_FALSE(ErrorsFound);
 
-    GetVentilatedSlabInput(); // read ventilated slab data
-    EXPECT_EQ(2, NumOfVentSlabs);
-    EXPECT_EQ("ZONE1VENTSLAB", VentSlab(1).Name);
-    EXPECT_EQ("ZONE4VENTSLAB", VentSlab(2).Name);
+    GetVentilatedSlabInput(*state); // read ventilated slab data
+    EXPECT_EQ(2, state->dataVentilatedSlab->NumOfVentSlabs);
+    EXPECT_EQ("ZONE1VENTSLAB", state->dataVentilatedSlab->VentSlab(1).Name);
+    EXPECT_EQ("ZONE4VENTSLAB", state->dataVentilatedSlab->VentSlab(2).Name);
 
-    InitVentilatedSlab(Item, VentSlabZoneNum, FirstHVACIteration);
-    EXPECT_EQ(324.38499999999999, VentSlab(1).TotalSurfaceArea);
-    EXPECT_EQ(139.21499999999997, VentSlab(2).TotalSurfaceArea);
+    InitVentilatedSlab(*state, Item, VentSlabZoneNum, FirstHVACIteration);
+    EXPECT_EQ(324.38499999999999, state->dataVentilatedSlab->VentSlab(1).TotalSurfaceArea);
+    EXPECT_EQ(139.21499999999997, state->dataVentilatedSlab->VentSlab(2).TotalSurfaceArea);
 }

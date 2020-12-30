@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -57,12 +57,16 @@
 #include <ObjexxFCL/Optional.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <EnergyPlus.hh>
-#include <GroundTemperatureModeling/GroundTemperatureModelManager.hh>
-#include <PlantComponent.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
+#include <EnergyPlus/GroundTemperatureModeling/GroundTemperatureModelManager.hh>
+#include <EnergyPlus/PlantComponent.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace PipeHeatTransfer {
 
@@ -237,28 +241,27 @@ namespace PipeHeatTransfer {
         {
         }
 
-        static PlantComponent *factory(int objectType, std::string objectName);
+        static PlantComponent *factory(EnergyPlusData &state, int objectType, std::string objectName);
 
-        void clear_state();
-
-        void simulate(const PlantLocation &calledFromLocation, bool const FirstHVACIteration, Real64 &CurLoad, bool const RunFlag) override;
+        void simulate([[maybe_unused]] EnergyPlusData &state, const PlantLocation &calledFromLocation, bool const FirstHVACIteration, Real64 &CurLoad, bool const RunFlag) override;
 
         void PushInnerTimeStepArrays();
 
-        void InitPipesHeatTransfer(bool const FirstHVACIteration // component number
+        void InitPipesHeatTransfer(EnergyPlusData &state, bool const FirstHVACIteration // component number
         );
 
-        Real64 TBND(Real64 const z,       // Current Depth
-                    Real64 const DayOfSim // Current Simulation Day
+        Real64 TBND(EnergyPlusData &state,
+                    Real64 const z       // Current Depth
         );
 
-        void CalcBuriedPipeSoil();
+        void CalcBuriedPipeSoil(EnergyPlusData &state);
 
-        void CalcPipesHeatTransfer(Optional_int_const LengthIndex = _);
+        void CalcPipesHeatTransfer(EnergyPlusData &state, Optional_int_const LengthIndex = _);
 
-        Real64 OutsidePipeHeatTransCoef();
+        Real64 OutsidePipeHeatTransCoef(EnergyPlusData &state);
 
-        Real64 CalcPipeHeatTransCoef(Real64 const Temperature,  // Temperature of water entering the surface, in C
+        Real64 CalcPipeHeatTransCoef(EnergyPlusData &state,
+                                     Real64 const Temperature,  // Temperature of water entering the surface, in C
                                      Real64 const MassFlowRate, // Mass flow rate, in kg/s
                                      Real64 const Diameter      // Pipe diameter, m
         );
@@ -267,22 +270,33 @@ namespace PipeHeatTransfer {
 
         void UpdatePipesHeatTransfer();
 
-        void ValidatePipeConstruction(std::string const &PipeType,         // module object of pipe (error messages)
+        void ValidatePipeConstruction(EnergyPlusData &state,
+                                      std::string const &PipeType,         // module object of pipe (error messages)
                                       std::string const &ConstructionName, // construction name of pipe (error messages)
                                       std::string const &FieldName,        // fieldname of pipe (error messages)
                                       int const ConstructionNum,           // pointer into construction data
                                       bool &ErrorsFound                    // set to true if errors found here
         );
 
-        static void CalcZonePipesHeatGain();
+        static void CalcZonePipesHeatGain(EnergyPlusData &state);
     };
 
     // Object Data
     extern Array1D<PipeHTData> PipeHT;
 
-    void GetPipesHeatTransfer();
+    void clear_state();
+
+    void GetPipesHeatTransfer(EnergyPlusData &state);
 
 } // namespace PipeHeatTransfer
+
+struct PipeHeatTransferData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

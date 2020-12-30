@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,9 +52,15 @@
 #include <string>
 
 // EnergyPlus Headers
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobalConstants.hh>
+#include <EnergyPlus/DataHVACSystems.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace SimAirServingZones {
 
@@ -86,8 +92,8 @@ namespace SimAirServingZones {
     extern int const Desiccant;
     extern int const Unglazed_SolarCollector;
     extern int const EvapCooler;
-    extern int const UnitarySystem;
-    extern int const Furnace_UnitarySys;
+    extern int const Furnace_UnitarySys_HeatOnly;
+    extern int const Furnace_UnitarySys_HeatCool;
     extern int const Humidifier;
     extern int const Duct;
     extern int const UnitarySystem_BypassVAVSys;
@@ -95,137 +101,106 @@ namespace SimAirServingZones {
     extern int const Fan_ComponentModel; // cpw22Aug2010 (new)
     extern int const DXHeatPumpSystem;
     extern int const CoilUserDefined;
-
-    // DERIVED TYPE DEFINITIONS:
-    // na
-
-    // MODULE VARIABLE DECLARATIONS:
+    extern int const UnitarySystemModel;
+    extern int const ZoneVRFasAirLoopEquip;
 
     extern bool GetAirLoopInputFlag; // Flag set to make sure you get input once
     extern int NumOfTimeStepInDay;   // number of zone time steps in a day
 
-    // Subroutine Specifications for the Module
-    // Driver/Manager Routines
-
-    // Get Input routines for module
-
-    // Initialization routines for module
-
-    // Simulation subroutines for the module
-
-    // Functions
     void clear_state();
 
-    void ManageAirLoops(bool const FirstHVACIteration, // TRUE if first full HVAC iteration in an HVAC timestep
+    void ManageAirLoops(EnergyPlusData &state, bool FirstHVACIteration, // TRUE if first full HVAC iteration in an HVAC timestep
                         bool &SimAir,                  // TRUE means air loops must be (re)simulated
                         bool &SimZoneEquipment         // TRUE means zone equipment must be (re) simulated
     );
 
-    // Get Input Section of the Module
-    //******************************************************************************
+    void GetAirPathData(EnergyPlusData &state);
 
-    void GetAirPathData();
+    void InitAirLoops(EnergyPlusData &state, bool FirstHVACIteration); // TRUE if first full HVAC iteration in an HVAC timestep
 
-    // End of Get Input subroutines for the Module
-    //******************************************************************************
+    void ConnectReturnNodes(EnergyPlusData &state);
 
-    // Beginning Initialization Section of the Module
-    //******************************************************************************
+    void SimAirLoops(EnergyPlusData &state, bool FirstHVACIteration, bool &SimZoneEquipment);
 
-    void InitAirLoops(bool const FirstHVACIteration); // TRUE if first full HVAC iteration in an HVAC timestep
+    void SimAirLoop(EnergyPlusData &state,
+        bool FirstHVACIteration, int AirLoopNum, int AirLoopPass, int &AirLoopIterMax, int &AirLoopIterTot, int &AirLoopNumCalls);
 
-    void ConnectReturnNodes();
+    void SolveAirLoopControllers(EnergyPlusData &state,
+        bool FirstHVACIteration, int AirLoopNum, bool &AirLoopConvergedFlag, int &IterMax, int &IterTot, int &NumCalls);
 
-    // Begin Algorithm Section of the Module
-    //******************************************************************************
-
-    void SimAirLoops(bool const FirstHVACIteration, bool &SimZoneEquipment);
-
-    void SimAirLoop(
-        bool const FirstHVACIteration, int const AirLoopNum, int const AirLoopPass, int &AirLoopIterMax, int &AirLoopIterTot, int &AirLoopNumCalls);
-
-    void SolveAirLoopControllers(
-        bool const FirstHVACIteration, int const AirLoopNum, bool &AirLoopConvergedFlag, int &IterMax, int &IterTot, int &NumCalls);
-
-    void SolveWaterCoilController(bool const FirstHVACIteration,
-                                  int const AirLoopNum,
+    void SolveWaterCoilController(EnergyPlusData &state, bool FirstHVACIteration,
+                                  int AirLoopNum,
                                   std::string const &CompName,
                                   int &CompIndex,
                                   std::string const &ControllerName,
                                   int ControllerIndex,
-                                  bool const HXAssistedWaterCoil);
+                                  bool HXAssistedWaterCoil);
 
-    void ReSolveAirLoopControllers(
-        bool const FirstHVACIteration, int const AirLoopNum, bool &AirLoopConvergedFlag, int &IterMax, int &IterTot, int &NumCalls);
+    void ReSolveAirLoopControllers(EnergyPlusData &state,
+        bool FirstHVACIteration, int AirLoopNum, bool &AirLoopConvergedFlag, int &IterMax, int &IterTot, int &NumCalls);
 
-    void SimAirLoopComponents(int const AirLoopNum,         // Index of the air loop being currently simulated
-                              bool const FirstHVACIteration // TRUE if first full HVAC iteration in an HVAC timestep
+    void SimAirLoopComponents(EnergyPlusData &state, int AirLoopNum,         // Index of the air loop being currently simulated
+                              bool FirstHVACIteration // TRUE if first full HVAC iteration in an HVAC timestep
     );
 
-    void SimAirLoopComponent(std::string const &CompName,   // the component Name
-                             int const CompType_Num,        // numeric equivalent for component type
-                             bool const FirstHVACIteration, // TRUE if first full HVAC iteration in an HVAC timestep
-                             int const AirLoopNum,          // Primary air loop number
-                             int &CompIndex                 // numeric pointer for CompType/CompName -- passed back from other routines
+    void SimAirLoopComponent(EnergyPlusData &state, std::string const &CompName,   // the component Name
+                             int CompType_Num,        // numeric equivalent for component type
+                             bool FirstHVACIteration, // TRUE if first full HVAC iteration in an HVAC timestep
+                             int AirLoopNum,          // Primary air loop number
+                             int &CompIndex,                // numeric pointer for CompType/CompName -- passed back from other routines
+                             HVACSystemData *CompPointer);
+
+    void UpdateBranchConnections(EnergyPlusData &state,
+                                 int AirLoopNum, // primary air system number
+                                 int BranchNum,  // branch reference number
+                                 int Update      // 1=BeforeBranchSim; 2=AfterBranchSim
     );
 
-    void UpdateBranchConnections(int const AirLoopNum, // primary air system number
-                                 int const BranchNum,  // branch reference number
-                                 int const Update      // 1=BeforeBranchSim; 2=AfterBranchSim
+    void ResolveSysFlow(EnergyPlusData &state,
+                        int SysNum, // the primary air system number
+                        bool &SysReSim    // Set to TRUE if mass balance fails and re-simulation is needed
     );
 
-    void ResolveSysFlow(int const SysNum, // the primary air system number
-                        bool &SysReSim    // Set to TRUE if mass balance fails and resimulation is needed
-    );
+    void SizeAirLoops(EnergyPlusData &state);
 
-    void SizeAirLoops();
+    void SizeAirLoopBranches(EnergyPlusData &state, int AirLoopNum, int BranchNum);
 
-    void SizeAirLoopBranches(int const AirLoopNum, int const BranchNum);
+    void SetUpSysSizingArrays(EnergyPlusData &state);
 
-    void SetUpSysSizingArrays();
+    void SizeSysOutdoorAir(EnergyPlusData &state);
 
-    void SizeSysOutdoorAir();
+    void UpdateSysSizing(EnergyPlusData &state, DataGlobalConstants::CallIndicator CallIndicator);
 
-    void UpdateSysSizing(int const CallIndicator);
+    void UpdateSysSizingForScalableInputs(EnergyPlusData &state, int AirLoopNum);
 
-    void UpdateSysSizingForScalableInputs(int const AirLoopNum);
+    Real64 GetHeatingSATempForSizing(EnergyPlusData &state, int IndexAirLoop);
 
-    Real64 GetHeatingSATempForSizing(int const IndexAirLoop // air loop index
-    );
+    Real64 GetHeatingSATempHumRatForSizing(EnergyPlusData &state, int IndexAirLoop);
 
-    Real64 GetHeatingSATempHumRatForSizing(int const IndexAirLoop // air loop index
-    );
-
-    // End Algorithm Section of the Module
-    // *****************************************************************************
-
-    // Beginning of Reporting subroutines for the SimAir Module
-    // *****************************************************************************
-
-    //        End of Reporting subroutines for the SimAir Module
-    // *****************************************************************************
-
-    //        Utility Subroutines for the SimAir Module
-    // *****************************************************************************
-
-    void LimitZoneVentEff(Real64 Xs,              // ratio of uncorrected system outdoor air flow rate to the design system supply flow rate
+    void LimitZoneVentEff(EnergyPlusData &state,
+                          Real64 Xs,              // ratio of uncorrected system outdoor air flow rate to the design system supply flow rate
                           Real64 Voz,             // corrected (divided by distribution efficiency) zone outside air flow rate [m3/s]
                           int CtrlZoneNum,        // controlled zone number
                           Real64 &SystemCoolingEv // system ventilation efficiency
     );
 
-    void CheckWaterCoilIsOnAirLoop(int const CoilTypeNum, std::string const CompType, std::string const CompName, bool &WaterCoilOnAirLoop);
+    void CheckWaterCoilIsOnAirLoop(EnergyPlusData &state, int CoilTypeNum, std::string CompType, std::string CompName, bool &WaterCoilOnAirLoop);
 
-    bool CheckWaterCoilOnPrimaryAirLoopBranch(int const CoilTypeNum, std::string const CompName);
+    bool CheckWaterCoilOnPrimaryAirLoopBranch(EnergyPlusData &state, int CoilTypeNum, std::string CompName);
 
-    bool CheckWaterCoilOnOASystem(int const CoilTypeNum, std::string const CompName);
+    bool CheckWaterCoilOnOASystem(EnergyPlusData &state, int CoilTypeNum, std::string CompName);
 
-    bool CheckWaterCoilSystemOnAirLoopOrOASystem(int const CoilTypeNum, std::string const CompName);
-
-    //        End of Utility subroutines for the SimAir Module
-    // *****************************************************************************
+    bool CheckWaterCoilSystemOnAirLoopOrOASystem(EnergyPlusData &state, int CoilTypeNum, std::string CompName);
 
 } // namespace SimAirServingZones
+
+struct SimAirServingZonesData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

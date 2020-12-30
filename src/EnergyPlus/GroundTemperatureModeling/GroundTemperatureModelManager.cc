@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -50,17 +50,18 @@
 #include <vector>
 
 // EnergyPlus Headers
-#include <EnergyPlus.hh>
-#include <GroundTemperatureModeling/BaseGroundTemperatureModel.hh>
-#include <GroundTemperatureModeling/FiniteDifferenceGroundTemperatureModel.hh>
-#include <GroundTemperatureModeling/GroundTemperatureModelManager.hh>
-#include <GroundTemperatureModeling/KusudaAchenbachGroundTemperatureModel.hh>
-#include <GroundTemperatureModeling/SiteBuildingSurfaceGroundTemperatures.hh>
-#include <GroundTemperatureModeling/SiteDeepGroundTemperatures.hh>
-#include <GroundTemperatureModeling/SiteFCFactorMethodGroundTemperatures.hh>
-#include <GroundTemperatureModeling/SiteShallowGroundTemperatures.hh>
-#include <GroundTemperatureModeling/XingGroundTemperatureModel.hh>
-#include <UtilityRoutines.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
+#include <EnergyPlus/EnergyPlus.hh>
+#include <EnergyPlus/GroundTemperatureModeling/BaseGroundTemperatureModel.hh>
+#include <EnergyPlus/GroundTemperatureModeling/FiniteDifferenceGroundTemperatureModel.hh>
+#include <EnergyPlus/GroundTemperatureModeling/GroundTemperatureModelManager.hh>
+#include <EnergyPlus/GroundTemperatureModeling/KusudaAchenbachGroundTemperatureModel.hh>
+#include <EnergyPlus/GroundTemperatureModeling/SiteBuildingSurfaceGroundTemperatures.hh>
+#include <EnergyPlus/GroundTemperatureModeling/SiteDeepGroundTemperatures.hh>
+#include <EnergyPlus/GroundTemperatureModeling/SiteFCFactorMethodGroundTemperatures.hh>
+#include <EnergyPlus/GroundTemperatureModeling/SiteShallowGroundTemperatures.hh>
+#include <EnergyPlus/GroundTemperatureModeling/XingGroundTemperatureModel.hh>
+#include <EnergyPlus/UtilityRoutines.hh>
 
 namespace EnergyPlus {
 
@@ -87,7 +88,7 @@ namespace GroundTemperatureManager {
 
     //******************************************************************************
 
-    std::shared_ptr<BaseGroundTempsModel> GetGroundTempModelAndInit(std::string const &objectType_str, std::string const &objectName)
+    std::shared_ptr<BaseGroundTempsModel> GetGroundTempModelAndInit(EnergyPlusData &state, std::string const &objectType_str, std::string const &objectName)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Matt Mitchell
@@ -121,7 +122,7 @@ namespace GroundTemperatureManager {
             objectType = objectType_XingGroundTemp;
         } else {
             // Error out if no ground temperature object types recognized
-            ShowFatalError("GetGroundTempsModelAndInit: Ground temperature object " + objectType_str + " not recognized.");
+            ShowFatalError(state, "GetGroundTempsModelAndInit: Ground temperature object " + objectType_str + " not recognized.");
         }
 
         int numGTMs = groundTempModels.size();
@@ -135,21 +136,22 @@ namespace GroundTemperatureManager {
             }
         }
 
+
         // If not found, create new instance of the model
         if (objectType == objectType_KusudaGroundTemp) {
-            return KusudaGroundTempsModel::KusudaGTMFactory(objectType, objectName);
+            return KusudaGroundTempsModel::KusudaGTMFactory(state, objectType, objectName);
         } else if (objectType == objectType_FiniteDiffGroundTemp) {
-            return FiniteDiffGroundTempsModel::FiniteDiffGTMFactory(objectType, objectName);
+            return FiniteDiffGroundTempsModel::FiniteDiffGTMFactory(state, objectType, objectName);
         } else if (objectType == objectType_SiteBuildingSurfaceGroundTemp) {
-            return SiteBuildingSurfaceGroundTemps::BuildingSurfaceGTMFactory(objectType, objectName);
+            return SiteBuildingSurfaceGroundTemps::BuildingSurfaceGTMFactory(state, objectType, objectName);
         } else if (objectType == objectType_SiteShallowGroundTemp) {
-            return SiteShallowGroundTemps::ShallowGTMFactory(objectType, objectName);
+            return SiteShallowGroundTemps::ShallowGTMFactory(state, objectType, objectName);
         } else if (objectType == objectType_SiteDeepGroundTemp) {
-            return SiteDeepGroundTemps::DeepGTMFactory(objectType, objectName);
+            return SiteDeepGroundTemps::DeepGTMFactory(state, objectType, objectName);
         } else if (objectType == objectType_SiteFCFactorMethodGroundTemp) {
-            return SiteFCFactorMethodGroundTemps::FCFactorGTMFactory(objectType, objectName);
+            return SiteFCFactorMethodGroundTemps::FCFactorGTMFactory(state, objectType, objectName);
         } else if (objectType == objectType_XingGroundTemp) {
-            return XingGroundTempsModel::XingGTMFactory(objectType, objectName);
+            return XingGroundTempsModel::XingGTMFactory(state, objectType, objectName);
         } else {
             // Error
             return nullptr;

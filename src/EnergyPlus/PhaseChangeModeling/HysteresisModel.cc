@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -47,12 +47,13 @@
 
 #include <ObjexxFCL/Array1D.hh>
 
-#include <DataHeatBalance.hh>
-#include <DataIPShortCuts.hh>
-#include <EnergyPlus.hh>
-#include <InputProcessing/InputProcessor.hh>
-#include <PhaseChangeModeling/HysteresisModel.hh>
-#include <UtilityRoutines.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
+#include <EnergyPlus/DataHeatBalance.hh>
+#include <EnergyPlus/DataIPShortCuts.hh>
+#include <EnergyPlus/EnergyPlus.hh>
+#include <EnergyPlus/InputProcessing/InputProcessor.hh>
+#include <EnergyPlus/PhaseChangeModeling/HysteresisModel.hh>
+#include <EnergyPlus/UtilityRoutines.hh>
 
 namespace EnergyPlus {
 
@@ -62,10 +63,10 @@ namespace HysteresisPhaseChange {
     int numHysteresisModels = 0;
     std::vector<HysteresisPhaseChange> hysteresisPhaseChangeModels;
 
-    HysteresisPhaseChange *HysteresisPhaseChange::factory(const std::string &objectName)
+    HysteresisPhaseChange *HysteresisPhaseChange::factory(EnergyPlusData &state, const std::string &objectName)
     {
         if (getHysteresisModels) {
-            readAllHysteresisModels();
+            readAllHysteresisModels(state);
             getHysteresisModels = false;
         }
         for (auto &hm : hysteresisPhaseChangeModels) {
@@ -83,8 +84,8 @@ namespace HysteresisPhaseChange {
     {
         // Looks up the enthalpy on the characteristic curve defined by the parameters Tc, tau1, and tau2,
         // and the position on that curve defined by T.
-        Real64 eta1 = (this->totalLatentHeat / 2) * exp(-2 * abs(T - Tc) / tau1);
-        Real64 eta2 = (this->totalLatentHeat / 2) * exp(-2 * abs(T - Tc) / tau2);
+        Real64 eta1 = (this->totalLatentHeat / 2) * exp(-2 * std::abs(T - Tc) / tau1);
+        Real64 eta2 = (this->totalLatentHeat / 2) * exp(-2 * std::abs(T - Tc) / tau2);
         if (T <= Tc) {
             return (this->specificHeatSolid * T) + eta1;
         } else {
@@ -279,15 +280,15 @@ namespace HysteresisPhaseChange {
         Real64 T = temperatureCurrent;
 
         if (T < criticalTemperature) {
-            Real64 DEta1 = -(this->totalLatentHeat * (T - criticalTemperature) * exp(-2 * abs(T - criticalTemperature) / tau1)) /
-                           (tau1 * abs(T - criticalTemperature));
+            Real64 DEta1 = -(this->totalLatentHeat * (T - criticalTemperature) * exp(-2 * std::abs(T - criticalTemperature) / tau1)) /
+                           (tau1 * std::abs(T - criticalTemperature));
             Real64 Cp1 = this->specificHeatSolid;
             return (Cp1 + DEta1);
         } else if (T == criticalTemperature) {
             return (EnthalpyNew - EnthalpyOld) / (temperatureCurrent - temperaturePrev);
         } else if (T > criticalTemperature) {
-            Real64 DEta2 = (this->totalLatentHeat * (T - criticalTemperature) * exp(-2 * abs(T - criticalTemperature) / tau2)) /
-                           (tau2 * abs(T - criticalTemperature));
+            Real64 DEta2 = (this->totalLatentHeat * (T - criticalTemperature) * exp(-2 * std::abs(T - criticalTemperature) / tau2)) /
+                           (tau2 * std::abs(T - criticalTemperature));
             Real64 Cp2 = this->specificHeatLiquid;
             return Cp2 + DEta2;
         } else {
@@ -317,12 +318,12 @@ namespace HysteresisPhaseChange {
         }
     }
 
-    void readAllHysteresisModels()
+    void readAllHysteresisModels(EnergyPlusData &state)
     {
 
         // convenience variables
         DataIPShortCuts::cCurrentModuleObject = "MaterialProperty:PhaseChangeHysteresis";
-        numHysteresisModels = inputProcessor->getNumObjectsFound(DataIPShortCuts::cCurrentModuleObject);
+        numHysteresisModels = inputProcessor->getNumObjectsFound(state, DataIPShortCuts::cCurrentModuleObject);
 
         // loop over all hysteresis input instances, if zero, this will simply not do anything
         for (int hmNum = 1; hmNum <= numHysteresisModels; ++hmNum) {
@@ -333,7 +334,8 @@ namespace HysteresisPhaseChange {
             int numNumbers;
 
             // get the input data and store it in the Shortcuts structures
-            inputProcessor->getObjectItem(DataIPShortCuts::cCurrentModuleObject,
+            inputProcessor->getObjectItem(state,
+                                          DataIPShortCuts::cCurrentModuleObject,
                                           hmNum,
                                           DataIPShortCuts::cAlphaArgs,
                                           numAlphas,
@@ -349,13 +351,13 @@ namespace HysteresisPhaseChange {
             // still validate the name to make sure there aren't any duplicates or blanks
             // blanks are easy: fatal if blank
             if (DataIPShortCuts::lAlphaFieldBlanks[0]) {
-                ShowFatalError("Invalid input for " + DataIPShortCuts::cCurrentModuleObject + " object: Name cannot be blank");
+                ShowFatalError(state, "Invalid input for " + DataIPShortCuts::cCurrentModuleObject + " object: Name cannot be blank");
             }
 
             // we just need to loop over the existing vector elements to check for duplicates since we haven't add this one yet
             for (auto &existingHysteresisModel : hysteresisPhaseChangeModels) {
                 if (DataIPShortCuts::cAlphaArgs(1) == existingHysteresisModel.name) {
-                    ShowFatalError("Invalid input for " + DataIPShortCuts::cCurrentModuleObject +
+                    ShowFatalError(state, "Invalid input for " + DataIPShortCuts::cCurrentModuleObject +
                                    " object: Duplicate name found: " + existingHysteresisModel.name);
                 }
             }

@@ -15,7 +15,7 @@
 ! Infiltration:
 !   * Infiltration air flow rate is guessed as a small value.
 
-  Version,9.0;
+  Version,9.4;
 
 !-   ===========  ALL OBJECTS IN CLASS: SIMULATIONCONTROL ===========
 
@@ -24,7 +24,9 @@
     No,                      !- Do System Sizing Calculation
     No,                      !- Do Plant Sizing Calculation
     No,                      !- Run Simulation for Sizing Periods
-    Yes;                     !- Run Simulation for Weather File Run Periods
+    Yes,                     !- Run Simulation for Weather File Run Periods
+    No,                      !- Do HVAC Sizing Simulation for Sizing Periods
+    1;                       !- Maximum Number of HVAC Sizing Simulation Passes
 
 !-   ===========  ALL OBJECTS IN CLASS: BUILDING ===========
 
@@ -32,7 +34,7 @@
     Building 71T Rm 102,     !- Name
     0,                       !- North Axis {deg}
     Suburbs,                 !- Terrain
-    0.04,                    !- Loads Convergence Tolerance Value
+    0.04,                    !- Loads Convergence Tolerance Value {W}
     0.4,                     !- Temperature Convergence Tolerance Value {deltaC}
     FullInteriorAndExteriorWithReflections,  !- Solar Distribution
     25,                      !- Maximum Number of Warmup Days
@@ -41,8 +43,9 @@
 !-   ===========  ALL OBJECTS IN CLASS: SHADOWCALCULATION ===========
 
   ShadowCalculation,
-    AverageOverDaysInFrequency,  !- Calculation Method
-    20,                      !- Calculation Frequency
+    PolygonClipping,         !- Shading Calculation Method
+    Periodic,                !- Shading Calculation Update Frequency Method
+    20,                      !- Shading Calculation Update Frequency
     50000;                   !- Maximum Figures in Shadow Overlap Calculations
 
 !-   ===========  ALL OBJECTS IN CLASS: SURFACECONVECTIONALGORITHM:INSIDE ===========
@@ -70,9 +73,9 @@
 !-   ===========  ALL OBJECTS IN CLASS: TIMESTEP ===========
 
   Timestep,4;
-  
+
   WindowsCalculationEngine,
-    ExternalWindowsModel;
+    ExternalWindowsModel;    !- Windows engine
 
 !-   ===========  ALL OBJECTS IN CLASS: SITE:LOCATION ===========
 
@@ -84,18 +87,20 @@
     190.00;                  !- Elevation {m}
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     1,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     12,                      !- End Month
     31,                      !- End Day of Month
-    UseWeatherFile,          !- Day of Week for Start Day
+    ,                        !- End Year
+    ,                        !- Day of Week for Start Day
     No,                      !- Use Weather File Holidays and Special Days
     No,                      !- Use Weather File Daylight Saving Period
     Yes,                     !- Apply Weekend Holiday Rule
     Yes,                     !- Use Weather File Rain Indicators
     Yes;                     !- Use Weather File Snow Indicators
-    
+
 ! Chicago Ohare Intl Ap_IL_USA Annual Heating Design Conditions Wind Speed=4.9m/s Wind Dir=270
 ! Coldest Month=JAN
 ! Chicago Ohare Intl Ap_IL_USA Annual Heating 99.6%, MaxDB=-20°C
@@ -413,9 +418,9 @@
     Until 24:00,21,          !- Field 7
     For: AllOtherDays,       !- Field 9
     Until: 24:00,21;         !- Field 10
-    
+
   ScheduleTypeLimits,
-    Number;              !- Name
+    Number;                  !- Name
 
 !-   ===========  ALL OBJECTS IN CLASS: THERMOSTATSETPOINT:DUALSETPOINT ===========
 
@@ -431,7 +436,7 @@
     ,                        !- Availability Schedule Name
     Room 102 INLETS,         !- Zone Supply Air Node Name
     ,                        !- Zone Exhaust Air Node Name
-    ,                        !- Supply Inlet Air Node Name
+    ,                        !- System Inlet Air Node Name
     26,                      !- Maximum Heating Supply Air Temperature {C}
     15,                      !- Minimum Cooling Supply Air Temperature {C}
     0.01,                    !- Maximum Heating Supply Air Humidity Ratio {kgWater/kgDryAir}
@@ -463,7 +468,9 @@
     ZoneHVAC:IdealLoadsAirSystem,  !- Zone Equipment 1 Object Type
     Room 102 Ideal Loads,    !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
 !-   ===========  ALL OBJECTS IN CLASS: ZONEHVAC:EQUIPMENTCONNECTIONS ===========
 
@@ -473,7 +480,7 @@
     Room 102 INLETS,         !- Zone Air Inlet Node or NodeList Name
     ,                        !- Zone Air Exhaust Node or NodeList Name
     Room 102 NODE,           !- Zone Air Node Name
-    Room 102 OUTLET;         !- Zone Return Air Node Name
+    Room 102 OUTLET;         !- Zone Return Air Node or NodeList Name
 
 !-   ===========  ALL OBJECTS IN CLASS: NODELIST ===========
 
@@ -586,7 +593,6 @@
     Room102 South Wall,      !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ShdSys_Control,          !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -596,44 +602,63 @@
     0.167481250000,4.572000000000,3.260725000000;  !- X,Y,Z ==> Vertex 4 {m}
 
   Output:Variable,*,Zone Mean Air Temperature,Timestep;
+
   Output:Variable,Room 102 Window,Surface Inside Face Temperature,Timestep;
+
   Output:Variable,Room 102 Window,Surface Outside Face Temperature,Timestep;
-  Output:Variable,Room 102 Window,Surface Window Total Absorbed Shortwave Radiation Rate Layer 1,Timestep;
-  
+
   Output:Variable,Room 102 Window,Surface Window Gap Convective Heat Transfer Rate,Timestep;
+
   Output:Variable,Room 102 Window,Surface Window Net Heat Transfer Rate,Timestep;
+
   Output:Variable,Room 102 Window,Surface Inside Face Net Surface Thermal Radiation Heat Gain Rate,Timestep;
+
   Output:Variable,Room 102 Window,Surface Inside Face Convection Heat Gain Rate,Timestep;
+
   !Output:Variable,Room 102 Window,Surface Window Inside Face Shade Zone Convection Heat Gain Rate,Timestep;
+
   Output:Variable,Room 102 Window,Surface Inside Face Convection Heat Transfer Coefficient,Timestep;
-  
-  Output:Variable,*,Zone Windows Total Transmitted Solar Radiation Rate, Timestep;
-  Output:Variable,Room 102 Window,Surface Window Heat Gain Rate, Timestep;
-  Output:Variable,Room 102 Window,Surface Window Heat Loss Rate, Timestep;
-  
+
+  Output:Variable,*,Zone Windows Total Transmitted Solar Radiation Rate,Timestep;
+
+  Output:Variable,Room 102 Window,Surface Window Heat Gain Rate,Timestep;
+
+  Output:Variable,Room 102 Window,Surface Window Heat Loss Rate,Timestep;
+
   Output:Variable,*,Zone Ideal Loads Zone Total Cooling Rate,Timestep;
+
   Output:Variable,*,Zone Ideal Loads Zone Total Heating Rate,Timestep;
-  
+
   Output:Variable,*,Surface Window Shortwave from Zone Back Out Window Heat Transfer Rate,Timestep;
-  
+
   Output:Variable,*,Surface Window Inside Face Gap between Shade and Glazing Zone Convection Heat Gain Rate,Timestep;
+
   Output:Variable,*,Surface Window Inside Face Shade Zone Convection Heat Gain Rate,Timestep;
+
   Output:Variable,*,Surface Window Inside Face Shade Net Infrared Heat Transfer Rate,Timestep;
+
   Output:Variable,*,Surface Window Inside Face Glazing Zone Convection Heat Gain Rate,Timestep;
+
   Output:Variable,*,Surface Window Inside Face Glazing Net Infrared Heat Transfer Rate,Timestep;
-  
+
   Output:Variable,Room 102 Window,Surface Outside Face Incident Sky Diffuse Solar Radiation Rate per Area,Timestep;
+
   Output:Variable,Room 102 Window,Surface Outside Face Incident Ground Diffuse Solar Radiation Rate per Area,Timestep;
+
   Output:Variable,Room 102 Window,Surface Outside Face Incident Beam Solar Radiation Rate per Area,Timestep;
+
   Output:Variable,Room 102 Window,Surface Outside Face Beam Solar Incident Angle Cosine Value,Timestep;
+
   Output:Variable,Room 102 Window,Surface Window BSDF Beam Direction Number,Timestep;
-  
+
   Output:Variable,*,Zone Opaque Surface Inside Faces Total Conduction Heat Gain Rate,Timestep;
+
   Output:Variable,*,Zone Opaque Surface Inside Faces Total Conduction Heat Loss Rate,Timestep;
+
   Output:Variable,*,Zone Mean Air Temperature,Timestep;
-  
+
   Output:Diagnostics,
-    DisplayAdvancedReportVariables;
+    DisplayAdvancedReportVariables;  !- Key 1
 
 !       Window Material/Construction file with spectral data in IDF format
 !-----------------------------------------------------
@@ -663,11 +688,11 @@
   CONSTRUCTION,
     GlzSys_1,                !- Name
     Glass_102_LayerAvg;      !- Outside Layer
-    
+
   CONSTRUCTION,
-    GlzSys_1_withShade,                !- Name
+    GlzSys_1_withShade,      !- Name
     Glass_102_LayerAvg,      !- Outside Layer
-    Shade_1;
+    Shade_1;                 !- Layer 2
 
   WindowMaterial:Shade,
     Shade_1,                 !- Name
@@ -685,9 +710,11 @@
     0.0,                     !- Left-Side Opening Multiplier
     0.0,                     !- Right-Side Opening Multiplier
     0;                       !- Airflow Permeability {dimensionless}
-    
-WindowProperty:ShadingControl,
-    ShdSys_Control,          !- Name
+
+  WindowShadingControl,
+    ShdSys_Control-Room 102, !- Name
+    Room 102,                !- Zone Name
+    1,                       !- Shading Control Sequence Number
     InteriorShade,           !- Shading Type
     GlzSys_1_withShade,      !- Construction with Shading Name
     AlwaysOn,                !- Shading Control Type
@@ -696,6 +723,10 @@ WindowProperty:ShadingControl,
     NO,                      !- Shading Control Is Scheduled
     NO,                      !- Glare Control Is Active
     ,                        !- Shading Device Material Name
-    ,          !- Type of Slat Angle Control for Blinds
+    ,                        !- Type of Slat Angle Control for Blinds
     ,                        !- Slat Angle Schedule Name
-    0;                       !- Setpoint 2 {W/m2 or deg C}
+    0,                       !- Setpoint 2 {W/m2 or deg C}
+    ,                        !- Daylighting Control Object Name
+    Sequential,              !- Multiple Surface Control Type
+    Room 102 Window;         !- Fenestration Surface 1 Name
+

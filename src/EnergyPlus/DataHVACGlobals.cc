@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -46,8 +46,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // EnergyPlus Headers
-#include <DataHVACGlobals.hh>
-#include <DataPrecisionGlobals.hh>
+#include <EnergyPlus/DataHVACGlobals.hh>
 
 namespace EnergyPlus {
 
@@ -67,8 +66,6 @@ namespace DataHVACGlobals {
     // OTHER NOTES:
 
     // Using/Aliasing
-    using namespace DataPrecisionGlobals;
-
     // Data
     // -only module should be available to other modules and routines.
     // Thus, all variables in this module must be PUBLIC.
@@ -88,44 +85,17 @@ namespace DataHVACGlobals {
     Real64 const DesCoilHWInletTempMin(46.0); // minimum heating water coil water inlet temp for UA sizing only. [deg C]
 
     // Number of Sizing types from list below
-    int const NumOfSizingTypes(33); // number of sizing types
+    int const NumOfSizingTypes(35); // number of sizing types, should be paired with the list in Autosizing/Base.hh
 
     // Sizing types
     int const CoolingAirflowSizing(1);                               // request sizing for cooling air flow rate
-    int const CoolingWaterflowSizing(2);                             // request sizing for cooling water flow rate
-    int const HeatingWaterflowSizing(3);                             // request sizing for heating coil water flow rate
-    int const CoolingWaterDesAirInletTempSizing(4);                  // request sizing for cooling water coil inlet air temp
-    int const CoolingWaterDesAirInletHumRatSizing(5);                // request sizing for cooling water coil inlet air humidity ratio
     int const CoolingWaterDesWaterInletTempSizing(6);                // request sizing for cooling water coil inlet water temp
-    int const CoolingWaterDesAirOutletTempSizing(7);                 // request sizing for cooling water coil outlet air temp
-    int const CoolingWaterDesAirOutletHumRatSizing(8);               // request sizing for cooling water coil outlet air humidity ratio
-    int const CoolingWaterNumofTubesPerRowSizing(9);                 // request sizing for cooling water coil number of tubes per row
-    int const HeatingWaterDesAirInletTempSizing(10);                 // request sizing for heating water coil inlet air temp
-    int const HeatingWaterDesAirInletHumRatSizing(11);               // request sizing for heating water coil inlet air humidity ratio
-    int const HeatingWaterDesCoilLoadUsedForUASizing(12);            // request sizing for heating water coil capacity used for UA sizing
-    int const HeatingWaterDesCoilWaterVolFlowUsedForUASizing(13);    // request sizing for heating water coil volume flow rate used for UA sizing
     int const HeatingAirflowSizing(14);                              // request sizing for heating air flow rate
-    int const HeatingAirflowUASizing(15);                            // request sizing for heating air flow rate
     int const SystemAirflowSizing(16);                               // request sizing for system air flow rate
     int const CoolingCapacitySizing(17);                             // request sizing for cooling capacity
     int const HeatingCapacitySizing(18);                             // request sizing for heating capacity
-    int const WaterHeatingCapacitySizing(19);                        // request sizing for water-side heating capacity
-    int const WaterHeatingCoilUASizing(20);                          // request sizing for heating coil UA
     int const SystemCapacitySizing(21);                              // request sizing for system capacity
-    int const CoolingSHRSizing(22);                                  // request sizing for cooling SHR
-    int const HeatingDefrostSizing(23);                              // request sizing for heating defrost capacity
-    int const MaxHeaterOutletTempSizing(24);                         // request sizing for heating coil maximum outlet temperature
     int const AutoCalculateSizing(25);                               // identifies an autocalulate input
-    int const ZoneCoolingLoadSizing(26);                             // zone cooling sensible load (zsz file)
-    int const ZoneHeatingLoadSizing(27);                             // zome heating sensible load (zsz file)
-    int const MinSATempCoolingSizing(28);                            // minimum SA temperature in cooling
-    int const MaxSATempHeatingSizing(29);                            // maximum SA temperature in heating
-    int const ASHRAEMinSATCoolingSizing(30);                         // minimum SA temperature in cooling model when using ASHRAE 90.1 SZVAV method
-    int const ASHRAEMaxSATHeatingSizing(31);                         // maximum SA temperature in heating model when using ASHRAE 90.1 SZVAV method
-    int const HeatingCoilDesAirInletTempSizing(32);                  // design inlet air temperature for heating coil
-    int const HeatingCoilDesAirOutletTempSizing(33);                 // design outlet air temperature for heating coil
-    int const HeatingCoilDesAirInletHumRatSizing(34);                // design inlet air humidity ratio for heating coil
-    int const DesiccantDehumidifierBFPerfDataFaceVelocitySizing(35); // identifies desiccant performance data face velocity autosisizing input
 
     // Condenser Type (using same numbering scheme as for chillers)
     int const AirCooled(1);   // Air-cooled condenser
@@ -186,7 +156,7 @@ namespace DataHVACGlobals {
     int const UnitarySys_HeatCool(4);
     int const UnitarySys_HeatPump_AirToAir(5);
     int const UnitarySys_HeatPump_WaterToAir(6);
-    int const UnitarySystem_AnyCoilType(7);
+    int const UnitarySys_AnyCoilType(7);
     Array1D_string const cFurnaceTypes(NumUnitarySystemTypes,
                                        {"AirLoopHVAC:Unitary:Furnace:HeatOnly",
                                         "AirLoopHVAC:Unitary:Furnace:HeatCool",
@@ -197,7 +167,7 @@ namespace DataHVACGlobals {
                                         "AirLoopHVAC:UnitarySystem"});
 
     // parameters describing coil types
-    int const NumAllCoilTypes(34);
+    int const NumAllCoilTypes(37);
 
     int const CoilDX_CoolingSingleSpeed(1);
     int const CoilDX_HeatingEmpirical(2);
@@ -240,6 +210,14 @@ namespace DataHVACGlobals {
     int const CoilVRF_FluidTCtrl_Cooling(33);
     int const CoilVRF_FluidTCtrl_Heating(34);
 
+    int const CoilDX_Cooling(35);
+//    int const CoilDX_SubcoolReheat(36);
+    int const CoilDX_CurveFit_Speed(37);
+
+    int const coilNormalMode = 0;        // Normal operation mode
+    int const coilEnhancedMode = 1;      // Enhanced operation mode
+    int const coilSubcoolReheatMode = 2; // SubcoolReheat operation mode
+
     Array1D_string const cAllCoilTypes(NumAllCoilTypes,
                                        {"Coil:Cooling:DX:SingleSpeed",
                                         "Coil:Heating:DX:SingleSpeed",
@@ -274,7 +252,10 @@ namespace DataHVACGlobals {
                                         "Coil:Heating:DX:VariableSpeed",
                                         "Coil:WaterHeating:AirToWaterHeatPump:VariableSpeed",
                                         "Coil:Cooling:DX:VariableRefrigerantFlow:FluidTemperatureControl",
-                                        "Coil:Heating:DX:VariableRefrigerantFlow:FluidTemperatureControl"});
+                                        "Coil:Heating:DX:VariableRefrigerantFlow:FluidTemperatureControl",
+                                        "Coil:Cooling:DX",
+                                        "Coil:Cooling:DX:SubcoolReheat",
+                                        "Coil:Cooling:DX:CurveFit:Speed"});
 
     Array1D_string const cCoolingCoilTypes(NumAllCoilTypes,
                                            {"Coil:Cooling:DX:SingleSpeed",
@@ -310,7 +291,10 @@ namespace DataHVACGlobals {
                                             "",
                                             "",
                                             "Coil:Cooling:DX:VariableRefrigerantFlow:FluidTemperatureControl",
-                                            ""});
+                                            "",
+                                            "Coil:Cooling:DX",
+                                            "Coil:Cooling:DX:SubcoolReheat",
+                                            "Coil:Cooling:DX:CurveFit:Speed"});
 
     Array1D_string const cHeatingCoilTypes(NumAllCoilTypes,
                                            {"",
@@ -346,7 +330,10 @@ namespace DataHVACGlobals {
                                             "Coil:Heating:DX:VariableSpeed",
                                             "Coil:WaterHeating:AirToWaterHeatPump:VariableSpeed",
                                             "",
-                                            "Coil:Heating:DX:VariableRefrigerantFlow:FluidTemperatureControl"});
+                                            "Coil:Heating:DX:VariableRefrigerantFlow:FluidTemperatureControl",
+                                            "",
+                                            "",
+                                            ""});
 
     // Water to air HP coil types
     int const WatertoAir_Simple(1);
@@ -497,14 +484,13 @@ namespace DataHVACGlobals {
     Real64 deviationFromSetPtThresholdHtg(-0.2); // heating threshold for reporting setpoint deviation
     Real64 deviationFromSetPtThresholdClg(0.2);  // cooling threshold for reporting setpoint deviation
 
-    bool SimAirLoopsFlag;          // True when the air loops need to be (re)simulated
-    bool SimElecCircuitsFlag;      // True when electic circuits need to be (re)simulated
-    bool SimPlantLoopsFlag;        // True when the main plant loops need to be (re)simulated
-    bool SimZoneEquipmentFlag;     // True when zone equipment components need to be (re)simulated
-    bool SimNonZoneEquipmentFlag;  // True when non-zone equipment components need to be (re)simulated
-    bool ZoneMassBalanceHVACReSim; // True when zone air mass flow balance and air loop needs (re)simulated
-    int MinAirLoopIterationsAfterFirst(
-        1); // minimum number of HVAC iterations after FirstHVACIteration (must be at least 2 for sequenced loads to operate on air loops)
+    bool SimAirLoopsFlag;                  // True when the air loops need to be (re)simulated
+    bool SimElecCircuitsFlag;              // True when electic circuits need to be (re)simulated
+    bool SimPlantLoopsFlag;                // True when the main plant loops need to be (re)simulated
+    bool SimZoneEquipmentFlag;             // True when zone equipment components need to be (re)simulated
+    bool SimNonZoneEquipmentFlag;          // True when non-zone equipment components need to be (re)simulated
+    bool ZoneMassBalanceHVACReSim;         // True when zone air mass flow balance and air loop needs (re)simulated
+    int MinAirLoopIterationsAfterFirst(1); // minimum number of HVAC iterations after FirstHVACIteration
 
     int const NumZoneHVACTerminalTypes(38);
 
@@ -529,9 +515,9 @@ namespace DataHVACGlobals {
                                                 "ZONEHVAC:DEHUMIDIFIER:DX",
                                                 "ZONEHVAC:IDEALLOADSAIRSYSTEM",
                                                 "ZONEHVAC:REFRIGERATIONCHILLERSET",
+                                                "ZONEHVAC:HYBRIDUNITARYHVAC",
                                                 "FAN:ZONEEXHAUST",
                                                 "WATERHEATER:HEATPUMP",
-                                                "AIRTERMINAL:SINGLEDUCT:UNCONTROLLED",
                                                 "AIRTERMINAL:DUALDUCT:CONSTANTVOLUME",
                                                 "AIRTERMINAL:DUALDUCT:VAV",
                                                 "AIRTERMINAL:SINGLEDUCT:CONSTANTVOLUME:REHEAT",
@@ -569,9 +555,9 @@ namespace DataHVACGlobals {
                                                   "ZoneHVAC:Dehumidifier:DX",
                                                   "ZoneHVAC:IdealLoadsAirSystem",
                                                   "ZoneHVAC:RefrigerationChillerSet",
+                                                  "ZoneHVAC:HybridUnitaryHVAC",
                                                   "Fan:ZoneExhaust",
                                                   "WaterHeater:HeatPump",
-                                                  "AirTerminal:SingleDuct:Uncontrolled",
                                                   "AirTerminal:DualDuct:ConstantVolume",
                                                   "AirTerminal:DualDuct:VAV",
                                                   "AirTerminal:SingleDuct:ConstantVolume:Reheat",
@@ -608,9 +594,9 @@ namespace DataHVACGlobals {
     int const ZoneEquipTypeOf_DehumidifierDX(18);
     int const ZoneEquipTypeOf_IdealLoadsAirSystem(19);
     int const ZoneEquipTypeOf_RefrigerationChillerSet(20);
-    int const ZoneEquipTypeOf_FanZoneExhaust(21);
-    int const ZoneEquipTypeOf_WaterHeaterHeatPump(22);
-    int const ZoneEquipTypeOf_AirTerminalSingleDuctUncontrolled(23);
+    int const ZoneEquipTypeOf_HybridUnitaryAirConditioners(21);
+    int const ZoneEquipTypeOf_FanZoneExhaust(22);
+    int const ZoneEquipTypeOf_WaterHeaterHeatPump(23);
     int const ZoneEquipTypeOf_AirTerminalDualDuctConstantVolume(24);
     int const ZoneEquipTypeOf_AirTerminalDualDuctVAV(25);
     int const ZoneEquipTypeOf_AirTerminalSingleDuctConstantVolumeReheat(26);

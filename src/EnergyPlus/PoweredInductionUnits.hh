@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,10 +52,15 @@
 #include <ObjexxFCL/Array1D.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataDefineEquip.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace PoweredInductionUnits {
 
@@ -63,8 +68,6 @@ namespace PoweredInductionUnits {
 
     // Data
     // MODULE PARAMETER DEFINITIONS
-    extern int const SingleDuct_SeriesPIU_Reheat;
-    extern int const SingleDuct_ParallelPIU_Reheat;
     // coil types in this module
     extern int const HCoilType_Gas;
     extern int const HCoilType_Electric;
@@ -92,7 +95,7 @@ namespace PoweredInductionUnits {
         // input data
         std::string Name;         // name of unit
         std::string UnitType;     // type of unit
-        int UnitType_Num;         // index for type of unit
+        DataDefineEquip::iZnAirLoopEquipType UnitType_Num;         // index for type of unit
         std::string Sched;        // availability schedule
         int SchedPtr;             // index to schedule
         Real64 MaxTotAirVolFlow;  // m3/s  (series)
@@ -101,6 +104,7 @@ namespace PoweredInductionUnits {
         Real64 MaxPriAirMassFlow; // kg/s
         Real64 MinPriAirFlowFrac; // minimum primary air flow fraction
         Real64 MinPriAirMassFlow; // kg/s
+        Real64 PriDamperPosition; // primary air damper position
         Real64 MaxSecAirVolFlow;  // m3/s (parallel)
         Real64 MaxSecAirMassFlow; // kg/s (parallel)
         Real64 FanOnFlowFrac;     // frac of primary air flow at which fan turns on (parallel)
@@ -148,19 +152,22 @@ namespace PoweredInductionUnits {
         int CtrlZoneNum;         // index to control zone
         int ctrlZoneInNodeIndex; // index to the control zone inlet node
         int AirLoopNum;          // index for the air loop that this terminal is connected to.
+        Real64 OutdoorAirFlowRate;  // zone outdoor air volume flow rate
 
         // Default Constructor
         PowIndUnitData()
-            : UnitType_Num(0), SchedPtr(0), MaxTotAirVolFlow(0.0), MaxTotAirMassFlow(0.0), MaxPriAirVolFlow(0.0), MaxPriAirMassFlow(0.0),
-              MinPriAirFlowFrac(0.0), MinPriAirMassFlow(0.0), MaxSecAirVolFlow(0.0), MaxSecAirMassFlow(0.0), FanOnFlowFrac(0.0),
+            : UnitType_Num(DataDefineEquip::iZnAirLoopEquipType::Unassigned), SchedPtr(0), MaxTotAirVolFlow(0.0), MaxTotAirMassFlow(0.0), MaxPriAirVolFlow(0.0), MaxPriAirMassFlow(0.0),
+              MinPriAirFlowFrac(0.0), MinPriAirMassFlow(0.0), PriDamperPosition(0.0), MaxSecAirVolFlow(0.0), MaxSecAirMassFlow(0.0), FanOnFlowFrac(0.0),
               FanOnAirMassFlow(0.0), PriAirInNode(0), SecAirInNode(0), OutAirNode(0), HCoilInAirNode(0), ControlCompTypeNum(0), CompErrIndex(0),
               Mixer_Num(0), Fan_Num(0), Fan_Index(0), FanAvailSchedPtr(0), HCoilType_Num(0), HCoil_PlantTypeNum(0), HCoil_Index(0),
               HCoil_FluidIndex(0), MaxVolHotWaterFlow(0.0), MaxVolHotSteamFlow(0.0), MaxHotWaterFlow(0.0), MaxHotSteamFlow(0.0),
               MinVolHotWaterFlow(0.0), MinHotSteamFlow(0.0), MinVolHotSteamFlow(0.0), MinHotWaterFlow(0.0), HotControlNode(0), HotCoilOutNodeNum(0),
               HotControlOffset(0.0), HWLoopNum(0), HWLoopSide(0), HWBranchNum(0), HWCompNum(0), ADUNum(0), InducesPlenumAir(false), HeatingRate(0.0),
-              HeatingEnergy(0.0), SensCoolRate(0.0), SensCoolEnergy(0.0), CtrlZoneNum(0), AirLoopNum(0)
+              HeatingEnergy(0.0), SensCoolRate(0.0), SensCoolEnergy(0.0), CtrlZoneNum(0), ctrlZoneInNodeIndex(0), AirLoopNum(0), OutdoorAirFlowRate(0.0)
         {
         }
+
+        void CalcOutdoorAirVolumeFlowRate(EnergyPlusData &state);
     };
 
     // Object Data
@@ -170,42 +177,51 @@ namespace PoweredInductionUnits {
 
     void clear_state();
 
-    void SimPIU(std::string const &CompName,   // name of the PIU
+    void SimPIU(EnergyPlusData &state, std::string const &CompName,   // name of the PIU
                 bool const FirstHVACIteration, // TRUE if first HVAC iteration in time step
                 int const ZoneNum,             // index of zone served by PIU
                 int const ZoneNodeNum,         // zone node number of zone served by PIU
                 int &CompIndex                 // PIU Index in PIU names
     );
 
-    void GetPIUs();
+    void GetPIUs(EnergyPlusData &state);
 
-    void InitPIU(int const PIUNum,             // number of the current fan coil unit being simulated
+    void InitPIU(EnergyPlusData &state,
+                 int const PIUNum,             // number of the current fan coil unit being simulated
                  bool const FirstHVACIteration // TRUE if first zone equip this HVAC step
     );
 
-    void SizePIU(int const PIUNum);
+    void SizePIU(EnergyPlusData &state, int const PIUNum);
 
-    void CalcSeriesPIU(int const PIUNum,             // number of the current PIU being simulated
+    void CalcSeriesPIU(EnergyPlusData &state, int const PIUNum,             // number of the current PIU being simulated
                        int const ZoneNum,            // number of zone being served
                        int const ZoneNode,           // zone node number
                        bool const FirstHVACIteration // TRUE if 1st HVAC simulation of system timestep
     );
 
-    void CalcParallelPIU(int const PIUNum,             // number of the current PIU being simulated
+    void CalcParallelPIU(EnergyPlusData &state, int const PIUNum,             // number of the current PIU being simulated
                          int const ZoneNum,            // number of zone being served
                          int const ZoneNode,           // zone node number
                          bool const FirstHVACIteration // TRUE if 1st HVAC simulation of system timestep
     );
 
-    void ReportPIU(int const PIUNum); // number of the current fan coil unit being simulated
+    void ReportPIU(EnergyPlusData &state, int const PIUNum); // number of the current fan coil unit being simulated
 
     // ===================== Utilities =====================================
 
-    bool PIUnitHasMixer(std::string const &CompName); // component (mixer) name
+    bool PIUnitHasMixer(EnergyPlusData &state, std::string const &CompName); // component (mixer) name
 
-    void PIUInducesPlenumAir(int const NodeNum); // induced air node number
+    void PIUInducesPlenumAir(EnergyPlusData &state, int const NodeNum); // induced air node number
 
 } // namespace PoweredInductionUnits
+
+struct PoweredInductionUnitsData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -54,10 +54,11 @@
 
 // EnergyPlus Headers
 #include "Fixtures/EnergyPlusFixture.hh"
-#include <EnergyPlus/DataPlant.hh>
+#include <EnergyPlus/Plant/DataPlant.hh>
 #include <EnergyPlus/DataSizing.hh>
 #include <EnergyPlus/PlantUtilities.hh>
 #include <EnergyPlus/UtilityRoutines.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
 
 using namespace EnergyPlus;
 using namespace EnergyPlus::PlantUtilities;
@@ -210,17 +211,16 @@ TEST_F(EnergyPlusFixture, TestAnyPlantSplitterMixerLacksContinuity)
     DataPlant::TotNumLoops = 1;
     DataPlant::PlantLoop.allocate(1);
     DataPlant::PlantLoop(1).LoopSide.allocate(2);
-    DataPlant::PlantLoop(1).LoopSide(1).SplitterExists = false;
+    DataPlant::PlantLoop(1).LoopSide(1).Splitter.Exists = false;
     DataPlant::PlantLoop(1).LoopSide(2).Branch.allocate(2);
     DataPlant::PlantLoop(1).LoopSide(2).Branch(1).NodeNumOut = 2;
     DataPlant::PlantLoop(1).LoopSide(2).Branch(2).NodeNumOut = 3;
-    DataPlant::PlantLoop(1).LoopSide(2).SplitterExists = true;
-    DataPlant::PlantLoop(1).LoopSide(2).Splitter.allocate(1);
-    DataPlant::PlantLoop(1).LoopSide(2).Splitter(1).NodeNumIn = 1;
-    DataPlant::PlantLoop(1).LoopSide(2).Splitter(1).TotalOutletNodes = 2;
-    DataPlant::PlantLoop(1).LoopSide(2).Splitter(1).BranchNumOut.allocate(2);
-    DataPlant::PlantLoop(1).LoopSide(2).Splitter(1).BranchNumOut(1) = 1;
-    DataPlant::PlantLoop(1).LoopSide(2).Splitter(1).BranchNumOut(2) = 2;
+    DataPlant::PlantLoop(1).LoopSide(2).Splitter.Exists = true;
+    DataPlant::PlantLoop(1).LoopSide(2).Splitter.NodeNumIn = 1;
+    DataPlant::PlantLoop(1).LoopSide(2).Splitter.TotalOutletNodes = 2;
+    DataPlant::PlantLoop(1).LoopSide(2).Splitter.BranchNumOut.allocate(2);
+    DataPlant::PlantLoop(1).LoopSide(2).Splitter.BranchNumOut(1) = 1;
+    DataPlant::PlantLoop(1).LoopSide(2).Splitter.BranchNumOut(2) = 2;
 
     DataLoopNode::Node.allocate(3);
 
@@ -383,56 +383,90 @@ TEST_F(EnergyPlusFixture, TestCheckPlantConvergence)
     EXPECT_NEAR(0.0, sum(DataPlant::PlantLoop(1).LoopSide(1).OutletNode.MassFlowRateHistory), 0.001);
 
     // If we check the plant convergence right now with first hvac true, it should require a resimulation
-    EXPECT_FALSE(PlantUtilities::CheckPlantConvergence(1, 1, true));
+    EXPECT_FALSE(DataPlant::PlantLoop(1).LoopSide(1).CheckPlantConvergence(true));
 
     // But if we check it with first hvac false, everything should be stable and pass
-    EXPECT_TRUE(PlantUtilities::CheckPlantConvergence(1, 1, false));
+    EXPECT_TRUE(DataPlant::PlantLoop(1).LoopSide(1).CheckPlantConvergence(false));
 
     // Now let's introduce a disturbance by changing the inlet node temperature and logging it
     inNode.Temp = roomTemp;
     PlantUtilities::LogPlantConvergencePoints(false);
     // We expect it to be false here since the temperature changed
-    EXPECT_FALSE(PlantUtilities::CheckPlantConvergence(1, 1, false));
+    EXPECT_FALSE(DataPlant::PlantLoop(1).LoopSide(1).CheckPlantConvergence(false));
     // But if we run it 4 more times and let the value propagate, we expect it to be stable and pass
     // Need to call it 5 times total to fully initialize the history
     for (int i = 1; i < 5; ++i) {
         PlantUtilities::LogPlantConvergencePoints(false);
     }
-    EXPECT_TRUE(PlantUtilities::CheckPlantConvergence(1, 1, false));
+    EXPECT_TRUE(DataPlant::PlantLoop(1).LoopSide(1).CheckPlantConvergence(false));
 
     // Repeat this for the outlet node temperature
     outNode.Temp = roomTemp;
     PlantUtilities::LogPlantConvergencePoints(false);
     // We expect it to be false here since the temperature changed
-    EXPECT_FALSE(PlantUtilities::CheckPlantConvergence(1, 1, false));
+    EXPECT_FALSE(DataPlant::PlantLoop(1).LoopSide(1).CheckPlantConvergence(false));
     // But if we run it 4 more times and let the value propagate, we expect it to be stable and pass
     // Need to call it 5 times total to fully initialize the history
     for (int i = 1; i < 5; ++i) {
         PlantUtilities::LogPlantConvergencePoints(false);
     }
-    EXPECT_TRUE(PlantUtilities::CheckPlantConvergence(1, 1, false));
+    EXPECT_TRUE(DataPlant::PlantLoop(1).LoopSide(1).CheckPlantConvergence(false));
 
     // Repeat this for the inlet node mass flow rate
     inNode.MassFlowRate = nonZeroFlow;
     PlantUtilities::LogPlantConvergencePoints(false);
     // We expect it to be false here since the temperature changed
-    EXPECT_FALSE(PlantUtilities::CheckPlantConvergence(1, 1, false));
+    EXPECT_FALSE(DataPlant::PlantLoop(1).LoopSide(1).CheckPlantConvergence(false));
     // But if we run it 4 more times and let the value propagate, we expect it to be stable and pass
     // Need to call it 5 times total to fully initialize the history
     for (int i = 1; i < 5; ++i) {
         PlantUtilities::LogPlantConvergencePoints(false);
     }
-    EXPECT_TRUE(PlantUtilities::CheckPlantConvergence(1, 1, false));
+    EXPECT_TRUE(DataPlant::PlantLoop(1).LoopSide(1).CheckPlantConvergence(false));
 
     // And finally the outlet node mass flow rate
     outNode.MassFlowRate = nonZeroFlow;
     PlantUtilities::LogPlantConvergencePoints(false);
     // We expect it to be false here since the temperature changed
-    EXPECT_FALSE(PlantUtilities::CheckPlantConvergence(1, 1, false));
+    EXPECT_FALSE(DataPlant::PlantLoop(1).LoopSide(1).CheckPlantConvergence(false));
     // But if we run it 4 more times and let the value propagate, we expect it to be stable and pass
     // Need to call it 5 times total to fully initialize the history
     for (int i = 1; i < 5; ++i) {
         PlantUtilities::LogPlantConvergencePoints(false);
     }
-    EXPECT_TRUE(PlantUtilities::CheckPlantConvergence(1, 1, false));
+    EXPECT_TRUE(DataPlant::PlantLoop(1).LoopSide(1).CheckPlantConvergence(false));
+}
+
+TEST_F(EnergyPlusFixture, TestScanPlantLoopsErrorFlagReturnType) {
+
+    // test out some stuff on the scan plant loops function, for now just verifying errFlag is passed by reference
+    DataPlant::TotNumLoops = 1;
+    DataPlant::PlantLoop.allocate(1);
+    DataPlant::PlantLoop(1).LoopSide.allocate(2);
+    DataLoopNode::Node.allocate(2);
+    DataPlant::PlantLoop(1).LoopSide(1).NodeNumIn = 1;
+    DataPlant::PlantLoop(1).LoopSide(1).NodeNumOut = 2;
+    DataPlant::PlantLoop(1).LoopSide(1).TotalBranches = 1;
+    DataPlant::PlantLoop(1).LoopSide(1).Branch.allocate(1);
+    DataPlant::PlantLoop(1).LoopSide(1).Branch(1).TotalComponents = 1;
+    DataPlant::PlantLoop(1).LoopSide(1).Branch(1).Comp.allocate(1);
+    DataPlant::PlantLoop(1).LoopSide(1).Branch(1).Comp(1).Name = "comp_name";
+    DataPlant::PlantLoop(1).LoopSide(1).Branch(1).Comp(1).TypeOf_Num = DataPlant::TypeOf_Boiler_Simple;
+    DataPlant::PlantLoop(1).LoopSide(2).TotalBranches = 0;  // just skip the supply side search
+
+    int loopNum = 0, loopSideNum = 0, branchNum = 0, compNum = 0;
+    bool errorFlag = false;
+
+    // test simple searching first
+    PlantUtilities::ScanPlantLoopsForObject(*state, "comp_name", DataPlant::TypeOf_Boiler_Simple, loopNum, loopSideNum, branchNum, compNum, errorFlag);
+    EXPECT_EQ(1, loopNum);
+    EXPECT_EQ(1, loopSideNum);
+    EXPECT_EQ(1, branchNum);
+    EXPECT_EQ(1, compNum);
+    EXPECT_FALSE(errorFlag);
+
+    // then test to make sure errorFlag is passed by reference
+    PlantUtilities::ScanPlantLoopsForObject(*state, "comp_name_not_here", DataPlant::TypeOf_Boiler_Simple, loopNum, loopSideNum, branchNum, compNum, errorFlag);
+    EXPECT_TRUE(errorFlag);
+
 }

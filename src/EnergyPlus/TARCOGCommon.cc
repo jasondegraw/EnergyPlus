@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -50,10 +50,9 @@
 #include <ObjexxFCL/Fmath.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <DataPrecisionGlobals.hh>
-#include <TARCOGCommon.hh>
-#include <TARCOGParams.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/TARCOGCommon.hh>
+#include <EnergyPlus/TARCOGParams.hh>
 
 namespace EnergyPlus {
 
@@ -82,8 +81,6 @@ namespace TARCOGCommon {
     // USE STATEMENTS:
 
     // Using/Aliasing
-    using namespace DataPrecisionGlobals;
-
     // Functions
 
     bool IsShadingLayer(int const layertype)
@@ -102,7 +99,6 @@ namespace TARCOGCommon {
         // Height - glazing system height
 
         // Using/Aliasing
-        using DataGlobals::PiOvr2;
         using namespace TARCOGParams;
         // use TARCOGGassesParams
 
@@ -115,10 +111,10 @@ namespace TARCOGCommon {
 
         LDSumMax = 0.0;
         for (i = 1; i <= mmax; i += 2) {
-            Real64 const sin_i(std::sin(i * PiOvr2));
+            Real64 const sin_i(std::sin(i * DataGlobalConstants::PiOvr2));
             Real64 const pow_i_W(pow_2(i / Width));
             for (j = 1; j <= nmax; j += 2) {
-                LDSumMax += (sin_i * std::sin(j * PiOvr2)) / (i * j * pow_2(pow_i_W + pow_2(j / Height)));
+                LDSumMax += (sin_i * std::sin(j * DataGlobalConstants::PiOvr2)) / (i * j * pow_2(pow_i_W + pow_2(j / Height)));
             } // do j = 1, nmax, 2
         }     // do i = 1, mmax, 2
 
@@ -132,7 +128,6 @@ namespace TARCOGCommon {
         // Height - glazing system height
 
         // Using/Aliasing
-        using DataGlobals::Pi;
         using namespace TARCOGParams;
         // use TARCOGGassesParams
 
@@ -140,7 +135,7 @@ namespace TARCOGCommon {
         Real64 LDSumMean;
 
         // Locals
-        static Real64 const Pi_squared(Pi * Pi);
+        static Real64 const Pi_squared(DataGlobalConstants::Pi * DataGlobalConstants::Pi);
         int i;
         int j;
 
@@ -156,12 +151,12 @@ namespace TARCOGCommon {
         return LDSumMean;
     }
 
-    void modifyHcGap(Array1<Real64> const &hcgap, // Convective coefficient for gap
-                     Array1<Real64> const &qv,    // Heat flow from ventilation [W/m2]
-                     Array1<Real64> const &hcv,   // Convective heat flow coefficient due to ventilation
-                     Array1<Real64> &hcgapMod,    // Modified heat flow coefficient for gap
-                     int const nlayer,            // Number of layers
-                     Real64 const edgeGlCorFac    // Edge of glass correction factor
+    void modifyHcGap(Array1D<Real64> const &hcgap, // Convective coefficient for gap
+                     Array1D<Real64> const &qv,    // Heat flow from ventilation [W/m2]
+                     Array1D<Real64> const &hcv,   // Convective heat flow coefficient due to ventilation
+                     Array1D<Real64> &hcgapMod,    // Modified heat flow coefficient for gap
+                     int const nlayer,             // Number of layers
+                     Real64 const edgeGlCorFac     // Edge of glass correction factor
     )
     {
         for (int i = 1; i <= nlayer + 1; ++i) {
@@ -175,27 +170,26 @@ namespace TARCOGCommon {
 
     void matrixQBalance(int const nlayer,
                         Array2<Real64> &a,
-                        Array1<Real64> &b,
-                        Array1<Real64> const &sconScaled, // Solid layer coduction coefficient divided by thickness
-                        Array1<Real64> const &hcgas,
-                        Array1<Real64> &hcgapMod, // Modified heat flow coefficient for gap
-                        Array1<Real64> const &asol,
-                        Array1<Real64> const &qv,
-                        Array1<Real64> const &hcv, // Convective heat flow coefficient due to ventilation
+                        Array1D<Real64> &b,
+                        Array1D<Real64> const &sconScaled, // Solid layer coduction coefficient divided by thickness
+                        Array1D<Real64> const &hcgas,
+                        Array1D<Real64> &hcgapMod, // Modified heat flow coefficient for gap
+                        Array1D<Real64> const &asol,
+                        Array1D<Real64> const &qv,
+                        Array1D<Real64> const &hcv, // Convective heat flow coefficient due to ventilation
                         Real64 const Tin,
                         Real64 const Tout,
                         Real64 const Gin,
                         Real64 const Gout,
-                        Array1<Real64> const &theta,
-                        Array1<Real64> const &tir,
-                        Array1<Real64> const &rir,
-                        Array1<Real64> const &emis,
+                        Array1D<Real64> const &theta,
+                        Array1D<Real64> const &tir,
+                        Array1D<Real64> const &rir,
+                        Array1D<Real64> const &emis,
                         Real64 const edgeGlCorrFac // Edge of glass correction factor
     )
     {
 
         // Using/Aliasing
-        using DataGlobals::StefanBoltzmann;
         using namespace TARCOGParams;
 
         // Locals
@@ -238,7 +232,7 @@ namespace TARCOGCommon {
             }
 
             // second row
-            a(k, k + 1) = emis(front) * StefanBoltzmann * pow_3(theta(front));
+            a(k, k + 1) = emis(front) * DataGlobalConstants::StefanBoltzmann * pow_3(theta(front));
             a(k + 1, k + 1) = -1.0;
             if (i != 1) {
                 a(k - 2, k + 1) = rir(front);
@@ -249,7 +243,7 @@ namespace TARCOGCommon {
 
             // third row
             a(k + 2, k + 2) = -1.0;
-            a(k + 3, k + 2) = emis(back) * StefanBoltzmann * pow_3(theta(back));
+            a(k + 3, k + 2) = emis(back) * DataGlobalConstants::StefanBoltzmann * pow_3(theta(back));
             if (i != 1) {
                 a(k - 2, k + 2) = tir(front);
             }
@@ -297,7 +291,7 @@ namespace TARCOGCommon {
         }
     }
 
-    void EquationsSolver(Array2<Real64> &a, Array1<Real64> &b, int const n, int &nperr, std::string &ErrorMessage)
+    void EquationsSolver(Array2<Real64> &a, Array1D<Real64> &b, int const n, int &nperr, std::string &ErrorMessage)
     {
         //***********************************************************************
         // Purpose: solves the main system of energy balance equations
@@ -325,7 +319,7 @@ namespace TARCOGCommon {
         lubksb(a, n, indx, b);
     }
 
-    void ludcmp(Array2<Real64> &a, int const n, Array1_int &indx, Real64 &d, int &nperr, std::string &ErrorMessage)
+    void ludcmp(Array2<Real64> &a, int const n, Array1D_int &indx, Real64 &d, int &nperr, std::string &ErrorMessage)
     {
 
         // Locals
@@ -397,15 +391,15 @@ namespace TARCOGCommon {
         } // j
     }
 
-    void lubksb(Array2A<Real64> const a, int const n, Array1A_int const indx, Array1A<Real64> b)
+    void lubksb(Array2A<Real64> const a, int const n, const Array1D_int &indx, Array1D<Real64> &b)
     {
         //***********************************************************************
         //***********************************************************************
 
         // Argument array dimensioning
         a.dim(n, n);
-        indx.dim(n);
-        b.dim(n);
+        EP_SIZE_CHECK(indx, n);
+        EP_SIZE_CHECK(b, n);
 
         // Locals
         int i;

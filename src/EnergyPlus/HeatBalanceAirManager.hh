@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -49,9 +49,13 @@
 #define HeatBalanceAirManager_hh_INCLUDED
 
 // EnergyPlus Headers
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace HeatBalanceAirManager {
 
@@ -72,23 +76,23 @@ namespace HeatBalanceAirManager {
     // Functions
     void clear_state();
 
-    void ManageAirHeatBalance();
+    void ManageAirHeatBalance(EnergyPlusData &state);
 
     // Get Input Section of the Module
     //******************************************************************************
 
-    void GetAirHeatBalanceInput();
+    void GetAirHeatBalanceInput(EnergyPlusData &state);
 
-    void GetAirFlowFlag(bool &ErrorsFound); // Set to true if errors found
+    void GetAirFlowFlag(EnergyPlusData &state, bool &ErrorsFound); // Set to true if errors found
 
     void SetZoneMassConservationFlag(); // sets the zone air mass flow variables
 
-    void GetSimpleAirModelInputs(bool &ErrorsFound); // IF errors found in input
+    void GetSimpleAirModelInputs(EnergyPlusData &state, bool &ErrorsFound); // IF errors found in input
 
     //*****************************************************************************************
     // This subroutine was moved from 'RoomAirManager' Module
 
-    void GetRoomAirModelParameters(bool &errFlag); // True if errors found during this input routine
+    void GetRoomAirModelParameters(EnergyPlusData &state, bool &errFlag); // True if errors found during this input routine
 
     // END of Get Input subroutines for the HBAir Module
     //******************************************************************************
@@ -96,9 +100,11 @@ namespace HeatBalanceAirManager {
     // Beginning Initialization Section of the Module
     //******************************************************************************
 
-    void InitAirHeatBalance();
+    void InitAirHeatBalance(EnergyPlusData &state);
 
-    void InitSimpleMixingConvectiveHeatGains();
+    void InitSimpleMixingConvectiveHeatGains(EnergyPlusData &state);
+
+    void initializeForExternalHVACManager(EnergyPlusData &state);
 
     // END Initialization Section of the Module
     //******************************************************************************
@@ -106,13 +112,21 @@ namespace HeatBalanceAirManager {
     // Begin Algorithm Section of the Module
     //******************************************************************************
 
-    void CalcHeatBalanceAir();
+    void CalcHeatBalanceAir(EnergyPlusData &state);
 
     // END Algorithm Section of the Module
 
-    void ReportZoneMeanAirTemp();
+    void ReportZoneMeanAirTemp(EnergyPlusData &state);
 
 } // namespace HeatBalanceAirManager
+
+struct HeatBalanceAirMgrData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

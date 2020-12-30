@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -49,9 +49,13 @@
 #define GeneratorFuelSupply_hh_INCLUDED
 
 // EnergyPlus Headers
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace GeneratorFuelSupply {
 
@@ -71,13 +75,23 @@ namespace GeneratorFuelSupply {
 
     // Functions
 
-    void GetGeneratorFuelSupplyInput();
+    void clear_state();
+
+    void GetGeneratorFuelSupplyInput(EnergyPlusData &state);
 
     //******************************************************************************
 
-    void SetupFuelConstituentData(int const FuelSupplyNum, bool &ErrorsFound);
+    void SetupFuelConstituentData(EnergyPlusData &state, int const FuelSupplyNum, bool &ErrorsFound);
 
 } // namespace GeneratorFuelSupply
+
+struct GeneratorFuelSupplyData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

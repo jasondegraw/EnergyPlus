@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,7 +52,8 @@
 #include <string>
 
 // EnergyPlus Headers
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
 
@@ -71,13 +72,23 @@ namespace DataReportingFlags {
     extern bool DisplayPerfSimulationFlag;        // True when "Performing Simulation" should be displayed
     extern bool DoWeatherInitReporting;           // Init reporting -- items that go onto OutputFileInits
     extern bool PrintEndDataDictionary;           // Flag for printing "End of Data Dictionary" on output files
-    extern bool IgnoreInteriorWindowTransmission; // True when section "IgnoreInteriorWindowTransmission" is entered
     extern bool MakeMirroredDetachedShading;      // True (default) when Detached Shading Surfaces should be "mirrored"
     extern bool MakeMirroredAttachedShading;      // True (default) when Attached Shading Surfaces should be "mirrored"
     extern bool DebugOutput;
     extern bool EvenDuringWarmup;
 
+    // Functions
+    void clear_state();
+
 } // namespace DataReportingFlags
+
+struct ReportFlagData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -66,15 +66,12 @@
 #endif
 
 // EnergyPlus Headers
-#include <DataStringGlobals.hh>
-#include <DisplayRoutines.hh>
-#include <FileSystem.hh>
+#include <EnergyPlus/DataStringGlobals.hh>
+#include <EnergyPlus/FileSystem.hh>
 
 namespace EnergyPlus {
 
 namespace FileSystem {
-
-    using namespace DataStringGlobals;
 
 #ifdef _WIN32
     std::string const exeExtension(".exe");
@@ -84,30 +81,38 @@ namespace FileSystem {
 
     void makeNativePath(std::string &path)
     {
-        std::replace(path.begin(), path.end(), altpathChar, pathChar);
+        std::replace(path.begin(), path.end(), DataStringGlobals::altpathChar, DataStringGlobals::pathChar);
     }
 
     std::string getFileName(std::string const &filePath)
     {
-        int pathCharPosition = filePath.find_last_of(pathChar);
+        int pathCharPosition = filePath.find_last_of(DataStringGlobals::pathChar);
         return filePath.substr(pathCharPosition + 1, filePath.size() - 1);
     }
 
     std::string getParentDirectoryPath(std::string const &path)
     {
         std::string tempPath = path;
-        if (path.at(path.size() - 1) == pathChar) tempPath = path.substr(0, path.size() - 1);
+        if (path.at(path.size() - 1) == DataStringGlobals::pathChar) tempPath = path.substr(0, path.size() - 1);
 
-        int pathCharPosition = tempPath.find_last_of(pathChar);
+        int pathCharPosition = tempPath.find_last_of(DataStringGlobals::pathChar);
         tempPath = tempPath.substr(0, pathCharPosition + 1);
 
-        if (tempPath == "") tempPath = ".";
+        // If empty, then current dir, but with trailing separator too: eg `./`
+        if (tempPath == "") tempPath = {'.',DataStringGlobals:: pathChar};
 
         return tempPath;
     }
 
     std::string getAbsolutePath(std::string const &path)
     {
+        /*
+         * Returns the absolute path for a given relative path.
+         *
+         * If the relative path points to a symlink, the symlink will
+         * be resolved, and this function will return the absolute path
+         * of the link.
+         */
 
 #ifdef _WIN32
         char absolutePath[1024];
@@ -121,9 +126,14 @@ namespace FileSystem {
         }
 
         std::string pathTail;
-        if (parentPath == ".")
+        std::string currentDir = ".";
+        std::string currentDirWithSep = currentDir + DataStringGlobals::pathChar;
+        if ((parentPath == currentDir || parentPath == currentDirWithSep) && path.find(currentDirWithSep) == std::string::npos)
+            // If parent path is the current directory and the original path does not already contain
+            // the current directory in the string, then leave the path tail as-is.
             pathTail = path;
         else
+            // otherwise strip off any preceding content from the path tail
             pathTail = path.substr(parentPath.size(), path.size() - parentPath.size());
 
         char *absolutePathTemp = realpath(parentPath.c_str(), NULL);
@@ -133,17 +143,22 @@ namespace FileSystem {
             if (pathTail.size() == 0)
                 return absoluteParentPath;
             else
-                return absoluteParentPath + pathChar + pathTail;
+                return absoluteParentPath + DataStringGlobals::pathChar + pathTail;
 
         } else {
-            DisplayString("ERROR: Could not resolve path for " + path + ".");
-            exit(EXIT_FAILURE);
+            std::cout << "ERROR: Could not resolve path for " + path + "." << std::endl;
+            std::exit(EXIT_FAILURE);
         }
 #endif
     }
 
     std::string getProgramPath()
     {
+        /*
+         * Returns the relative path to the executable file (including symlinks).
+         *
+         * To resolve symlinks, wrap this call in getAbsolutePath().
+         */
         char executableRelativePath[1024];
 
 #ifdef __APPLE__
@@ -152,8 +167,8 @@ namespace FileSystem {
 #elif __linux__
         ssize_t len = readlink("/proc/self/exe", executableRelativePath, sizeof(executableRelativePath) - 1);
         if (len == -1) {
-            DisplayString("ERROR: Unable to locate executable.");
-            exit(EXIT_FAILURE);
+            std::cout << "ERROR: Unable to locate executable." << std::endl;
+            std::exit(EXIT_FAILURE);
         } else {
             executableRelativePath[len] = '\0';
         }
@@ -181,14 +196,14 @@ namespace FileSystem {
         // Create a directory if doesn't already exist
         if (pathExists(directoryPath)) { // path already exists
             if (!directoryExists(directoryPath)) {
-                DisplayString("ERROR: " + getAbsolutePath(directoryPath) + " is not a directory.");
-                exit(EXIT_FAILURE);
+                std::cout << "ERROR: " + getAbsolutePath(directoryPath) + " is not a directory." << std::endl;
+                std::exit(EXIT_FAILURE);
             }
         } else { // directory does not already exist
             std::string parentDirectoryPath = getParentDirectoryPath(directoryPath);
             if (!pathExists(parentDirectoryPath)) {
-                DisplayString("ERROR: " + getAbsolutePath(parentDirectoryPath) + " is not a directory.");
-                exit(EXIT_FAILURE);
+                std::cout << "ERROR: " + getAbsolutePath(parentDirectoryPath) + " is not a directory." << std::endl;
+                std::exit(EXIT_FAILURE);
             }
 #ifdef _WIN32
             CreateDirectory(directoryPath.c_str(), NULL);
@@ -242,12 +257,26 @@ namespace FileSystem {
 
     void moveFile(std::string const &filePath, std::string const &destination)
     {
+#ifdef _WIN32
+        //Note: on Windows, rename function doesn't always replace the existing file so MoveFileExA is used
+        MoveFileExA(filePath.c_str(), destination.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING);
+#else
         rename(filePath.c_str(), destination.c_str());
+#endif
     }
 
     int systemCall(std::string const &command)
     {
+#ifdef _WIN32
+        // Wrap in double quotes and pass that to system
+        // Note: on Windows, system(command) will already send the command through "cmd /C command"
+        // cf C:\Program Files (x86)\Windows Kits\10\Source\10.0.17763.0\ucrt\exec
+        // Ends up calling something that looks like the following:
+        // cmd /C ""C:\path\to\ReadVarsESO.exe" "A folder with spaces\1ZoneUncontrolled.mvi" unlimited"
+        return system(("\"" + command + "\"").c_str());
+#else
         return system(command.c_str());
+#endif
     }
 
     void removeFile(std::string const &fileName)

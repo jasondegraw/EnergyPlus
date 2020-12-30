@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -53,9 +53,11 @@
 #include <ObjexxFCL/Optional.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <DataHVACGlobals.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/DataHVACGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
 
@@ -416,40 +418,40 @@ namespace PackagedThermalStorageCoil {
     // Object Data
     extern Array1D<PackagedTESCoolingCoilStruct> TESCoil;
 
-    // Functions
+    void clear_state();
 
-    void SimTESCoil(std::string const &CompName, // name of the fan coil unit
+    void SimTESCoil(EnergyPlusData &state, std::string const &CompName, // name of the fan coil unit
                     int &CompIndex,
                     int const FanOpMode, // allows parent object to control fan mode
                     int &TESOpMode,
                     Optional<Real64 const> PartLoadRatio = _ // part load ratio (for single speed cycling unit)
     );
 
-    void GetTESCoilInput();
+    void GetTESCoilInput(EnergyPlusData &state);
 
-    void InitTESCoil(int &TESCoilNum);
+    void InitTESCoil(EnergyPlusData &state, int &TESCoilNum);
 
-    void SizeTESCoil(int &TESCoilNum);
+    void SizeTESCoil(EnergyPlusData &state, int &TESCoilNum);
 
-    void CalcTESCoilOffMode(int const TESCoilNum);
+    void CalcTESCoilOffMode(EnergyPlusData &state, int const TESCoilNum);
 
-    void CalcTESCoilCoolingOnlyMode(int const TESCoilNum, int const FanOpMode, Real64 const PartLoadRatio);
+    void CalcTESCoilCoolingOnlyMode(EnergyPlusData &state, int const TESCoilNum, int const FanOpMode, Real64 const PartLoadRatio);
 
-    void CalcTESCoilCoolingAndChargeMode(int const TESCoilNum, int const FanOpMode, Real64 const PartLoadRatio);
+    void CalcTESCoilCoolingAndChargeMode(EnergyPlusData &state, int const TESCoilNum, int const FanOpMode, Real64 const PartLoadRatio);
 
-    void CalcTESCoilCoolingAndDischargeMode(int const TESCoilNum, int const FanOpMode, Real64 const PartLoadRatio);
+    void CalcTESCoilCoolingAndDischargeMode(EnergyPlusData &state, int const TESCoilNum, int const FanOpMode, Real64 const PartLoadRatio);
 
-    void CalcTESCoilChargeOnlyMode(int const TESCoilNum);
+    void CalcTESCoilChargeOnlyMode(EnergyPlusData &state, int const TESCoilNum);
 
-    void CalcTESCoilDischargeOnlyMode(int const TESCoilNum, Real64 const PartLoadRatio);
+    void CalcTESCoilDischargeOnlyMode(EnergyPlusData &state, int const TESCoilNum, Real64 const PartLoadRatio);
 
-    void UpdateTEStorage(int const TESCoilNum);
+    void UpdateTEStorage(EnergyPlusData &state, int const TESCoilNum);
 
-    void CalcTESWaterStorageTank(int const TESCoilNum);
+    void CalcTESWaterStorageTank(EnergyPlusData &state, int const TESCoilNum);
 
-    void CalcTESIceStorageTank(int const TESCoilNum);
+    void CalcTESIceStorageTank(EnergyPlusData &state, int const TESCoilNum);
 
-    void ControlTESIceStorageTankCoil(std::string const &CoilName,
+    void ControlTESIceStorageTankCoil(EnergyPlusData &state, std::string const &CoilName,
                                       int CoilIndex,
                                       std::string SystemType,
                                       int const FanOpMode,
@@ -467,32 +469,42 @@ namespace PackagedThermalStorageCoil {
                                       int &LatPLRFail,
                                       int &LatPLRFailIndex);
 
-    Real64 TESCoilResidualFunction(Real64 const PartLoadRatio, // compressor cycling ratio (1.0 is continuous, 0.0 is off)
-                                   Array1<Real64> const &Par   // par(1) = DX coil number
+    Real64 TESCoilResidualFunction(EnergyPlusData &state,
+                                   Real64 const PartLoadRatio, // compressor cycling ratio (1.0 is continuous, 0.0 is off)
+                                   Array1D<Real64> const &Par  // par(1) = DX coil number
     );
 
-    Real64 TESCoilHumRatResidualFunction(Real64 const PartLoadRatio, // compressor cycling ratio (1.0 is continuous, 0.0 is off)
-                                         Array1<Real64> const &Par   // par(1) = DX coil number
+    Real64 TESCoilHumRatResidualFunction(EnergyPlusData &state,
+                                         Real64 const PartLoadRatio, // compressor cycling ratio (1.0 is continuous, 0.0 is off)
+                                         Array1D<Real64> const &Par  // par(1) = DX coil number
     );
 
-    void UpdateColdWeatherProtection(int const TESCoilNum);
+    void UpdateColdWeatherProtection(EnergyPlusData &state, int const TESCoilNum);
 
-    void UpdateEvaporativeCondenserBasinHeater(int const TESCoilNum);
+    void UpdateEvaporativeCondenserBasinHeater(EnergyPlusData &state, int const TESCoilNum);
 
-    void UpdateEvaporativeCondenserWaterUse(int const TESCoilNum, Real64 const HumRatAfterEvap, int const InletNodeNum);
+    void UpdateEvaporativeCondenserWaterUse(EnergyPlusData &state, int const TESCoilNum, Real64 const HumRatAfterEvap, int const InletNodeNum);
 
-    void GetTESCoilIndex(std::string const &CoilName, int &CoilIndex, bool &ErrorsFound, Optional_string_const CurrentModuleObject = _);
+    void GetTESCoilIndex(EnergyPlusData &state, std::string const &CoilName, int &CoilIndex, bool &ErrorsFound, Optional_string_const CurrentModuleObject = _);
 
-    void GetTESCoilAirInletNode(std::string const &CoilName, int &CoilAirInletNode, bool &ErrorsFound, std::string const &CurrentModuleObject);
+    void GetTESCoilAirInletNode(EnergyPlusData &state, std::string const &CoilName, int &CoilAirInletNode, bool &ErrorsFound, std::string const &CurrentModuleObject);
 
-    void GetTESCoilAirOutletNode(std::string const &CoilName, int &CoilAirOutletNode, bool &ErrorsFound, std::string const &CurrentModuleObject);
+    void GetTESCoilAirOutletNode(EnergyPlusData &state, std::string const &CoilName, int &CoilAirOutletNode, bool &ErrorsFound, std::string const &CurrentModuleObject);
 
-    void GetTESCoilCoolingCapacity(std::string const &CoilName, Real64 &CoilCoolCapacity, bool &ErrorsFound, std::string const &CurrentModuleObject);
+    void GetTESCoilCoolingCapacity(EnergyPlusData &state, std::string const &CoilName, Real64 &CoilCoolCapacity, bool &ErrorsFound, std::string const &CurrentModuleObject);
 
     void
-    GetTESCoilCoolingAirFlowRate(std::string const &CoilName, Real64 &CoilCoolAirFlow, bool &ErrorsFound, std::string const &CurrentModuleObject);
+    GetTESCoilCoolingAirFlowRate(EnergyPlusData &state, std::string const &CoilName, Real64 &CoilCoolAirFlow, bool &ErrorsFound, std::string const &CurrentModuleObject);
 
 } // namespace PackagedThermalStorageCoil
+
+struct PackagedThermalStorageCoilData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

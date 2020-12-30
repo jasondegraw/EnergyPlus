@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -46,8 +46,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // EnergyPlus Headers
-#include <DataHeatBalFanSys.hh>
-#include <DataPrecisionGlobals.hh>
+#include <EnergyPlus/DataHeatBalFanSys.hh>
 
 namespace EnergyPlus {
 
@@ -64,8 +63,6 @@ namespace DataHeatBalFanSys {
     // Heat Balance Module to the Fan Systems
 
     // Using/Aliasing
-    using namespace DataPrecisionGlobals;
-
     // Data
     // -only module should be available to other modules and routines.
     // Thus, all variables in this module must be PUBLIC.
@@ -133,26 +130,27 @@ namespace DataHeatBalFanSys {
     Array1D<Real64> WZoneTimeMinus3Temp; // Zone air humidity ratio at timestep T-3
     Array1D<Real64> ZoneAirHumRatOld;    // Last Time Steps Zone AIR Humidity Ratio
 
-    Array1D<Real64> MCPI;                 // INFILTRATION MASS FLOW * AIR SPECIFIC HEAT
-    Array1D<Real64> MCPTI;                // INFILTRATION MASS FLOW * AIR CP * AIR TEMPERATURE
-    Array1D<Real64> MCPV;                 // VENTILATION MASS FLOW * AIR SPECIFIC HEAT
-    Array1D<Real64> MCPTV;                // VENTILATION MASS FLOW * AIR CP * AIR TEMPERATURE
-    Array1D<Real64> MCPM;                 // Mixing MASS FLOW * AIR SPECIFIC HEAT
-    Array1D<Real64> MCPTM;                // Mixing MASS FLOW * AIR CP * AIR TEMPERATURE
-    Array1D<Real64> MCPE;                 // EARTHTUBE MASS FLOW * AIR SPECIFIC HEAT
-    Array1D<Real64> EAMFL;                // OUTDOOR AIR MASS FLOW for EarthTube
-    Array1D<Real64> EAMFLxHumRat;         // OUTDOOR AIR MASS FLOW * Humidity Ratio for EarthTube (water vapor mass flow)
-    Array1D<Real64> MCPTE;                // EARTHTUBE MASS FLOW * AIR CP * AIR TEMPERATURE
-    Array1D<Real64> MCPC;                 // COOLTOWER MASS FLOW * AIR SPECIFIC HEAT
-    Array1D<Real64> CTMFL;                // OUTDOOR AIR MASS FLOW for cooltower
-    Array1D<Real64> MCPTC;                // COOLTOWER MASS FLOW * AIR CP * AIR TEMPERATURE
-    Array1D<Real64> ThermChimAMFL;        // OUTDOOR AIR MASS FLOW for THERMALCHIMNEY
-    Array1D<Real64> MCPTThermChim;        // THERMALCHIMNEY MASS FLOW * AIR SPECIFIC HEAT
-    Array1D<Real64> MCPThermChim;         // THERMALCHIMNEY MASS FLOW * AIR CP * AIR TEMPERATURE
-    Array1D<Real64> ZoneLatentGain;       // Latent Energy from each Zone (People, equipment)
-    Array1D<Real64> OAMFL;                // OUTDOOR AIR MASS FLOW (M**3/SEC) for infiltration
-    Array1D<Real64> VAMFL;                // OUTDOOR AIR MASS FLOW (M**3/SEC) for ventilation
-    Array1D<Real64> NonAirSystemResponse; // Convective heat addition rate from non forced air
+    Array1D<Real64> MCPI;                       // INFILTRATION MASS FLOW * AIR SPECIFIC HEAT
+    Array1D<Real64> MCPTI;                      // INFILTRATION MASS FLOW * AIR CP * AIR TEMPERATURE
+    Array1D<Real64> MCPV;                       // VENTILATION MASS FLOW * AIR SPECIFIC HEAT
+    Array1D<Real64> MCPTV;                      // VENTILATION MASS FLOW * AIR CP * AIR TEMPERATURE
+    Array1D<Real64> MCPM;                       // Mixing MASS FLOW * AIR SPECIFIC HEAT
+    Array1D<Real64> MCPTM;                      // Mixing MASS FLOW * AIR CP * AIR TEMPERATURE
+    Array1D<Real64> MCPE;                       // EARTHTUBE MASS FLOW * AIR SPECIFIC HEAT
+    Array1D<Real64> EAMFL;                      // OUTDOOR AIR MASS FLOW for EarthTube
+    Array1D<Real64> EAMFLxHumRat;               // OUTDOOR AIR MASS FLOW * Humidity Ratio for EarthTube (water vapor mass flow)
+    Array1D<Real64> MCPTE;                      // EARTHTUBE MASS FLOW * AIR CP * AIR TEMPERATURE
+    Array1D<Real64> MCPC;                       // COOLTOWER MASS FLOW * AIR SPECIFIC HEAT
+    Array1D<Real64> CTMFL;                      // OUTDOOR AIR MASS FLOW for cooltower
+    Array1D<Real64> MCPTC;                      // COOLTOWER MASS FLOW * AIR CP * AIR TEMPERATURE
+    Array1D<Real64> ThermChimAMFL;              // OUTDOOR AIR MASS FLOW for THERMALCHIMNEY
+    Array1D<Real64> MCPTThermChim;              // THERMALCHIMNEY MASS FLOW * AIR SPECIFIC HEAT
+    Array1D<Real64> MCPThermChim;               // THERMALCHIMNEY MASS FLOW * AIR CP * AIR TEMPERATURE
+    Array1D<Real64> ZoneLatentGain;             // Latent Energy from each Zone (People, equipment)
+    Array1D<Real64> ZoneLatentGainExceptPeople; // Added for hybrid model -- Latent Energy from each Zone (equipment)
+    Array1D<Real64> OAMFL;                      // OUTDOOR AIR MASS FLOW (M**3/SEC) for infiltration
+    Array1D<Real64> VAMFL;                      // OUTDOOR AIR MASS FLOW (M**3/SEC) for ventilation
+    Array1D<Real64> NonAirSystemResponse;       // Convective heat addition rate from non forced air
     // equipment such as baseboards plus heat from lights to
     Array1D<Real64> SysDepZoneLoads; // Convective heat addition or subtraction rate from sources that
     // depend on what is happening with the HVAC system. Such as:
@@ -212,6 +210,8 @@ namespace DataHeatBalFanSys {
     Array1D<Real64> AdapComfortCoolingSetPoint;
     Array1D<Real64> ZoneThermostatSetPointHi;
     Array1D<Real64> ZoneThermostatSetPointLo;
+    Array1D<Real64> ZoneThermostatSetPointHiAver;
+    Array1D<Real64> ZoneThermostatSetPointLoAver;
 
     Array1D<Real64> LoadCorrectionFactor; // PH 3/3/04
 
@@ -220,9 +220,12 @@ namespace DataHeatBalFanSys {
     Array1D<Real64> ZTM2;   // zone air temperature at timestep T-2
     Array1D<Real64> ZTM3;   // zone air temperature at previous T-3
     // Hybrid Modeling
-    Array1D<Real64> PreviousMeasuredZT1; // Hybrid model internal mass multiplier at previous timestep
-    Array1D<Real64> PreviousMeasuredZT2; // Hybrid model internal mass multiplier at previous timestep
-    Array1D<Real64> PreviousMeasuredZT3; // Hybrid model internal mass multiplier at previous timestep
+    Array1D<Real64> PreviousMeasuredZT1;     // Hybrid model internal mass multiplier at previous timestep
+    Array1D<Real64> PreviousMeasuredZT2;     // Hybrid model internal mass multiplier at previous timestep
+    Array1D<Real64> PreviousMeasuredZT3;     // Hybrid model internal mass multiplier at previous timestep
+    Array1D<Real64> PreviousMeasuredHumRat1; // Hybrid model zone humidity ratio at previous timestep
+    Array1D<Real64> PreviousMeasuredHumRat2; // Hybrid model zone humidity ratio at previous timestep
+    Array1D<Real64> PreviousMeasuredHumRat3; // Hybrid model zone humidity ratio at previous timestep
     // Exact and Euler solutions
     Array1D<Real64> ZoneTMX; // TEMPORARY ZONE TEMPERATURE TO TEST CONVERGENCE in Exact and Euler method
     Array1D<Real64> ZoneTM2; // TEMPORARY ZONE TEMPERATURE at timestep t-2 in Exact and Euler method
@@ -233,6 +236,23 @@ namespace DataHeatBalFanSys {
 
     Array1D_int TempControlType;
     Array1D_int ComfortControlType;
+
+    Array1D<Real64> ZoneHeatIndex;
+    Array1D<Real64> ZoneHumidex;
+    Array1D_int ZoneNumOcc;
+    Array1D<std::vector<Real64>> ZoneHeatIndexHourBins;
+    Array1D<std::vector<Real64>> ZoneHumidexHourBins;
+    Array1D<std::vector<Real64>> ZoneHeatIndexOccuHourBins;
+    Array1D<std::vector<Real64>> ZoneHumidexOccuHourBins;
+    Array1D<std::vector<Real64>> ZoneCO2LevelHourBins;
+    Array1D<std::vector<Real64>> ZoneCO2LevelOccuHourBins;
+    Array1D<std::vector<Real64>> ZoneLightingLevelHourBins;
+    Array1D<std::vector<Real64>> ZoneLightingLevelOccuHourBins;
+
+    Array1D<Real64> ZoneOccPierceSET;
+    Array1D<Real64> ZoneOccPierceSETLastStep;
+    Array1D<std::vector<Real64>> ZoneLowSETHours; // LowSETHour, LowSETOccHour, LowSetLongestDur, LowSetLongestTimeStamp
+    Array1D<std::vector<Real64>> ZoneHighSETHours; //HighSETHour, HighSETOccHour, HighSetLongestDur, HighSetLongestTimeStamp
 
     // Object Data
     Array1D<ZoneComfortControlsFangerData> ZoneComfortControlsFanger;
@@ -295,6 +315,7 @@ namespace DataHeatBalFanSys {
         MCPTThermChim.deallocate();
         MCPThermChim.deallocate();
         ZoneLatentGain.deallocate();
+        ZoneLatentGainExceptPeople.deallocate();
         OAMFL.deallocate();
         VAMFL.deallocate();
         NonAirSystemResponse.deallocate();
@@ -332,11 +353,19 @@ namespace DataHeatBalFanSys {
         AdapComfortCoolingSetPoint.deallocate();
         ZoneThermostatSetPointHi.deallocate();
         ZoneThermostatSetPointLo.deallocate();
+        ZoneThermostatSetPointHiAver.deallocate();
+        ZoneThermostatSetPointLoAver.deallocate();
         LoadCorrectionFactor.deallocate();
         AIRRAT.deallocate();
         ZTM1.deallocate();
         ZTM2.deallocate();
         ZTM3.deallocate();
+        PreviousMeasuredZT1.deallocate();
+        PreviousMeasuredZT2.deallocate();
+        PreviousMeasuredZT3.deallocate();
+        PreviousMeasuredHumRat1.deallocate();
+        PreviousMeasuredHumRat2.deallocate();
+        PreviousMeasuredHumRat3.deallocate();
         ZoneTMX.deallocate();
         ZoneTM2.deallocate();
         ZoneT1.deallocate();
@@ -345,6 +374,21 @@ namespace DataHeatBalFanSys {
         ZoneW1.deallocate();
         TempControlType.deallocate();
         ComfortControlType.deallocate();
+        ZoneHeatIndex.deallocate();
+        ZoneHumidex.deallocate();
+        ZoneNumOcc.deallocate();;
+        ZoneHeatIndexHourBins.deallocate();
+        ZoneHeatIndexOccuHourBins.deallocate();
+        ZoneHumidexHourBins.deallocate();
+        ZoneHumidexOccuHourBins.deallocate();
+        ZoneOccPierceSET.deallocate();
+        ZoneOccPierceSETLastStep.deallocate();
+        ZoneLowSETHours.deallocate();
+        ZoneHighSETHours.deallocate();
+        ZoneCO2LevelHourBins.deallocate();
+        ZoneCO2LevelOccuHourBins.deallocate();
+        ZoneLightingLevelHourBins.deallocate();
+        ZoneLightingLevelOccuHourBins.deallocate();
         ZoneComfortControlsFanger.deallocate();
     }
 

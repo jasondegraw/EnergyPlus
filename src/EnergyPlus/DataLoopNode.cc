@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -46,8 +46,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // EnergyPlus Headers
-#include <DataLoopNode.hh>
-#include <DataPrecisionGlobals.hh>
+#include <EnergyPlus/DataLoopNode.hh>
 
 namespace EnergyPlus {
 
@@ -73,8 +72,6 @@ namespace DataLoopNode {
     // USE STATEMENTS:
     // Use statements for data only modules
     // Using/Aliasing
-    using namespace DataPrecisionGlobals;
-
     // Data
     // MODULE PARAMETER DEFINITIONS:
     // Valid Fluid Types for Nodes
@@ -84,7 +81,7 @@ namespace DataLoopNode {
     int const NodeType_Steam(3);    // 'Steam'
     int const NodeType_Electric(4); // 'Electric'
     Array1D_string const ValidNodeFluidTypes({0, 4}, {"blank", "Air", "Water", "Steam", "Electric"});
-    int const NumValidNodeFluidTypes(4);
+    //int const NumValidNodeFluidTypes(4);
 
     // Valid Connection Types for Nodes
     Array1D_string const ValidConnectionTypes(15,
@@ -126,7 +123,7 @@ namespace DataLoopNode {
     bool const ObjectIsParent(true);
     bool const ObjectIsNotParent(false);
     bool const IncrementFluidStreamYes(true);
-    bool const IncrementFluidStreamNo(false);
+    //bool const IncrementFluidStreamNo(false);
     Real64 const SensedNodeFlagValue(-999.0);
     Real64 const SensedLoadFlagValue(-999.0);
 
@@ -192,6 +189,7 @@ namespace DataLoopNode {
                                0.0,
                                0.0,
                                0.0,
+                               false,
                                false); // Autodesk:Note If intent is default construction drop initializer to elim bug exposure | FluidType |
                                        // FluidIndex | Temp {C} | TempMin {C} | TempMax {C} | TempSetPoint {C} | TempLastTimeStep {C} |
                                        // MassFlowRateRequest {kg/s} | MassFlowRate {kg/s} | MassFlowRateMin {kg/s} | MassFlowRateMax {kg/s}
@@ -204,6 +202,7 @@ namespace DataLoopNode {
                                        // contaminant setpoint {ppm} | Set to true when node has SPM which follows wetbulb
     Array1D<MoreNodeData> MoreNodeInfo;
     Array1D<MarkedNodeData> MarkedNode;
+    Array1D<NodeSetpointCheckData> NodeSetpointCheck;
 
     // Clears the global data in DataLoopNode.
     // Needed for unit tests, should not be normally called.
@@ -260,9 +259,11 @@ namespace DataLoopNode {
                                      0.0,
                                      0.0,
                                      0.0,
+                                     false,
                                      false);
         MoreNodeInfo.deallocate();
         MarkedNode.deallocate();
+        NodeSetpointCheck.deallocate();
     }
 
 } // namespace DataLoopNode

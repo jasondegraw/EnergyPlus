@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -48,28 +48,23 @@
 // C++ Headers
 #include <memory>
 
-// ObjexxFCL Headers
-#include <ObjexxFCL/gio.hh>
-
 // EnergyPlus Headers
-#include <DataEnvironment.hh>
-#include <DataGlobals.hh>
-#include <DataIPShortCuts.hh>
-#include <GroundTemperatureModeling/GroundTemperatureModelManager.hh>
-#include <GroundTemperatureModeling/SiteDeepGroundTemperatures.hh>
-#include <InputProcessing/InputProcessor.hh>
-#include <UtilityRoutines.hh>
-#include <WeatherManager.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
+#include <EnergyPlus/DataEnvironment.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/DataIPShortCuts.hh>
+#include <EnergyPlus/GroundTemperatureModeling/GroundTemperatureModelManager.hh>
+#include <EnergyPlus/GroundTemperatureModeling/SiteDeepGroundTemperatures.hh>
+#include <EnergyPlus/InputProcessing/InputProcessor.hh>
+#include <EnergyPlus/UtilityRoutines.hh>
+#include <EnergyPlus/WeatherManager.hh>
 
 namespace EnergyPlus {
-
-static gio::Fmt fmtA("(A)");
-static gio::Fmt fmtAN("(A,$)");
 
 //******************************************************************************
 
 // Site:GroundTemperature:Deep factory
-std::shared_ptr<SiteDeepGroundTemps> SiteDeepGroundTemps::DeepGTMFactory(int objectType, std::string objectName)
+std::shared_ptr<SiteDeepGroundTemps> SiteDeepGroundTemps::DeepGTMFactory(EnergyPlusData &state, int objectType, std::string objectName)
 {
     // SUBROUTINE INFORMATION:
     //       AUTHOR         Matt Mitchell
@@ -81,15 +76,11 @@ std::shared_ptr<SiteDeepGroundTemps> SiteDeepGroundTemps::DeepGTMFactory(int obj
     // Reads input and creates instance of Site:GroundTemperature:Deep object
 
     // USE STATEMENTS:
-    using DataEnvironment::GroundTemp_DeepObjInput;
-    using DataGlobals::OutputFileInits;
     using namespace DataIPShortCuts;
     using namespace GroundTemperatureManager;
-    using namespace ObjexxFCL::gio;
 
     // Locals
     // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
-    bool found = false;
     int NumNums;
     int NumAlphas;
     int IOStat;
@@ -98,7 +89,7 @@ std::shared_ptr<SiteDeepGroundTemps> SiteDeepGroundTemps::DeepGTMFactory(int obj
     std::shared_ptr<SiteDeepGroundTemps> thisModel(new SiteDeepGroundTemps());
 
     std::string const cCurrentModuleObject = CurrentModuleObjects(objectType_SiteDeepGroundTemp);
-    int numCurrObjects = inputProcessor->getNumObjectsFound(cCurrentModuleObject);
+    int numCurrObjects = inputProcessor->getNumObjectsFound(state, cCurrentModuleObject);
 
     thisModel->objectType = objectType;
     thisModel->objectName = objectName;
@@ -106,10 +97,10 @@ std::shared_ptr<SiteDeepGroundTemps> SiteDeepGroundTemps::DeepGTMFactory(int obj
     if (numCurrObjects == 1) {
 
         // Get the object names for each construction from the input processor
-        inputProcessor->getObjectItem(cCurrentModuleObject, 1, cAlphaArgs, NumAlphas, rNumericArgs, NumNums, IOStat);
+        inputProcessor->getObjectItem(state, cCurrentModuleObject, 1, cAlphaArgs, NumAlphas, rNumericArgs, NumNums, IOStat);
 
         if (NumNums < 12) {
-            ShowSevereError(cCurrentModuleObject + ": Less than 12 values entered.");
+            ShowSevereError(state, cCurrentModuleObject + ": Less than 12 values entered.");
             thisModel->errorsFound = true;
         }
 
@@ -118,10 +109,10 @@ std::shared_ptr<SiteDeepGroundTemps> SiteDeepGroundTemps::DeepGTMFactory(int obj
             thisModel->deepGroundTemps(i) = rNumericArgs(i);
         }
 
-        GroundTemp_DeepObjInput = true;
+        state.dataEnvrn->GroundTemp_DeepObjInput = true;
 
     } else if (numCurrObjects > 1) {
-        ShowSevereError(cCurrentModuleObject + ": Too many objects entered. Only one allowed.");
+        ShowSevereError(state, cCurrentModuleObject + ": Too many objects entered. Only one allowed.");
         thisModel->errorsFound = true;
 
     } else {
@@ -129,28 +120,20 @@ std::shared_ptr<SiteDeepGroundTemps> SiteDeepGroundTemps::DeepGTMFactory(int obj
     }
 
     // Write Final Ground Temp Information to the initialization output file
-    gio::write(OutputFileInits, fmtA)
-        << "! <Site:GroundTemperature:Deep>,Jan{C},Feb{C},Mar{C},Apr{C},May{C},Jun{C},Jul{C},Aug{C},Sep{C},Oct{C},Nov{C},Dec{C}";
-    gio::write(OutputFileInits, fmtAN) << " Site:GroundTemperature:Deep";
-    for (int i = 1; i <= 12; ++i) {
-        gio::write(OutputFileInits, "(', ',F6.2,$)") << thisModel->deepGroundTemps(i);
-    }
-    gio::write(OutputFileInits);
+    write_ground_temps(state.files.eio, "Deep", thisModel->deepGroundTemps);
 
-    found = true;
-
-    if (found && !thisModel->errorsFound) {
+    if (!thisModel->errorsFound) {
         groundTempModels.push_back(thisModel);
         return thisModel;
     } else {
-        ShowContinueError("Site:GroundTemperature:Deep--Errors getting input for ground temperature model");
+        ShowContinueError(state, "Site:GroundTemperature:Deep--Errors getting input for ground temperature model");
         return nullptr;
     }
 }
 
 //******************************************************************************
 
-Real64 SiteDeepGroundTemps::getGroundTemp()
+Real64 SiteDeepGroundTemps::getGroundTemp([[maybe_unused]] EnergyPlusData &state)
 {
     // SUBROUTINE INFORMATION:
     //       AUTHOR         Matt Mitchell
@@ -166,7 +149,7 @@ Real64 SiteDeepGroundTemps::getGroundTemp()
 
 //******************************************************************************
 
-Real64 SiteDeepGroundTemps::getGroundTempAtTimeInSeconds(Real64 const EP_UNUSED(_depth), Real64 const _seconds)
+Real64 SiteDeepGroundTemps::getGroundTempAtTimeInSeconds(EnergyPlusData &state, [[maybe_unused]] Real64 const _depth, Real64 const _seconds)
 {
     // SUBROUTINE INFORMATION:
     //       AUTHOR         Matt Mitchell
@@ -178,11 +161,8 @@ Real64 SiteDeepGroundTemps::getGroundTempAtTimeInSeconds(Real64 const EP_UNUSED(
     // Returns the ground temperature when input time is in seconds
 
     // USE STATEMENTS:
-    using DataGlobals::SecsInDay;
-    using WeatherManager::NumDaysInYear;
-
     // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
-    Real64 secPerMonth = NumDaysInYear * SecsInDay / 12;
+    Real64 secPerMonth = state.dataWeatherManager->NumDaysInYear * DataGlobalConstants::SecsInDay / 12;
 
     // Convert secs to months
     int month = ceil(_seconds / secPerMonth);
@@ -194,12 +174,12 @@ Real64 SiteDeepGroundTemps::getGroundTempAtTimeInSeconds(Real64 const EP_UNUSED(
     }
 
     // Get and return ground temp
-    return getGroundTemp();
+    return getGroundTemp(state);
 }
 
 //******************************************************************************
 
-Real64 SiteDeepGroundTemps::getGroundTempAtTimeInMonths(Real64 const EP_UNUSED(_depth), int const _month)
+Real64 SiteDeepGroundTemps::getGroundTempAtTimeInMonths(EnergyPlusData &state, [[maybe_unused]] Real64 const _depth, int const _month)
 {
     // SUBROUTINE INFORMATION:
     //       AUTHOR         Matt Mitchell
@@ -218,7 +198,7 @@ Real64 SiteDeepGroundTemps::getGroundTempAtTimeInMonths(Real64 const EP_UNUSED(_
     }
 
     // Get and return ground temp
-    return getGroundTemp();
+    return getGroundTemp(state);
 }
 
 //******************************************************************************

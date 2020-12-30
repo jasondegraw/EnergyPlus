@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -47,21 +47,20 @@
 
 #include <cassert>
 
-#include <DataBSDFWindow.hh>
-#include <DataHeatBalance.hh>
-#include <UtilityRoutines.hh>
-#include <WindowComplexManager.hh>
-#include <WindowManager.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
+#include <EnergyPlus/DataBSDFWindow.hh>
+#include <EnergyPlus/DataHeatBalance.hh>
+#include <EnergyPlus/UtilityRoutines.hh>
+#include <EnergyPlus/WindowComplexManager.hh>
+#include <EnergyPlus/WindowManager.hh>
+#include <EnergyPlus/WindowManagerExteriorData.hh>
 
 #include <WCEMultiLayerOptics.hpp>
-
-#include "WindowManagerExteriorData.hh"
 
 namespace EnergyPlus {
 
 using namespace DataSurfaces;
 using namespace DataHeatBalance;
-using namespace DataGlobals;
 using namespace WindowComplexManager;
 
 using namespace SingleLayerOptics;
@@ -77,40 +76,39 @@ namespace WindowManager {
         return (DotProd > 0);
     }
 
-    std::pair<Real64, Real64> getWCECoordinates(int const t_SurfNum, Vector const &t_Ray, const BSDFHemisphere t_Direction)
+    std::pair<Real64, Real64> getWCECoordinates(EnergyPlusData &state, int const t_SurfNum, Vector const &t_Ray, const BSDFHemisphere t_Direction)
     {
         Real64 Theta = 0;
         Real64 Phi = 0;
 
         // get window tilt and azimuth
-        Real64 Gamma = DegToRadians * Surface(t_SurfNum).Tilt;
-        Real64 Alpha = DegToRadians * Surface(t_SurfNum).Azimuth;
+        Real64 Gamma = DataGlobalConstants::DegToRadians * Surface(t_SurfNum).Tilt;
+        Real64 Alpha = DataGlobalConstants::DegToRadians * Surface(t_SurfNum).Azimuth;
 
-        int RadType = Front_Incident;
+        int RadType = state.dataWindowComplexManager->Front_Incident;
 
         if (t_Direction == BSDFHemisphere::Outgoing) {
-            RadType = Back_Incident;
+            RadType = state.dataWindowComplexManager->Back_Incident;
         }
 
         // get the corresponding local Theta, Phi for ray
-        W6CoordsFromWorldVect(t_Ray, RadType, Gamma, Alpha, Theta, Phi);
+        W6CoordsFromWorldVect(state, t_Ray, RadType, Gamma, Alpha, Theta, Phi);
 
-        Theta = 180 / Pi * Theta;
-        Phi = 180 / Pi * Phi;
+        Theta = 180 / DataGlobalConstants::Pi * Theta;
+        Phi = 180 / DataGlobalConstants::Pi * Phi;
 
         return std::make_pair(Theta, Phi);
     }
 
-    std::pair<Real64, Real64> getSunWCEAngles(const int t_SurfNum, const BSDFHemisphere t_Direction)
+    std::pair<Real64, Real64> getSunWCEAngles(EnergyPlusData &state, const int t_SurfNum, const BSDFHemisphere t_Direction)
     {
-        std::pair<Real64, Real64> Angles;
-        return getWCECoordinates(t_SurfNum, DataBSDFWindow::SUNCOSTS(TimeStep, HourOfDay, {1, 3}), t_Direction);
+        return getWCECoordinates(state, t_SurfNum, state.dataBSDFWindow->SUNCOSTS(state.dataGlobal->TimeStep, state.dataGlobal->HourOfDay, {1, 3}), t_Direction);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     //       CWCESpecturmProperties
     ///////////////////////////////////////////////////////////////////////////////
-    std::shared_ptr<CSeries> CWCESpecturmProperties::getDefaultSolarRadiationSpectrum()
+    std::shared_ptr<CSeries> CWCESpecturmProperties::getDefaultSolarRadiationSpectrum(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Simon Vidanovic
@@ -122,15 +120,15 @@ namespace WindowManager {
         // Handles solar radiation spetrum from defalut location or IDF
         std::shared_ptr<CSeries> solarRadiation = std::make_shared<CSeries>();
 
-        for (auto i = 1; i <= nume; ++i) {
-            solarRadiation->addProperty(wle(i), e(i));
+        for (auto i = 1; i <= state.dataWindowManager->nume; ++i) {
+            solarRadiation->addProperty(state.dataWindowManager->wle(i), state.dataWindowManager->e(i));
         }
 
         return solarRadiation;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
-    std::shared_ptr<CSeries> CWCESpecturmProperties::getDefaultVisiblePhotopicResponse()
+    std::shared_ptr<CSeries> CWCESpecturmProperties::getDefaultVisiblePhotopicResponse(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Simon Vidanovic
@@ -142,8 +140,8 @@ namespace WindowManager {
         // Handles solar radiation spetrum from defalut location or IDF
         std::shared_ptr<CSeries> visibleResponse = std::make_shared<CSeries>();
 
-        for (auto i = 1; i <= numt3; ++i) {
-            visibleResponse->addProperty(wlt3(i), y30(i));
+        for (auto i = 1; i <= state.dataWindowManager->numt3; ++i) {
+            visibleResponse->addProperty(state.dataWindowManager->wlt3(i), state.dataWindowManager->y30(i));
         }
 
         return visibleResponse;
@@ -176,7 +174,7 @@ namespace WindowManager {
     }
 
     ///////////////////////////////////////////////////////////////////////////////
-    std::shared_ptr<CSpectralSampleData> CWCESpecturmProperties::getSpectralSample(MaterialProperties const &t_MaterialProperties)
+    std::shared_ptr<CSpectralSampleData> CWCESpecturmProperties::getSpectralSample(Material::MaterialProperties const &t_MaterialProperties)
     {
         Real64 Tsol = t_MaterialProperties.Trans;
         Real64 Rfsol = t_MaterialProperties.ReflectSolBeamFront;
@@ -231,19 +229,19 @@ namespace WindowManager {
         aMap.at(t_ConstrNum).push_back(t_Layer);
     }
 
-    std::shared_ptr<CMultiLayerScattered> CWindowConstructionsSimplified::getEquivalentLayer(WavelengthRange const t_Range, int const t_ConstrNum)
+    std::shared_ptr<CMultiLayerScattered> CWindowConstructionsSimplified::getEquivalentLayer(EnergyPlusData &state, WavelengthRange const t_Range, int const t_ConstrNum)
     {
         auto it = m_Equivalent.find(std::make_pair(t_Range, t_ConstrNum));
         if (it == m_Equivalent.end()) {
             // Layer was not requested before. Need to create it now.
             // shared_ptr< vector< double > > commonWl = getCommonWavelengths( t_Range, t_ConstrNum );
-            IGU_Layers iguLayers = getLayers(t_Range, t_ConstrNum);
+            IGU_Layers iguLayers = getLayers(state, t_Range, t_ConstrNum);
             std::shared_ptr<CMultiLayerScattered> aEqLayer = std::make_shared<CMultiLayerScattered>(iguLayers[0]);
             for (auto i = 1u; i < iguLayers.size(); ++i) {
                 aEqLayer->addLayer(iguLayers[i]);
             }
 
-            std::shared_ptr<CSeries> aSolarSpectrum = CWCESpecturmProperties::getDefaultSolarRadiationSpectrum();
+            std::shared_ptr<CSeries> aSolarSpectrum = CWCESpecturmProperties::getDefaultSolarRadiationSpectrum(state);
             aEqLayer->setSourceData(aSolarSpectrum);
             m_Equivalent[std::make_pair(t_Range, t_ConstrNum)] = aEqLayer;
         }
@@ -256,12 +254,12 @@ namespace WindowManager {
         p_inst = nullptr;
     }
 
-    IGU_Layers CWindowConstructionsSimplified::getLayers(WavelengthRange const t_Range, int const t_ConstrNum) const
+    IGU_Layers CWindowConstructionsSimplified::getLayers(EnergyPlusData &state, WavelengthRange const t_Range, int const t_ConstrNum) const
     {
         Layers_Map aMap = m_Layers.at(t_Range);
         auto it = aMap.find(t_ConstrNum);
         if (it == aMap.end()) {
-            ShowFatalError("Incorrect construction selection.");
+            ShowFatalError(state, "Incorrect construction selection.");
             // throw std::runtime_error("Incorrect construction selection.");
         }
         return aMap.at(t_ConstrNum);

@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -48,90 +48,59 @@
 #ifndef SingleDuct_hh_INCLUDED
 #define SingleDuct_hh_INCLUDED
 
+#include <unordered_map>
+
 // ObjexxFCL Headers
 #include <ObjexxFCL/Array1D.hh>
 #include <ObjexxFCL/Optional.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
 
+// Forward declarations
+struct EnergyPlusData;
+
 namespace SingleDuct {
 
-    // Using/Aliasing
+    enum class Action {Normal, ReverseAction, ReverseActionWithLimits, HeatingActionNotUsed};
+    enum class SysType {
+        SingleDuctVAVReheat, SingleDuctConstVolReheat, SingleDuctConstVolNoReheat, SingleDuctVAVNoReheat,
+        SingleDuctVAVReheatVSFan, SingleDuctCBVAVReheat, SingleDuctCBVAVNoReheat, Unknown};
+    enum class HeatingCoilType : int {None, Gas, Electric, SimpleHeating, SteamAirHeating};
+    enum class MinFlowFraction {Constant, Scheduled, Fixed, MinFracNotUsed};
 
-    // Data
-    // MODULE PARAMETER DEFINITIONS
-    extern int const Normal;
-    extern int const ReverseAction;
-    extern int const ReverseActionWithLimits;
-    extern int const HeatingActionNotUsed;
-
-    // SysTypes represented here
-    extern int const SingleDuctVAVReheat;
-    extern int const SingleDuctConstVolReheat;
-    extern int const SingleDuctConstVolNoReheat;
-    extern int const SingleDuctVAVNoReheat;
-    extern int const SingleDuctVAVReheatVSFan;
-    extern int const SingleDuctCBVAVReheat;
-    extern int const SingleDuctCBVAVNoReheat;
-    // Reheat Coil Types used here
-    extern int const HCoilType_None;
-    extern int const HCoilType_Gas;
-    extern int const HCoilType_Electric;
-    extern int const HCoilType_SimpleHeating;
-    extern int const HCoilType_SteamAirHeating;
-
-    // Minimum Flow Fraction Input Method
-    extern int const ConstantMinFrac;
-    extern int const ScheduledMinFrac;
-    extern int const FixedMin;
-    extern int const MinFracNotUsed;
-    extern int NumATMixers;
-
-    // DERIVED TYPE DEFINITIONS
-
-    // MODULE VARIABLE DECLARATIONS:
-    extern Array1D<Real64> MassFlow1; // previous value of the terminal unit mass flow rate
-    extern Array1D<Real64> MassFlow2; // previous value of the previous value of the mass flow rate
-    extern Array1D<Real64> MassFlow3;
-    extern Array1D<Real64> MassFlowDiff;
-    extern bool GetInputFlag;   // Flag set to make sure you get input once
-    extern bool GetATMixerFlag; // Flag set to make sure you get input once
-    extern int NumConstVolSys;
-    extern Array1D_bool CheckEquipName;
-
-    // INTERFACE BLOCK SPECIFICATIONS
-
-    extern int NumSys; // The Number of Systems found in the Input
-
-    // Subroutine Specifications for the Module
-    // Driver/Manager Routines
-
-    // Get Input routines for module
-
-    // Initialization routines for module
-
-    // Algorithms for the module
-
-    // Update routine to check convergence and update nodes
-
-    // Reporting routines for module
-
-    // Types
-
-    struct SysDesignParams
+    struct SingleDuctAirTerminalFlowConditions
     {
         // Members
+        Real64 AirMassFlowRate;         // MassFlow through the Sys being Simulated [kg/Sec]
+        Real64 AirMassFlowRateMaxAvail; // MassFlow through the Sys being Simulated [kg/Sec]
+        Real64 AirMassFlowRateMinAvail; // MassFlow through the Sys being Simulated [kg/Sec]
+        Real64 AirTemp;                 // (C)
+        Real64 AirHumRat;               // (Kg/Kg)
+        Real64 AirEnthalpy;             // (J/Kg)
+
+        // Default Constructor
+        SingleDuctAirTerminalFlowConditions()
+            : AirMassFlowRate(0.0), AirMassFlowRateMaxAvail(0.0), AirMassFlowRateMinAvail(0.0), AirTemp(0.0), AirHumRat(0.0), AirEnthalpy(0.0)
+        {
+        }
+    };
+
+    struct SingleDuctAirTerminal
+    {
+        // Members
+        int SysNum;               // index to single duct air terminal unit
         std::string SysName;      // Name of the Sys
         std::string SysType;      // Type of Sys ie. VAV, Mixing, Inducing, etc.
-        int SysType_Num;          // Numeric Equivalent for System type
+        enum SysType SysType_Num;          // Numeric Equivalent for System type
         std::string Schedule;     // Sys Operation Schedule
         int SchedPtr;             // Pointer to the correct schedule
         std::string ReheatComp;   // Type of the Reheat Coil Object
-        int ReheatComp_Num;       // Numeric Equivalent in this module for Coil type
+        HeatingCoilType ReheatComp_Num;       // Numeric Equivalent in this module for Coil type
         int ReheatComp_Index;     // Returned Index number from other routines
         std::string ReheatName;   // name of reheat coil
         int ReheatComp_PlantType; // typeOf_ number for plant type of heating coil
@@ -145,8 +114,9 @@ namespace SingleDuct {
         Real64 AirMassFlowRateMax;        // Max Specified Mass Flow Rate of Sys (cooling max) [kg/sec]
         Real64 MaxHeatAirVolFlowRate;     // Max specified volume flow rate of unit at max heating [m3/s]
         Real64 HeatAirMassFlowRateMax;    // Max Specified Mass Flow Rate of unit at max heating [kg/sec]
-        int ZoneMinAirFracMethod;         // parameter for what method is used for min flow fraction
-        Real64 ZoneMinAirFrac;            // Fraction of supply air used as minimum flow
+        MinFlowFraction ZoneMinAirFracMethod;         // parameter for what method is used for min flow fraction
+        Real64 ZoneMinAirFracDes;         // Fraction of supply air used as design minimum flow
+        Real64 ZoneMinAirFrac;            // Fraction of supply air used as current minimum flow
         Real64 ZoneMinAirFracReport;      // Fraction of supply air used as minimum flow for reporting (zero if terminal unit flow is zero)
         Real64 ZoneFixedMinAir;           // Absolute minimum supply air flow
         int ZoneMinAirFracSchPtr;         // pointer to the schedule for min flow fraction
@@ -172,7 +142,7 @@ namespace SingleDuct {
         Real64 ControllerOffset;
         Real64 MaxReheatTemp; // C
         bool MaxReheatTempSetByUser;
-        int DamperHeatingAction; // ! 1=NORMAL;  2=REVERSE ACTION;  3=REVERSE ACTION WITH LIMITS
+        Action DamperHeatingAction;
         Real64 DamperPosition;
         int ADUNum;                           // index of corresponding air distribution unit
         int FluidIndex;                       // Refrigerant index
@@ -204,30 +174,72 @@ namespace SingleDuct {
         int OAPerPersonMode;         // mode for how per person rates are determined, DCV or design.
         bool EMSOverrideAirFlow;     // if true, EMS is calling to override flow rate
         Real64 EMSMassFlowRateValue; // value EMS is directing to use for flow rate [kg/s]
-        Real64 HeatRate;             // zone air terminal sensible heating rate
-        Real64 CoolRate;             // zone air terminal sensible cooling rate
-        Real64 HeatEnergy;           // zone air terminal sensible heating energy
-        Real64 CoolEnergy;           // zone air terminal sensible cooling energy
+        int ZoneTurndownMinAirFracSchPtr;    // pointer to the schedule for turndown minimum airflow fraction
+        Real64 ZoneTurndownMinAirFrac;       // turndown minimum airflow fraction value, multiplier of zone design minimum air flow
+        bool ZoneTurndownMinAirFracSchExist; // if true, if zone turndown min air frac schedule exist
+        bool MyEnvrnFlag;
+        bool MySizeFlag;
+        bool GetGasElecHeatCoilCap;          // Gets autosized value of coil capacity
+        bool PlantLoopScanFlag;              // plant loop scan flag, false if scanned
+        Real64 MassFlow1; // previous value of the terminal unit mass flow rate
+        Real64 MassFlow2; // previous value of the previous value of the mass flow rate
+        Real64 MassFlow3;
+        Real64 MassFlowDiff;
+        SingleDuctAirTerminalFlowConditions sd_airterminalInlet;
+        SingleDuctAirTerminalFlowConditions sd_airterminalOutlet;
 
         // Default Constructor
-        SysDesignParams()
-            : SysType_Num(0), SchedPtr(0), ReheatComp_Num(0), ReheatComp_Index(0), ReheatComp_PlantType(0), Fan_Num(0), Fan_Index(0),
+        SingleDuctAirTerminal()
+            : SysNum(-1), SysType_Num(SysType::Unknown), SchedPtr(0), ReheatComp_Num(HeatingCoilType::None), ReheatComp_Index(0), ReheatComp_PlantType(0), Fan_Num(0), Fan_Index(0),
               ControlCompTypeNum(0), CompErrIndex(0), MaxAirVolFlowRate(0.0), AirMassFlowRateMax(0.0), MaxHeatAirVolFlowRate(0.0),
-              HeatAirMassFlowRateMax(0.0), ZoneMinAirFracMethod(ConstantMinFrac), ZoneMinAirFrac(0.0), ZoneMinAirFracReport(0.0),
-              ZoneFixedMinAir(0.0), ZoneMinAirFracSchPtr(0), ConstantMinAirFracSetByUser(false), FixedMinAirSetByUser(false), DesignMinAirFrac(0.0),
-              DesignFixedMinAir(0.0), InletNodeNum(0), OutletNodeNum(0), ReheatControlNode(0), ReheatCoilOutletNode(0), ReheatCoilMaxCapacity(0.0),
-              ReheatAirOutletNode(0), MaxReheatWaterVolFlow(0.0), MaxReheatSteamVolFlow(0.0), MaxReheatWaterFlow(0.0), MaxReheatSteamFlow(0.0),
-              MinReheatWaterVolFlow(0.0), MinReheatSteamVolFlow(0.0), MinReheatWaterFlow(0.0), MinReheatSteamFlow(0.0), ControllerOffset(0.0),
-              MaxReheatTemp(0.0), MaxReheatTempSetByUser(false), DamperHeatingAction(0), DamperPosition(0.0), ADUNum(0), FluidIndex(0), ErrCount1(0),
-              ErrCount1c(0), ErrCount2(0), ZoneFloorArea(0.0), CtrlZoneNum(0), CtrlZoneInNodeIndex(0), ActualZoneNum(0),
-              MaxAirVolFlowRateDuringReheat(0.0), MaxAirVolFractionDuringReheat(0.0), AirMassFlowDuringReheatMax(0.0), ZoneOutdoorAirMethod(0),
-              OutdoorAirFlowRate(0.0), NoOAFlowInputFromUser(true), OARequirementsPtr(0), AirLoopNum(0), HWLoopNum(0), HWLoopSide(0),
-              HWBranchIndex(0), HWCompIndex(0), SecInNode(0), IterationLimit(0), IterationFailed(0), OAPerPersonMode(0), EMSOverrideAirFlow(false),
-              EMSMassFlowRateValue(0.0), HeatRate(0.0), CoolRate(0.0), HeatEnergy(0.0), CoolEnergy(0.0)
+              HeatAirMassFlowRateMax(0.0), ZoneMinAirFracMethod(MinFlowFraction::Constant), ZoneMinAirFracDes(0.0), ZoneMinAirFrac(0.0),
+              ZoneMinAirFracReport(0.0), ZoneFixedMinAir(0.0), ZoneMinAirFracSchPtr(0), ConstantMinAirFracSetByUser(false),
+              FixedMinAirSetByUser(false), DesignMinAirFrac(0.0), DesignFixedMinAir(0.0), InletNodeNum(0), OutletNodeNum(0), ReheatControlNode(0),
+              ReheatCoilOutletNode(0), ReheatCoilMaxCapacity(0.0), ReheatAirOutletNode(0), MaxReheatWaterVolFlow(0.0), MaxReheatSteamVolFlow(0.0),
+              MaxReheatWaterFlow(0.0), MaxReheatSteamFlow(0.0), MinReheatWaterVolFlow(0.0), MinReheatSteamVolFlow(0.0), MinReheatWaterFlow(0.0),
+              MinReheatSteamFlow(0.0), ControllerOffset(0.0), MaxReheatTemp(0.0), MaxReheatTempSetByUser(false), DamperHeatingAction(Action::HeatingActionNotUsed),
+              DamperPosition(0.0), ADUNum(0), FluidIndex(0), ErrCount1(0), ErrCount1c(0), ErrCount2(0), ZoneFloorArea(0.0), CtrlZoneNum(0),
+              CtrlZoneInNodeIndex(0), ActualZoneNum(0), MaxAirVolFlowRateDuringReheat(0.0), MaxAirVolFractionDuringReheat(0.0),
+              AirMassFlowDuringReheatMax(0.0), ZoneOutdoorAirMethod(0), OutdoorAirFlowRate(0.0), NoOAFlowInputFromUser(true), OARequirementsPtr(0),
+              AirLoopNum(0), HWLoopNum(0), HWLoopSide(0), HWBranchIndex(0), HWCompIndex(0), SecInNode(0), IterationLimit(0), IterationFailed(0),
+              OAPerPersonMode(0), EMSOverrideAirFlow(false), EMSMassFlowRateValue(0.0), ZoneTurndownMinAirFracSchPtr(0), ZoneTurndownMinAirFrac(1.0),
+              ZoneTurndownMinAirFracSchExist(false), MyEnvrnFlag(true), MySizeFlag(true), GetGasElecHeatCoilCap(true), PlantLoopScanFlag(true),
+              MassFlow1(0.0), MassFlow2(0.0), MassFlow3(0.0), MassFlowDiff(0.0)
         {
         }
 
-        void SimConstVolNoReheat(int const SysNum, bool const EP_UNUSED(FirstHVACIteration), int const EP_UNUSED(ZoneNum), int const ZoneNodeNum);
+        void InitSys(EnergyPlusData &state, bool FirstHVACIteration);
+
+        void SizeSys(EnergyPlusData &state);
+
+        void SimVAV(EnergyPlusData &state, bool FirstHVACIteration, int ZoneNum, int ZoneNodeNum);
+
+        void CalcOAMassFlow(EnergyPlusData &state, Real64 &SAMassFlow, Real64 &AirLoopOAFrac) const;
+
+        void SimCBVAV(EnergyPlusData &state, bool FirstHVACIteration, int ZoneNum, int ZoneNodeNum);
+
+        void SimVAVVS(EnergyPlusData &state, bool FirstHVACIteration, int ZoneNum, int ZoneNodeNum);
+
+        void SimConstVol(EnergyPlusData &state, bool FirstHVACIteration, int ZoneNum, int ZoneNodeNum);
+
+        void CalcVAVVS(EnergyPlusData &state, bool FirstHVACIteration, int ZoneNode, Real64 HWFlow, Real64 HCoilReq, int FanType, Real64 AirFlow, int FanOn, Real64 &LoadMet);
+
+        static Real64 VAVVSCoolingResidual(EnergyPlusData &state, Real64 SupplyAirMassFlow, Array1D<Real64> const &Par);
+
+        static Real64 VAVVSHWNoFanResidual(EnergyPlusData &state, Real64 HWMassFlow, Array1D<Real64> const &Par);
+
+        static Real64 VAVVSHWFanOnResidual(EnergyPlusData &state, Real64 SupplyAirMassFlow, Array1D<Real64> const &Par);
+
+        static Real64 VAVVSHCFanOnResidual(EnergyPlusData &state, Real64 HeatingFrac, Array1D<Real64> const &Par);
+
+        void SimConstVolNoReheat(EnergyPlusData &state);
+
+        void CalcOutdoorAirVolumeFlowRate(EnergyPlusData &state);
+
+        void UpdateSys(EnergyPlusData &state) const;
+
+        void ReportSys(EnergyPlusData &state);
+
     };
 
     struct AirTerminalMixerData
@@ -270,6 +282,7 @@ namespace SingleDuct {
         int AirLoopNum;                 // System sizing adjustments
         Real64 DesignPrimaryAirVolRate; // System sizing adjustments, filled from design OA spec using sizing mode flags.
         int OAPerPersonMode;            // mode for how per person rates are determined, DCV or design.
+        bool printWarning;              // flag to print warnings only once
         // Default Constructor
         AirTerminalMixerData()
             : MixerType(0), ZoneHVACUnitType(0), SecInNode(0), PriInNode(0), MixedAirOutNode(0), ZoneInletNode(0), ZoneAirTemp(0.0),
@@ -277,122 +290,18 @@ namespace SingleDuct {
               DOASEnthalpy(0.0), DOASPressure(0.0), DOASMassFlowRate(0.0), MixedAirTemp(0.0), MixedAirHumRat(0.0), MixedAirEnthalpy(0.0),
               MixedAirPressure(0.0), MixedAirMassFlowRate(0.0), MassFlowRateMaxAvail(0.0), ADUNum(0), TermUnitSizingIndex(0), OneTimeInitFlag(true),
               OneTimeInitFlag2(true), ZoneEqNum(0), CtrlZoneInNodeIndex(0), ZoneNum(0), NoOAFlowInputFromUser(true), OARequirementsPtr(0),
-              AirLoopNum(0), DesignPrimaryAirVolRate(0.0), OAPerPersonMode(0)
+              AirLoopNum(0), DesignPrimaryAirVolRate(0.0), OAPerPersonMode(0), printWarning(true)
         {
         }
 
-        void InitATMixer(bool const FirstHVACIteration);
+        void InitATMixer(EnergyPlusData &state, bool FirstHVACIteration);
     };
 
-    struct SysFlowConditions
-    {
-        // Members
-        Real64 AirMassFlowRate;         // MassFlow through the Sys being Simulated [kg/Sec]
-        Real64 AirMassFlowRateMaxAvail; // MassFlow through the Sys being Simulated [kg/Sec]
-        Real64 AirMassFlowRateMinAvail; // MassFlow through the Sys being Simulated [kg/Sec]
-        Real64 AirTemp;                 // (C)
-        Real64 AirHumRat;               // (Kg/Kg)
-        Real64 AirEnthalpy;             // (J/Kg)
-        Real64 AirPressure;
+    void SimulateSingleDuct(EnergyPlusData &state, std::string const &CompName, bool FirstHVACIteration, int ZoneNum, int ZoneNodeNum, int &CompIndex);
 
-        // Default Constructor
-        SysFlowConditions()
-            : AirMassFlowRate(0.0), AirMassFlowRateMaxAvail(0.0), AirMassFlowRateMinAvail(0.0), AirTemp(0.0), AirHumRat(0.0), AirEnthalpy(0.0),
-              AirPressure(0.0)
-        {
-        }
-    };
+    void GetSysInput(EnergyPlusData &state);
 
-    // Object Data
-    extern Array1D<SysDesignParams> Sys;
-    extern Array1D<SysFlowConditions> SysInlet;
-    extern Array1D<SysFlowConditions> SysOutlet;
-    extern Array1D<AirTerminalMixerData> SysATMixer;
-
-    // Functions
-    void clear_state();
-
-    void SimulateSingleDuct(std::string const &CompName, bool const FirstHVACIteration, int const ZoneNum, int const ZoneNodeNum, int &CompIndex);
-
-    // Get Input Section of the Module
-    //******************************************************************************
-
-    void GetSysInput();
-
-    // End of Get Input subroutines for the Module
-    //******************************************************************************
-
-    // Beginning Initialization Section of the Module
-    //******************************************************************************
-
-    void InitSys(int const SysNum, bool const FirstHVACIteration);
-
-    void SizeSys(int const SysNum);
-
-    // End Initialization Section of the Module
-    //******************************************************************************
-
-    // Begin Algorithm Section of the Module
-    //******************************************************************************
-
-    void SimVAV(int const SysNum, bool const FirstHVACIteration, int const ZoneNum, int const ZoneNodeNum);
-
-    void CalcOAMassFlow(int const SysNum,     // index to terminal unit
-                        Real64 &SAMassFlow,   // outside air based on optional user input
-                        Real64 &AirLoopOAFrac // outside air based on optional user input
-    );
-
-    void SimCBVAV(int const SysNum, bool const FirstHVACIteration, int const ZoneNum, int const ZoneNodeNum);
-
-    void SimVAVVS(int const SysNum, bool const FirstHVACIteration, int const ZoneNum, int const ZoneNodeNum);
-
-    void SimConstVol(int const SysNum, bool const FirstHVACIteration, int const ZoneNum, int const ZoneNodeNum);
-
-    void CalcVAVVS(int const SysNum,              // Unit index
-                   bool const FirstHVACIteration, // flag for 1st HVAV iteration in the time step
-                   int const ZoneNode,            // zone node number
-                   int const HCoilType,           // type of hot water coil !unused1208
-                   Real64 const HWFlow,           // hot water flow (kg/s)
-                   Real64 const HCoilReq,         // gas or elec coil demand requested
-                   int const FanType,             // type of fan
-                   Real64 const AirFlow,          // air flow rate (kg/s)
-                   int const FanOn,               // 1 means fan is on
-                   Real64 &LoadMet                // load met by unit (watts)
-    );
-
-    Real64 VAVVSCoolingResidual(Real64 const SupplyAirMassFlow, // supply air mass flow rate [kg/s]
-                                Array1<Real64> const &Par       // Par(1) = REAL(SysNum)
-    );
-
-    Real64 VAVVSHWNoFanResidual(Real64 const HWMassFlow,  // hot water mass flow rate [kg/s]
-                                Array1<Real64> const &Par // Par(1) = REAL(SysNum)
-    );
-
-    Real64 VAVVSHWFanOnResidual(Real64 const SupplyAirMassFlow, // supply air mass flow rate [kg/s]
-                                Array1<Real64> const &Par       // Par(1) = REAL(SysNum)
-    );
-
-    Real64 VAVVSHCFanOnResidual(Real64 const HeatingFrac, // fraction of maximum heating output
-                                Array1<Real64> const &Par // Par(1) = REAL(SysNum)
-    );
-
-    // End Algorithm Section of the Module
-    // *****************************************************************************
-
-    // Beginning of Update subroutines for the Sys Module
-    // *****************************************************************************
-
-    void UpdateSys(int const SysNum);
-
-    //        End of Update subroutines for the Sys Module
-    // *****************************************************************************
-
-    // Beginning of Reporting subroutines for the Sys Module
-    // *****************************************************************************
-
-    void ReportSys(int const SysNum); // unused1208
-
-    void GetHVACSingleDuctSysIndex(std::string const &SDSName,
+    void GetHVACSingleDuctSysIndex(EnergyPlusData &state, std::string const &SDSName,
                                    int &SDSIndex,
                                    bool &ErrorsFound,
                                    Optional_string_const ThisObjectType = _,
@@ -400,15 +309,16 @@ namespace SingleDuct {
                                    Optional_int DamperOutletNode = _ // Damper outlet node number
     );
 
-    void SimATMixer(std::string const &SysName, bool const FirstHVACIteration, int &SysIndex);
+    void SimATMixer(EnergyPlusData &state, std::string const &SysName, bool FirstHVACIteration, int &SysIndex);
 
-    void GetATMixers();
+    void GetATMixers(EnergyPlusData &state);
 
-    void CalcATMixer(int const SysNum);
+    void CalcATMixer(EnergyPlusData &state, int SysNum);
 
-    void UpdateATMixer(int const SysNum);
+    void UpdateATMixer(EnergyPlusData &state, int SysNum);
 
-    void GetATMixer(std::string const &ZoneEquipName, // zone unit name name
+    void GetATMixer(EnergyPlusData &state,
+                    std::string const &ZoneEquipName, // zone unit name name
                     std::string &ATMixerName,         // air terminal mixer name
                     int &ATMixerNum,                  // air terminal mixer index
                     int &ATMixerType,                 // air teminal mixer type
@@ -418,14 +328,47 @@ namespace SingleDuct {
                     int const &ZoneEquipOutletNode    // zone equipment outlet node (used with inlet side mixers)
     );
 
-    void SetATMixerPriFlow(int const ATMixerNum,                         // Air terminal mixer index
+    void SetATMixerPriFlow(EnergyPlusData &state, int ATMixerNum,                         // Air terminal mixer index
                            Optional<Real64 const> PriAirMassFlowRate = _ // Air terminal mixer primary air mass flow rate [kg/s]
     );
 
-    //        End of Reporting subroutines for the Sys Module
-    // *****************************************************************************
+    void setATMixerSizingProperties(EnergyPlusData &state, int const &inletATMixerIndex, // index to ATMixer at inlet of zone equipment
+                                    int const &controlledZoneNum, // controlled zone number
+                                    int const &curZoneEqNum       // current zone equipment being simulated
+    );
 
 } // namespace SingleDuct
+
+struct SingleDuctData : BaseGlobalStruct {
+
+    Array1D<SingleDuct::AirTerminalMixerData> SysATMixer;
+    Array1D<SingleDuct::SingleDuctAirTerminal> sd_airterminal;
+    std::unordered_map<std::string, std::string> SysUniqueNames;
+    Array1D_bool CheckEquipName;
+    int NumATMixers = 0;
+    int NumConstVolSys = 0;
+    int NumSDAirTerminal = 0; // The Number of single duct air terminals found in the Input
+    bool GetInputFlag = true;   // Flag set to make sure you get input once
+    bool GetATMixerFlag = true; // Flag set to make sure you get input once
+    bool InitSysFlag = true;               // Flag set to make sure you do begin simulation initializaztions once
+    bool InitATMixerFlag = true;           // Flag set to make sure you do begin simulation initializaztions once for mixer
+    bool ZoneEquipmentListChecked = false; // True after the Zone Equipment List has been checked for items
+
+    void clear_state() override {
+        SysATMixer.deallocate();
+        sd_airterminal.deallocate();
+        SysUniqueNames.clear();
+        CheckEquipName.deallocate();
+        NumATMixers = 0;
+        NumConstVolSys = 0;
+        NumSDAirTerminal = 0;
+        GetInputFlag = true;
+        GetATMixerFlag = true;
+        InitSysFlag = true;
+        InitATMixerFlag = true;
+        ZoneEquipmentListChecked = false;
+    }
+};
 
 } // namespace EnergyPlus
 

@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -51,7 +51,11 @@
 #include <gtest/gtest.h>
 
 // EnergyPlus Headers
+#include <EnergyPlus/Construction.hh>
+#include <EnergyPlus/Material.hh>
 #include "Fixtures/SQLiteFixture.hh"
+#include <EnergyPlus/OutputProcessor.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
 
 namespace EnergyPlus {
 
@@ -114,10 +118,10 @@ TEST_F(SQLiteFixture, SQLiteProcedures_createSQLiteEnvironmentPeriodRecord)
     EnergyPlus::sqlite->sqliteBegin();
     // There needs to be a simulation record otherwise the foreign key constraint will fail
     EnergyPlus::sqlite->createSQLiteSimulationsRecord(1, "EnergyPlus Version", "Current Time");
-    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(1, "CHICAGO ANN HTG 99.6% CONDNS DB", 1);
-    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(2, "CHICAGO ANN CLG .4% CONDNS WB=>MDB", 1, 1);
-    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(3, "CHICAGO ANN HTG 99.6% CONDNS DB", 2);
-    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(4, "CHICAGO ANN CLG .4% CONDNS WB=>MDB", 3, 1);
+    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(1, "CHICAGO ANN HTG 99.6% CONDNS DB", DataGlobalConstants::KindOfSim::DesignDay);
+    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(2, "CHICAGO ANN CLG .4% CONDNS WB=>MDB", DataGlobalConstants::KindOfSim::DesignDay, 1);
+    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(3, "CHICAGO ANN HTG 99.6% CONDNS DB", DataGlobalConstants::KindOfSim::RunPeriodDesign);
+    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(4, "CHICAGO ANN CLG .4% CONDNS WB=>MDB", DataGlobalConstants::KindOfSim::RunPeriodWeather, 1);
     auto result = queryResult("SELECT * FROM EnvironmentPeriods;", "EnvironmentPeriods");
     EnergyPlus::sqlite->sqliteCommit();
 
@@ -133,9 +137,9 @@ TEST_F(SQLiteFixture, SQLiteProcedures_createSQLiteEnvironmentPeriodRecord)
 
     EnergyPlus::sqlite->sqliteBegin();
     // This should fail to insert due to foreign key constraint
-    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(5, "CHICAGO ANN HTG 99.6% CONDNS DB", 1, 100);
+    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(5, "CHICAGO ANN HTG 99.6% CONDNS DB", DataGlobalConstants::KindOfSim::DesignDay, 100);
     // This should fail to insert due to duplicate primary key
-    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(4, "CHICAGO ANN CLG .4% CONDNS WB=>MDB", 1, 1);
+    EnergyPlus::sqlite->createSQLiteEnvironmentPeriodRecord(4, "CHICAGO ANN CLG .4% CONDNS WB=>MDB", DataGlobalConstants::KindOfSim::DesignDay, 1);
     result = queryResult("SELECT * FROM EnvironmentPeriods;", "EnvironmentPeriods");
     EnergyPlus::sqlite->sqliteCommit();
 
@@ -206,7 +210,7 @@ TEST_F(SQLiteFixture, SQLiteProcedures_informationalErrorRecords)
     // There needs to be a simulation record otherwise the foreign key constraint will fail
     EnergyPlus::sqlite->createSQLiteSimulationsRecord(1, "EnergyPlus Version", "Current Time");
 
-    ShowMessage("This is an informational message");
+    ShowMessage(*state, "This is an informational message");
 
     auto result = queryResult("SELECT * FROM Errors;", "Errors");
     EnergyPlus::sqlite->sqliteCommit();
@@ -232,12 +236,12 @@ TEST_F(SQLiteFixture, SQLiteProcedures_createSQLiteReportDictionaryRecord)
     EnergyPlus::sqlite->sqliteCommit();
 
     ASSERT_EQ(5ul, result.size());
-    std::vector<std::string> testResult0{"1",      "0", "Avg", "Zone", "HVAC System", "Environment", "Site Outdoor Air Drybulb Temperature",
+    std::vector<std::string> testResult0{"1",      "0", "Avg", "Zone", "Zone", "Environment", "Site Outdoor Air Drybulb Temperature",
                                          "Hourly", "",  "C"};
-    std::vector<std::string> testResult1{"2", "1", "Sum", "Facility:Electricity", "HVAC System", "", "Facility:Electricity", "Hourly", "", "J"};
-    std::vector<std::string> testResult2{"3", "1", "Sum", "Facility:Electricity", "HVAC System", "", "Facility:Electricity", "Monthly", "", "J"};
-    std::vector<std::string> testResult3{"4", "0", "Avg", "HVAC", "Zone", "", "AHU-1", "Hourly", "", ""};
-    std::vector<std::string> testResult4{"5", "0", "Avg", "HVAC", "Zone", "", "AHU-1", "Hourly", "test schedule", ""};
+    std::vector<std::string> testResult1{"2", "1", "Sum", "Facility:Electricity", "Zone", "", "Facility:Electricity", "Hourly", "", "J"};
+    std::vector<std::string> testResult2{"3", "1", "Sum", "Facility:Electricity", "Zone", "", "Facility:Electricity", "Monthly", "", "J"};
+    std::vector<std::string> testResult3{"4", "0", "Avg", "HVAC", "HVAC System", "", "AHU-1", "Hourly", "", ""};
+    std::vector<std::string> testResult4{"5", "0", "Avg", "HVAC", "HVAC System", "", "AHU-1", "Hourly", "test schedule", ""};
     EXPECT_EQ(testResult0, result[0]);
     EXPECT_EQ(testResult1, result[1]);
     EXPECT_EQ(testResult2, result[2]);
@@ -253,11 +257,11 @@ TEST_F(SQLiteFixture, SQLiteProcedures_createSQLiteReportDictionaryRecord)
     EnergyPlus::sqlite->sqliteCommit();
 
     ASSERT_EQ(9ul, result.size());
-    std::vector<std::string> testResult5{"6",      "0", "Unknown!!!", "Zone", "HVAC System", "Environment", "Site Outdoor Air Drybulb Temperature",
+    std::vector<std::string> testResult5{"6",      "0", "Unknown!!!", "Zone", "Zone", "Environment", "Site Outdoor Air Drybulb Temperature",
                                          "Hourly", "",  "C"};
     std::vector<std::string> testResult6{"7", "1", "Sum", "Facility:Electricity", "Unknown!!!", "", "Facility:Electricity", "Hourly", "", "J"};
-    std::vector<std::string> testResult7{"8", "1", "Sum", "Facility:Electricity", "HVAC System", "", "Facility:Electricity", "Unknown!!!", "", "J"};
-    std::vector<std::string> testResult8{"9", "0", "Avg", "HVAC", "Zone", "", "AHU-1", "Unknown!!!", "", ""};
+    std::vector<std::string> testResult7{"8", "1", "Sum", "Facility:Electricity", "Zone", "", "Facility:Electricity", "Unknown!!!", "", "J"};
+    std::vector<std::string> testResult8{"9", "0", "Avg", "HVAC", "HVAC System", "", "AHU-1", "Unknown!!!", "", ""};
     EXPECT_EQ(testResult5, result[5]);
     EXPECT_EQ(testResult6, result[6]);
     EXPECT_EQ(testResult7, result[7]);
@@ -433,10 +437,13 @@ TEST_F(SQLiteFixture, SQLiteProcedures_privateMethods)
     EXPECT_EQ("Unknown!!!", storageType(-1));
 
     // test timestepTypeName
-    EXPECT_EQ("HVAC System", timestepTypeName(1));
-    EXPECT_EQ("Zone", timestepTypeName(2));
+    EXPECT_EQ("Zone", timestepTypeName(1));
+    EXPECT_EQ("HVAC System", timestepTypeName(2));
     EXPECT_EQ("Unknown!!!", timestepTypeName(3));
     EXPECT_EQ("Unknown!!!", timestepTypeName(-1));
+    // Let's ensure we never get an unexpected change of mapping between enum and the corresponding int value
+    EXPECT_EQ(1, static_cast<int>(OutputProcessor::TimeStepType::TimeStepZone));
+    EXPECT_EQ(2, static_cast<int>(OutputProcessor::TimeStepType::TimeStepSystem));
 
     // test reportingFreqName
     EXPECT_EQ("HVAC System Timestep", reportingFreqName(-1));
@@ -482,7 +489,7 @@ TEST_F(SQLiteFixture, SQLiteProcedures_DaylightMaping)
     EnergyPlus::sqlite->createZoneExtendedOutput();
     EnergyPlus::sqlite->createSQLiteDaylightMapTitle(1, "DAYLIT ZONE:CHICAGO", "CHICAGO ANN CLG", 1, "RefPt1=(2.50:2.00:0.80)",
                                                      "RefPt2=(2.50:18.00:0.80)", 0.8);
-    EnergyPlus::sqlite->createSQLiteDaylightMap(1, 7, 21, 5, XValue.size(), XValue, YValue.size(), YValue, IllumValue);
+    EnergyPlus::sqlite->createSQLiteDaylightMap(1, 2005, 7, 21, 5, XValue.size(), XValue, YValue.size(), YValue, IllumValue);
 
     auto zones = queryResult("SELECT * FROM Zones;", "Zones");
     auto daylightMaps = queryResult("SELECT * FROM DaylightMaps;", "DaylightMaps");
@@ -501,7 +508,7 @@ TEST_F(SQLiteFixture, SQLiteProcedures_DaylightMaping)
     EXPECT_EQ(daylightMap0, daylightMaps[0]);
 
     ASSERT_EQ(1ul, daylightMapHourlyReports.size());
-    std::vector<std::string> daylightMapHourlyReport0{"1", "1", "7", "21", "5"};
+    std::vector<std::string> daylightMapHourlyReport0{"1", "1", "2005", "7", "21", "5"};
     EXPECT_EQ(daylightMapHourlyReport0, daylightMapHourlyReports[0]);
 
     ASSERT_EQ(4ul, daylightMapHourlyData.size());
@@ -520,7 +527,7 @@ TEST_F(SQLiteFixture, SQLiteProcedures_DaylightMaping)
     // this should fail due to duplicate primary key
     EnergyPlus::sqlite->createSQLiteDaylightMapTitle(1, "test", "test", 1, "test", "test", 0.8);
     // this should fail due to missing foreign key
-    EnergyPlus::sqlite->createSQLiteDaylightMap(2, 7, 21, 5, XValue.size(), XValue, YValue.size(), YValue, IllumValue);
+    EnergyPlus::sqlite->createSQLiteDaylightMap(2, 2005, 7, 21, 5, XValue.size(), XValue, YValue.size(), YValue, IllumValue);
     daylightMaps = queryResult("SELECT * FROM DaylightMaps;", "DaylightMaps");
     daylightMapHourlyData = queryResult("SELECT * FROM DaylightMapHourlyData;", "DaylightMapHourlyData");
     daylightMapHourlyReports = queryResult("SELECT * FROM DaylightMapHourlyReports;", "DaylightMapHourlyReports");
@@ -582,10 +589,10 @@ TEST_F(SQLiteFixture, SQLiteProcedures_createZoneExtendedOutput)
     zoneGroupData1->ZoneList = 2;
     zoneGroupData1->Multiplier = 99;
 
-    auto const &materialData0 = std::unique_ptr<DataHeatBalance::MaterialProperties>(new DataHeatBalance::MaterialProperties());
+    auto const &materialData0 = std::unique_ptr<Material::MaterialProperties>(new Material::MaterialProperties());
     materialData0->Name = "test material 1";
     materialData0->Group = 1;
-    auto const &materialData1 = std::unique_ptr<DataHeatBalance::MaterialProperties>(new DataHeatBalance::MaterialProperties());
+    auto const &materialData1 = std::unique_ptr<Material::MaterialProperties>(new Material::MaterialProperties());
     materialData1->Name = "test material 2";
     materialData1->Group = 2;
     materialData1->Roughness = 2;
@@ -600,9 +607,9 @@ TEST_F(SQLiteFixture, SQLiteProcedures_createZoneExtendedOutput)
     materialData1->Thickness = 2;
     materialData1->VaporDiffus = 2;
 
-    auto const &constructData0 = std::unique_ptr<DataHeatBalance::ConstructionData>(new DataHeatBalance::ConstructionData());
+    auto const &constructData0 = std::unique_ptr<Construction::ConstructionProps>(new Construction::ConstructionProps());
     constructData0->Name = "test construction 1";
-    auto const &constructData1 = std::unique_ptr<DataHeatBalance::ConstructionData>(new DataHeatBalance::ConstructionData());
+    auto const &constructData1 = std::unique_ptr<Construction::ConstructionProps>(new Construction::ConstructionProps());
     constructData1->Name = "test construction 2";
     constructData1->TotLayers = 2;
     constructData1->TotSolidLayers = 2;
@@ -777,8 +784,8 @@ TEST_F(SQLiteFixture, SQLiteProcedures_createZoneExtendedOutput)
     roomAirModelData0->AirModelName = "test roomAirModel 1";
     auto const &roomAirModelData1 = std::unique_ptr<DataRoomAirModel::AirModelData>(new DataRoomAirModel::AirModelData());
     roomAirModelData1->AirModelName = "test roomAirModel 2";
-    roomAirModelData1->AirModelType = 3;
-    roomAirModelData1->TempCoupleScheme = 3;
+    roomAirModelData1->AirModelType = DataRoomAirModel::RoomAirModel::Mundt;
+    roomAirModelData1->TempCoupleScheme = DataRoomAirModel::CouplingScheme::Direct;  // hmm this was set to 3 which wasn't a valid option
     roomAirModelData1->SimAirModel = true;
 
     std::string const alwaysOn("always on");
@@ -974,7 +981,7 @@ TEST_F(SQLiteFixture, SQLiteProcedures_createZoneExtendedOutput)
 
     ASSERT_EQ(2ul, roomAirModels.size());
     std::vector<std::string> roomAirModel0{"1", "test roomAirModel 1", "2", "1", "0"};
-    std::vector<std::string> roomAirModel1{"2", "test roomAirModel 2", "3", "3", "1"};
+    std::vector<std::string> roomAirModel1{"2", "test roomAirModel 2", "3", "1", "1"};
     EXPECT_EQ(roomAirModel0, roomAirModels[0]);
     EXPECT_EQ(roomAirModel1, roomAirModels[1]);
 }

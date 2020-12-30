@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,11 +52,16 @@
 #include <ObjexxFCL/Array1D.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <DataPlant.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/DataHVACSystems.hh>
+#include <EnergyPlus/EnergyPlus.hh>
+#include <EnergyPlus/Plant/DataPlant.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace DataAirSystems {
 
@@ -82,7 +87,6 @@ namespace DataAirSystems {
     // Temporary arrays
 
     // Types
-
     struct AirLoopCompData // data for an individual component
     {
         // Members
@@ -90,6 +94,7 @@ namespace DataAirSystems {
         std::string Name;        // Component name
         int CompType_Num;        // Numeric designator for CompType (TypeOf)
         int CompIndex;           // Component Index in whatever is using this component
+        HVACSystemData *compPointer; // pointer to HVAC system
         int FlowCtrl;            // Component flow control (ACTIVE/PASSIVE)
         bool ON;                 // When true, the designated component or operation scheme is available
         bool Parent;             // When true, the designated component is made up of sub-components
@@ -198,6 +203,12 @@ namespace DataAirSystems {
         structArrayLegacyFanModels,
         objectVectorOOFanSystemModel
     };
+    enum class fanPlacement
+    {
+        fanPlaceNotSet,
+        BlowThru,
+        DrawThru
+    };
 
     struct DefinePrimaryAirSystem // There is an array of these for each primary air system
     {
@@ -221,6 +232,7 @@ namespace DataAirSystems {
         int NumInletBranches;
         Array1D_int InletBranchNum; // branch number of system inlets
         bool CentralHeatCoilExists; // true if there are central heating coils
+        bool CentralCoolCoilExists; // true if there are central cooling coils
         bool OASysExists;           // true if there is an Outside Air Sys
         bool isAllOA;               // true if there is no return path and the main branch inlet is an outdoor air node
         int OASysInletNodeNum;      // node number of return air inlet to OA sys
@@ -239,7 +251,8 @@ namespace DataAirSystems {
         bool SizeAirloopCoil;                 // simulates air loop coils before calling controllers
         fanModelTypeEnum supFanModelTypeEnum; // indicates which type of fan model to call for supply fan, legacy or new OO
         int SupFanNum;                        // index of the supply fan in the Fan data structure when model type is structArrayLegacyFanModels
-        int supFanVecIndex; // index in fan object vector for supply fan when model type is objectVectorOOFanSystemModel, zero-based index
+        int supFanVecIndex;          // index in fan object vector for supply fan when model type is objectVectorOOFanSystemModel, zero-based index
+        fanPlacement supFanLocation; // location of fan relative to coil
         fanModelTypeEnum retFanModelTypeEnum; // indicates which type of fan model to call for return fan, legacy or new OO
         int RetFanNum;                        // index of the return fan in the Fan data structure when model type is structArrayLegacyFanModels
         int retFanVecIndex;    // index in fan object vector for return fan when model type is objectVectorOOFanSystemModel, zero-based index
@@ -248,11 +261,11 @@ namespace DataAirSystems {
         // Default Constructor
         DefinePrimaryAirSystem()
             : DesignVolFlowRate(0.0), DesignReturnFlowFraction(1.0), NumControllers(0), NumBranches(0), NumOutletBranches(0), OutletBranchNum(3, 0),
-              NumInletBranches(0), InletBranchNum(3, 0), CentralHeatCoilExists(true), OASysExists(false), isAllOA(false), OASysInletNodeNum(0),
-              OASysOutletNodeNum(0), OAMixOAInNodeNum(0), RABExists(false), RABMixInNode(0), SupMixInNode(0), MixOutNode(0), RABSplitOutNode(0),
-              OtherSplitOutNode(0), NumOACoolCoils(0), NumOAHeatCoils(0), NumOAHXs(0), SizeAirloopCoil(true),
-              supFanModelTypeEnum(fanModelTypeNotYetSet), SupFanNum(0), supFanVecIndex(-1), retFanModelTypeEnum(fanModelTypeNotYetSet), RetFanNum(0),
-              retFanVecIndex(-1), FanDesCoolLoad(0.0)
+              NumInletBranches(0), InletBranchNum(3, 0), CentralHeatCoilExists(true), CentralCoolCoilExists(true), OASysExists(false), isAllOA(false),
+              OASysInletNodeNum(0), OASysOutletNodeNum(0), OAMixOAInNodeNum(0), RABExists(false), RABMixInNode(0), SupMixInNode(0), MixOutNode(0),
+              RABSplitOutNode(0), OtherSplitOutNode(0), NumOACoolCoils(0), NumOAHeatCoils(0), NumOAHXs(0), SizeAirloopCoil(true),
+              supFanModelTypeEnum(fanModelTypeNotYetSet), SupFanNum(0), supFanVecIndex(-1), supFanLocation(fanPlacement::fanPlaceNotSet),
+              retFanModelTypeEnum(fanModelTypeNotYetSet), RetFanNum(0), retFanVecIndex(-1), FanDesCoolLoad(0.0)
         {
         }
     };
@@ -400,20 +413,33 @@ namespace DataAirSystems {
         }
     };
 
-    // Object Data
-    extern Array1D<DefinePrimaryAirSystem> PrimaryAirSystem;
-    extern Array1D<ConnectionPoint> DemandSideConnect;               // Connections between loops
-    extern Array1D<ConnectZoneComp> ZoneCompToPlant;                 // Connections between loops
-    extern Array1D<ConnectZoneSubComp> ZoneSubCompToPlant;           // Connections between loops
-    extern Array1D<ConnectZoneSubSubComp> ZoneSubSubCompToPlant;     // Connections between loops
-    extern Array1D<ConnectAirSysComp> AirSysCompToPlant;             // Connections between loops
-    extern Array1D<ConnectAirSysSubComp> AirSysSubCompToPlant;       // Connections between loops
-    extern Array1D<ConnectAirSysSubSubComp> AirSysSubSubCompToPlant; // Connections between loops
-
-    // Functions
-    void clear_state();
+    Real64 calcFanDesignHeatGain(EnergyPlusData &state, int const &dataFanEnumType, int const &dataFanIndex, Real64 const &desVolFlow);
 
 } // namespace DataAirSystems
+
+    struct AirSystemsData : BaseGlobalStruct {
+
+        Array1D<DataAirSystems::DefinePrimaryAirSystem> PrimaryAirSystems;
+        Array1D<DataAirSystems::ConnectionPoint> DemandSideConnect;               // Connections between loops
+        Array1D<DataAirSystems::ConnectZoneComp> ZoneCompToPlant;                 // Connections between loops
+        Array1D<DataAirSystems::ConnectZoneSubComp> ZoneSubCompToPlant;           // Connections between loops
+        Array1D<DataAirSystems::ConnectZoneSubSubComp> ZoneSubSubCompToPlant;     // Connections between loops
+        Array1D<DataAirSystems::ConnectAirSysComp> AirSysCompToPlant;             // Connections between loops
+        Array1D<DataAirSystems::ConnectAirSysSubComp> AirSysSubCompToPlant;       // Connections between loops
+        Array1D<DataAirSystems::ConnectAirSysSubSubComp> AirSysSubSubCompToPlant; // Connections between loops
+
+        void clear_state() override
+        {
+            this->PrimaryAirSystems.deallocate();
+            this->DemandSideConnect.deallocate();
+            this->ZoneCompToPlant.deallocate();
+            this->ZoneSubCompToPlant.deallocate();
+            this->ZoneSubSubCompToPlant.deallocate();
+            this->AirSysCompToPlant.deallocate();
+            this->AirSysSubCompToPlant.deallocate();
+            this->AirSysSubSubCompToPlant.deallocate();
+        }
+    };
 
 } // namespace EnergyPlus
 

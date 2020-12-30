@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,24 +52,22 @@
 #include <ObjexxFCL/Array1D.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <DataPlant.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/Plant/DataPlant.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
 
+// Forward declarations
+struct EnergyPlusData;
+
 namespace PlantManager {
 
-    // Using/Aliasing
-    using DataPlant::BranchData;
-    using DataPlant::MixerData;
-    using DataPlant::SplitterData;
-
     // MODULE PARAMETER DEFINITIONS
-    extern int const Plant;
-    extern int const Condenser;
     extern int const TempSetPt;
     extern int const FlowSetPt;
+
     extern bool InitLoopEquip;
     extern bool GetCompSizFac;
 
@@ -77,83 +75,58 @@ namespace PlantManager {
     extern Array1D_int SupplySideOutletNode; // Node number for the supply side outlet
     extern Array1D_int DemandSideInletNode;  // Inlet node on the demand side
 
-    struct TempLoopData
-    {
-        // Members
-        std::string Name; // Name of the component list
-        // Loop connections
-        std::string BranchList;         // Branch list name for the half loop
-        std::string ConnectList;        // Connector list name for the half loop
-        int TotalBranches;              // Total number of branches on the loop
-        Array1D<BranchData> Branch;     // Branch data
-        Array1D<SplitterData> Splitter; // Data for splitter on branch (if any)
-        Array1D<MixerData> Mixer;       // Data for mixer on branch (if any)
-        bool SplitterExists;            // Logical Flag indication splitter exists in the half loop
-        bool MixerExists;               // Logical Flag indication mixer exists in the half loop
-        bool BypassExists;
-        bool LoopHasConnectionComp;
-
-        // Default Constructor
-        TempLoopData() : TotalBranches(0), SplitterExists(false), MixerExists(false), BypassExists(false), LoopHasConnectionComp(false)
-        {
-        }
-    };
-
-    // Object Data
-    extern TempLoopData TempLoop; // =(' ',' ',' ',0, , , ,.FALSE.,.FALSE.,.FALSE.,.FALSE.,.FALSE.)
-
     void clear_state();
 
-    void ManagePlantLoops(bool const FirstHVACIteration,
+    void ManagePlantLoops(EnergyPlusData &state, bool FirstHVACIteration,
                           bool &SimAirLoops,         // True when the air loops need to be (re)simulated
                           bool &SimZoneEquipment,    // True when zone equipment components need to be (re)simulated
                           bool &SimNonZoneEquipment, // True when non-zone equipment components need to be (re)simulated
                           bool &SimPlantLoops,       // True when some part of Plant needs to be (re)simulated
-                          bool &SimElecCircuits      // True when electic circuits need to be (re)simulated
+                          bool &SimElecCircuits      // True when electric circuits need to be (re)simulated
     );
 
-    void GetPlantLoopData();
+    void GetPlantLoopData(EnergyPlusData &state);
 
-    void GetPlantInput();
+    void GetPlantInput(EnergyPlusData &state);
 
-    void SetupReports();
+    void SetupReports(EnergyPlusData &state);
 
-    void InitializeLoops(bool const FirstHVACIteration); // true if first iteration of the simulation
+    void InitializeLoops(EnergyPlusData &state, bool FirstHVACIteration); // true if first iteration of the simulation
 
-    void ReInitPlantLoopsAtFirstHVACIteration();
+    void ReInitPlantLoopsAtFirstHVACIteration(EnergyPlusData &state);
 
     void UpdateNodeThermalHistory();
 
-    void CheckPlantOnAbort();
+    void CheckPlantOnAbort(EnergyPlusData &state);
 
-    void InitOneTimePlantSizingInfo(int const LoopNum); // loop being initialized for sizing
+    void InitOneTimePlantSizingInfo(int LoopNum); // loop being initialized for sizing
 
-    void SizePlantLoop(int const LoopNum, // Supply side loop being simulated
-                       bool const OkayToFinish);
+    void SizePlantLoop(EnergyPlusData &state, int LoopNum, // Supply side loop being simulated
+                       bool OkayToFinish);
 
-    void ResizePlantLoopLevelSizes(int const LoopNum);
+    void ResizePlantLoopLevelSizes(EnergyPlusData &state, int LoopNum);
 
     void SetupInitialPlantCallingOrder();
 
-    void RevisePlantCallingOrder();
+    void RevisePlantCallingOrder(EnergyPlusData &state);
 
-    int FindLoopSideInCallingOrder(int const LoopNum, int const LoopSide);
+    int FindLoopSideInCallingOrder(int LoopNum, int LoopSide);
 
-    void StoreAPumpOnCurrentTempLoop(int const LoopNum,
-                                     int const LoopSideNum,
-                                     int const BranchNum,
-                                     int const CompNum,
-                                     std::string const &PumpName,
-                                     int const PumpOutletNode,
-                                     bool const HasBranchPumps);
+    void SetupBranchControlTypes(EnergyPlusData &state);
 
-    void SetupBranchControlTypes();
+    void CheckIfAnyPlant(EnergyPlusData &state);
 
-    void CheckIfAnyPlant();
-
-    void CheckOngoingPlantWarnings();
+    void CheckOngoingPlantWarnings(EnergyPlusData &state);
 
 } // namespace PlantManager
+
+struct PlantMgrData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

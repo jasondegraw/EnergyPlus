@@ -82,7 +82,7 @@
 ! Environmental Emissions:        None
 ! Utility Tariffs:                None
 
-  Version,9.0;
+  Version,9.4;
 
   Timestep,4;
 
@@ -90,7 +90,7 @@
     BUILDING WITH MANY SHADING EFFECTS,  !- Name
     0.0000000E+00,           !- North Axis {deg}
     Suburbs,                 !- Terrain
-    3.9999999E-02,           !- Loads Convergence Tolerance Value
+    3.9999999E-02,           !- Loads Convergence Tolerance Value {W}
     0.4000000,               !- Temperature Convergence Tolerance Value {deltaC}
     FullInteriorAndExterior, !- Solar Distribution
     25,                      !- Maximum Number of Warmup Days
@@ -105,14 +105,18 @@
     No,                      !- Do System Sizing Calculation
     No,                      !- Do Plant Sizing Calculation
     Yes,                     !- Run Simulation for Sizing Periods
-    Yes;                     !- Run Simulation for Weather File Run Periods
+    Yes,                     !- Run Simulation for Weather File Run Periods
+    No,                      !- Do HVAC Sizing Simulation for Sizing Periods
+    1;                       !- Maximum Number of HVAC Sizing Simulation Passes
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     1,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     12,                      !- End Month
     31,                      !- End Day of Month
+    ,                        !- End Year
     Tuesday,                 !- Day of Week for Start Day
     Yes,                     !- Use Weather File Holidays and Special Days
     Yes,                     !- Use Weather File Daylight Saving Period
@@ -197,13 +201,14 @@
     1.00;                    !- Sky Clearness
 
   ShadowCalculation,
-    AverageOverDaysInFrequency,  !- Calculation Method
-    1,                           !- Calculation Frequency
-    ,                            !- Maximum Figures in Shadow Overlap Calculations
-	,
-	,
-	ImportedShading,             !- External Shading Calculation Method
-	No;                          !- Output External Shading Calculation Results
+    Imported,                !- Shading Calculation Method
+    Periodic,                !- Shading Calculation Update Frequency Method
+    1,                       !- Shading Calculation Update Frequency
+    ,                        !- Maximum Figures in Shadow Overlap Calculations
+    ,                        !- Polygon Clipping Algorithm
+    ,                        !- Pixel Counting Resolution
+    ,                        !- Sky Diffuse Modeling Algorithm
+    No;                      !- Output External Shading Calculation Results
 
   Schedule:File:Shading,
     SolarShadingTest_Shading_Data.csv;  !- File Name
@@ -707,7 +712,6 @@
     Zn001:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -749,7 +753,6 @@
     Zn001:Wall002,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -813,7 +816,6 @@
     Zn001:Wall005,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -893,7 +895,6 @@
     Zn002:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1015,7 +1016,6 @@
     Zn003:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1057,7 +1057,6 @@
     Zn003:Wall002,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1153,7 +1152,6 @@
     Zn003:Wall007,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1233,7 +1231,6 @@
     Zn004:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1275,7 +1272,6 @@
     Zn004:Wall002,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1355,7 +1351,6 @@
     Zn004:Wall006,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1419,7 +1414,6 @@
     Zn005:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1461,7 +1455,6 @@
     Zn005:Wall002,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1525,7 +1518,6 @@
     Zn005:Wall005,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1605,7 +1597,6 @@
     Zn006:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1727,7 +1718,6 @@
     Zn007:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1769,7 +1759,6 @@
     Zn007:Wall002,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1849,7 +1838,6 @@
     Zn007:Wall006,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1945,7 +1933,6 @@
     Zn008:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -2067,7 +2054,6 @@
     Zn009:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -2109,7 +2095,6 @@
     Zn009:Wall002,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -2173,7 +2158,6 @@
     Zn009:Wall005,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -2303,7 +2287,9 @@
     ZoneHVAC:IdealLoadsAirSystem,  !- Zone Equipment 1 Object Type
     ZONE 1 @ 200 601 0 T PURCHASED AIR,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:IdealLoadsAirSystem,
     ZONE 1 @ 200 601 0 T PURCHASED AIR,  !- Name
@@ -2378,7 +2364,9 @@
     ZoneHVAC:IdealLoadsAirSystem,  !- Zone Equipment 1 Object Type
     ZONE 2 @ 200 200 0 T PURCHASED AIR,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:IdealLoadsAirSystem,
     ZONE 2 @ 200 200 0 T PURCHASED AIR,  !- Name
@@ -2453,7 +2441,9 @@
     ZoneHVAC:IdealLoadsAirSystem,  !- Zone Equipment 1 Object Type
     ZONE 3 @ 200 610 0 T PURCHASED AIR,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:IdealLoadsAirSystem,
     ZONE 3 @ 200 610 0 T PURCHASED AIR,  !- Name
@@ -2528,7 +2518,9 @@
     ZoneHVAC:IdealLoadsAirSystem,  !- Zone Equipment 1 Object Type
     ZONE 4 @ 200 600 0 T PURCHASED AIR,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:IdealLoadsAirSystem,
     ZONE 4 @ 200 600 0 T PURCHASED AIR,  !- Name
@@ -2603,7 +2595,9 @@
     ZoneHVAC:IdealLoadsAirSystem,  !- Zone Equipment 1 Object Type
     ZONE 5 @ 200 601 1 T PURCHASED AIR,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:IdealLoadsAirSystem,
     ZONE 5 @ 200 601 1 T PURCHASED AIR,  !- Name
@@ -2678,7 +2672,9 @@
     ZoneHVAC:IdealLoadsAirSystem,  !- Zone Equipment 1 Object Type
     ZONE 6 @ 200 200 1 T PURCHASED AIR,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:IdealLoadsAirSystem,
     ZONE 6 @ 200 200 1 T PURCHASED AIR,  !- Name
@@ -2753,7 +2749,9 @@
     ZoneHVAC:IdealLoadsAirSystem,  !- Zone Equipment 1 Object Type
     ZONE 7 @ 200 610 1 T PURCHASED AIR,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:IdealLoadsAirSystem,
     ZONE 7 @ 200 610 1 T PURCHASED AIR,  !- Name
@@ -2828,7 +2826,9 @@
     ZoneHVAC:IdealLoadsAirSystem,  !- Zone Equipment 1 Object Type
     ZONE 8 @ 200 200 1 T PURCHASED AIR,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:IdealLoadsAirSystem,
     ZONE 8 @ 200 200 1 T PURCHASED AIR,  !- Name
@@ -2903,7 +2903,9 @@
     ZoneHVAC:IdealLoadsAirSystem,  !- Zone Equipment 1 Object Type
     ZONE 9 @ 200 600 1 T PURCHASED AIR,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:IdealLoadsAirSystem,
     ZONE 9 @ 200 600 1 T PURCHASED AIR,  !- Name

@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -59,12 +59,12 @@
 #include <EnergyPlus/DataSurfaces.hh>
 #include <EnergyPlus/HighTempRadiantSystem.hh>
 #include <EnergyPlus/UtilityRoutines.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
 
 using namespace EnergyPlus;
 using namespace EnergyPlus::HighTempRadiantSystem;
 using namespace ObjexxFCL;
 using namespace EnergyPlus::DataHeatBalance;
-using namespace DataGlobals;
 using namespace DataHVACGlobals;
 using namespace EnergyPlus::DataSurfaces;
 using namespace EnergyPlus::DataSizing;
@@ -108,11 +108,13 @@ TEST_F(EnergyPlusFixture, HighTempRadiantSystemTest_GetHighTempRadiantSystem)
 
     ErrorsFound = false;
 
-    GetHighTempRadiantSystem(ErrorsFound);
+    GetHighTempRadiantSystem(*state, ErrorsFound);
 
     std::string const error_string01 =
         delimited_string({"   ** Severe  ** Heating Setpoint Temperature Schedule Name not found: RADIANT HEATING SETPOINTS",
                           "   **   ~~~   ** Occurs for ZoneHVAC:HighTemperatureRadiant = ZONERADHEATER",
+                          "   ** Severe  ** GetRadiantSystemSurface: Somehow the radiant system enclosure number is zero "
+                          "forZoneHVAC:HighTemperatureRadiant = ZONERADHEATER",
                           "   ** Severe  ** Fraction of radiation distributed to surfaces and people sums up to less than 1 for ZONERADHEATER",
                           "   **   ~~~   ** This would result in some of the radiant energy delivered by the high temp radiant heater being lost.",
                           "   **   ~~~   ** The sum of all radiation fractions to surfaces = 0.80000",
@@ -150,7 +152,7 @@ TEST_F(EnergyPlusFixture, HighTempRadiantSystemTest_SizeHighTempRadiantSystemSca
     if (SizingTypesNum < 1) SizingTypesNum = 1;
     ZoneEqSizing(CurZoneEqNum).SizingMethod.allocate(DataHVACGlobals::NumOfSizingTypes);
 
-    SizeHighTempRadiantSystem(RadSysNum);
+    SizeHighTempRadiantSystem(*state, RadSysNum);
     EXPECT_FALSE(DataSizing::DataScalableSizingON);
 }
 

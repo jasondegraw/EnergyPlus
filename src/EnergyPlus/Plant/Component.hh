@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -48,11 +48,17 @@
 #ifndef PlantTopologyComponent_hh_INCLUDED
 #define PlantTopologyComponent_hh_INCLUDED
 
-#include <Plant/Enums.hh>
-#include <Plant/EquipAndOperations.hh>
-#include <PlantComponent.hh>
+#include <EnergyPlus/DataBranchAirLoopPlant.hh>
+#include <EnergyPlus/Plant/Enums.hh>
+#include <EnergyPlus/Plant/EquipAndOperations.hh>
+#include <EnergyPlus/PlantComponent.hh>
+#include <EnergyPlus/Plant/PlantLocation.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
+
 namespace DataPlant {
 
     struct CompData
@@ -60,10 +66,9 @@ namespace DataPlant {
         // Members
         std::string TypeOf;      // The 'keyWord' identifying  component type
         int TypeOf_Num;          // Reference the "TypeOf" parameters in DataPlant
-        int GeneralEquipType;    // General Equipment Type (e.g. Chillers, Pumps, etc)
         std::string Name;        // Component name
         int CompNum;             // Component ID number
-        int FlowCtrl;            // flow control for splitter/mixer (ACTIVE/PASSIVE/BYPASS)
+        DataBranchAirLoopPlant::ControlTypeEnum FlowCtrl;            // flow control for splitter/mixer (ACTIVE/PASSIVE/BYPASS)
         int FlowPriority;        // status for overall loop flow determination
         bool ON;                 // TRUE = designated component or operation scheme available
         bool Available;          // TRUE = designated component or operation scheme available
@@ -96,10 +101,11 @@ namespace DataPlant {
         Real64 TempDesCondIn;
         Real64 TempDesEvapOut;
         PlantComponent *compPtr;
+        EnergyPlus::PlantLocation location;
 
         // Default Constructor
         CompData()
-            : TypeOf_Num(0), GeneralEquipType(0), CompNum(0), FlowCtrl(0), FlowPriority(LoopFlowStatus_Unknown), ON(false), Available(false),
+            : TypeOf_Num(0), CompNum(0), FlowCtrl(DataBranchAirLoopPlant::ControlTypeEnum::Unknown), FlowPriority(LoopFlowStatus_Unknown), ON(false), Available(false),
               NodeNumIn(0), NodeNumOut(0), MyLoad(0.0), MaxLoad(0.0), MinLoad(0.0), OptLoad(0.0), SizFac(0.0),
               CurOpSchemeType(UnknownStatusOpSchemeType), NumOpSchemes(0), CurCompLevelOpNum(0), EquipDemand(0.0), EMSLoadOverrideOn(false),
               EMSLoadOverrideValue(0.0), HowLoadServed(HowMet_Unknown), MinOutletTemp(0.0), MaxOutletTemp(0.0), FreeCoolCntrlShutDown(false),
@@ -107,6 +113,10 @@ namespace DataPlant {
               TempDesEvapOut(0.0), compPtr(nullptr)
         {
         }
+
+        void simulate(EnergyPlusData &state, bool FirstHVACIteration, bool &InitLoopEquip, bool GetCompSizFac);
+
+        bool isPump();
     };
 } // namespace DataPlant
 } // namespace EnergyPlus

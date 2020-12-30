@@ -101,13 +101,13 @@
 ! Environmental Emissions:        None
 ! Utility Tariffs:                None
 
-  Version,9.0;
+  Version,9.4;
 
   Building,
     Building,                !- Name
     30.,                     !- North Axis {deg}
     City,                    !- Terrain
-    0.04,                    !- Loads Convergence Tolerance Value
+    0.04,                    !- Loads Convergence Tolerance Value {W}
     0.4,                     !- Temperature Convergence Tolerance Value {deltaC}
     FullExterior,            !- Solar Distribution
     25,                      !- Maximum Number of Warmup Days
@@ -124,7 +124,7 @@
   GlobalGeometryRules,
     UpperLeftCorner,         !- Starting Vertex Position
     CounterClockWise,        !- Vertex Entry Direction
-    relative;                !- Coordinate System
+    Relative;                !- Coordinate System
 
   ScheduleTypeLimits,
     Any Number;              !- Name
@@ -161,11 +161,13 @@
     CONTINUOUS;              !- Numeric Type
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     1,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     1,                       !- End Month
     7,                       !- End Day of Month
+    ,                        !- End Year
     Tuesday,                 !- Day of Week for Start Day
     Yes,                     !- Use Weather File Holidays and Special Days
     Yes,                     !- Use Weather File Daylight Saving Period
@@ -174,11 +176,13 @@
     Yes;                     !- Use Weather File Snow Indicators
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 2,            !- Name
     7,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     7,                       !- End Month
     7,                       !- End Day of Month
+    ,                        !- End Year
     Tuesday,                 !- Day of Week for Start Day
     Yes,                     !- Use Weather File Holidays and Special Days
     Yes,                     !- Use Weather File Daylight Saving Period
@@ -191,7 +195,9 @@
     No,                      !- Do System Sizing Calculation
     No,                      !- Do Plant Sizing Calculation
     Yes,                     !- Run Simulation for Sizing Periods
-    Yes;                     !- Run Simulation for Weather File Run Periods
+    Yes,                     !- Run Simulation for Weather File Run Periods
+    No,                      !- Do HVAC Sizing Simulation for Sizing Periods
+    1;                       !- Maximum Number of HVAC Sizing Simulation Passes
 
   Site:Location,
     CHICAGO_IL_USA TMY2-94846,  !- Name
@@ -875,7 +881,6 @@
     FRONT-1,                 !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -891,7 +896,6 @@
     FRONT-1,                 !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1086,7 +1090,6 @@
     RIGHT-1,                 !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1261,7 +1264,6 @@
     BACK-1,                  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1277,7 +1279,6 @@
     BACK-1,                  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1452,7 +1453,6 @@
     LEFT-1,                  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1727,7 +1727,12 @@
     0,                       !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SPACE1-1,        !- Name
@@ -1758,7 +1763,12 @@
     0,                       !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SPACE2-1,        !- Name
@@ -1789,7 +1799,12 @@
     0,                       !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SPACE3-1,        !- Name
@@ -1820,7 +1835,12 @@
     0,                       !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SPACE4-1,        !- Name
@@ -1851,7 +1871,12 @@
     0,                       !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SPACE5-1,        !- Name
@@ -2046,7 +2071,7 @@
   AirLoopHVAC:ZoneSplitter,
     Sys 1 Zone Supply Air Splitter,  !- Name
     Sys 1 Zone Equipment Inlet Node,  !- Inlet Node Name
-    Zone 1 Inlet Node;       !- Outlet 1 Node Name
+    Zone 1 Inlet Node ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ZoneMixer,
     Sys 1 Zone Return Air Mixer,  !- Name
@@ -2064,16 +2089,30 @@
   ZoneHVAC:EquipmentList,
     Zone1Equipment,          !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    Zone1DirectAir,          !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    Zone1DirectAir ADU,      !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     Zone1DirectAir,          !- Name
     FanAndCoilAvailSched,    !- Availability Schedule Name
-    Zone 1 Inlet Node,       !- Zone Supply Air Node Name
-    1.0;                     !- Maximum Air Flow Rate {m3/s}
+    Zone 1 Inlet Node ATInlet,  !- Air Inlet Node Name
+    Zone 1 Inlet Node,       !- Air Outlet Node Name
+    1.0,                     !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    Zone1DirectAir ADU,      !- Name
+    Zone 1 Inlet Node,       !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    Zone1DirectAir,          !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   NodeList,
     Zone1Inlets,             !- Name
@@ -2134,7 +2173,7 @@
     0.00165,                 !- Rated Water Flow Rate {m3/s}
     23125.6,                 !- Gross Rated Total Cooling Capacity {W}
     16267.06,                !- Gross Rated Sensible Cooling Capacity {W}
-    7.007757577,             !- Gross Rated Cooling COP
+    7.007757577,             !- Gross Rated Cooling COP {W/W}
     -0.68126221,             !- Total Cooling Capacity Coefficient 1
     1.99529297,              !- Total Cooling Capacity Coefficient 2
     -0.93611888,             !- Total Cooling Capacity Coefficient 3
@@ -2163,7 +2202,7 @@
     1.0,                     !- Rated Air Flow Rate {m3/s}
     0.00165,                 !- Rated Water Flow Rate {m3/s}
     19156.73,                !- Gross Rated Heating Capacity {W}
-    3.167053691,             !- Gross Rated Heating COP
+    3.167053691,             !- Gross Rated Heating COP {W/W}
     -5.50102734,             !- Heating Capacity Coefficient 1
     -0.96688754,             !- Heating Capacity Coefficient 2
     7.70755007,              !- Heating Capacity Coefficient 3
@@ -2313,7 +2352,7 @@
   AirLoopHVAC:ZoneSplitter,
     Sys 2 Zone Supply Air Splitter,  !- Name
     Sys 2 Zone Equipment Inlet Node,  !- Inlet Node Name
-    Zone 2 Inlet Node;       !- Outlet 1 Node Name
+    Zone 2 Inlet Node ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ZoneMixer,
     Sys 2 Zone Return Air Mixer,  !- Name
@@ -2331,16 +2370,30 @@
   ZoneHVAC:EquipmentList,
     Zone2Equipment,          !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    Zone2DirectAir,          !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    Zone2DirectAir ADU,      !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     Zone2DirectAir,          !- Name
     FanAndCoilAvailSched,    !- Availability Schedule Name
-    Zone 2 Inlet Node,       !- Zone Supply Air Node Name
-    1.0;                     !- Maximum Air Flow Rate {m3/s}
+    Zone 2 Inlet Node ATInlet,  !- Air Inlet Node Name
+    Zone 2 Inlet Node,       !- Air Outlet Node Name
+    1.0,                     !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    Zone2DirectAir ADU,      !- Name
+    Zone 2 Inlet Node,       !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    Zone2DirectAir,          !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   NodeList,
     Zone2Inlets,             !- Name
@@ -2394,7 +2447,7 @@
     0.00165,                 !- Rated Water Flow Rate {m3/s}
     11562.8,                 !- Gross Rated Total Cooling Capacity {W}
     8133.53,                 !- Gross Rated Sensible Cooling Capacity {W}
-    7.007757577,             !- Gross Rated Cooling COP
+    7.007757577,             !- Gross Rated Cooling COP {W/W}
     -0.68126221,             !- Total Cooling Capacity Coefficient 1
     1.99529297,              !- Total Cooling Capacity Coefficient 2
     -0.93611888,             !- Total Cooling Capacity Coefficient 3
@@ -2423,7 +2476,7 @@
     1.0,                     !- Rated Air Flow Rate {m3/s}
     0.00165,                 !- Rated Water Flow Rate {m3/s}
     10078.365,               !- Gross Rated Heating Capacity {W}
-    3.167053691,             !- Gross Rated Heating COP
+    3.167053691,             !- Gross Rated Heating COP {W/W}
     -5.50102734,             !- Heating Capacity Coefficient 1
     -0.96688754,             !- Heating Capacity Coefficient 2
     7.70755007,              !- Heating Capacity Coefficient 3
@@ -2573,7 +2626,7 @@
   AirLoopHVAC:ZoneSplitter,
     Sys 3 Zone Supply Air Splitter,  !- Name
     Sys 3 Zone Equipment Inlet Node,  !- Inlet Node Name
-    Zone 3 Inlet Node;       !- Outlet 1 Node Name
+    Zone 3 Inlet Node ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ZoneMixer,
     Sys 3 Zone Return Air Mixer,  !- Name
@@ -2591,16 +2644,30 @@
   ZoneHVAC:EquipmentList,
     Zone3Equipment,          !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    Zone3DirectAir,          !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    Zone3DirectAir ADU,      !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     Zone3DirectAir,          !- Name
     FanAndCoilAvailSched,    !- Availability Schedule Name
-    Zone 3 Inlet Node,       !- Zone Supply Air Node Name
-    1.0;                     !- Maximum Air Flow Rate {m3/s}
+    Zone 3 Inlet Node ATInlet,  !- Air Inlet Node Name
+    Zone 3 Inlet Node,       !- Air Outlet Node Name
+    1.0,                     !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    Zone3DirectAir ADU,      !- Name
+    Zone 3 Inlet Node,       !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    Zone3DirectAir,          !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   NodeList,
     Zone3Inlets,             !- Name
@@ -2654,7 +2721,7 @@
     0.00165,                 !- Rated Water Flow Rate {m3/s}
     23125.6,                 !- Gross Rated Total Cooling Capacity {W}
     16267.06,                !- Gross Rated Sensible Cooling Capacity {W}
-    7.007757577,             !- Gross Rated Cooling COP
+    7.007757577,             !- Gross Rated Cooling COP {W/W}
     -0.68126221,             !- Total Cooling Capacity Coefficient 1
     1.99529297,              !- Total Cooling Capacity Coefficient 2
     -0.93611888,             !- Total Cooling Capacity Coefficient 3
@@ -2683,7 +2750,7 @@
     1.0,                     !- Rated Air Flow Rate {m3/s}
     0.00165,                 !- Rated Water Flow Rate {m3/s}
     19156.73,                !- Gross Rated Heating Capacity {W}
-    3.167053691,             !- Gross Rated Heating COP
+    3.167053691,             !- Gross Rated Heating COP {W/W}
     -5.50102734,             !- Heating Capacity Coefficient 1
     -0.96688754,             !- Heating Capacity Coefficient 2
     7.70755007,              !- Heating Capacity Coefficient 3
@@ -2833,7 +2900,7 @@
   AirLoopHVAC:ZoneSplitter,
     Sys 4 Zone Supply Air Splitter,  !- Name
     Sys 4 Zone Equipment Inlet Node,  !- Inlet Node Name
-    Zone 4 Inlet Node;       !- Outlet 1 Node Name
+    Zone 4 Inlet Node ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ZoneMixer,
     Sys 4 Zone Return Air Mixer,  !- Name
@@ -2851,16 +2918,30 @@
   ZoneHVAC:EquipmentList,
     Zone4Equipment,          !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    Zone4DirectAir,          !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    Zone4DirectAir ADU,      !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     Zone4DirectAir,          !- Name
     FanAndCoilAvailSched,    !- Availability Schedule Name
-    Zone 4 Inlet Node,       !- Zone Supply Air Node Name
-    1.0;                     !- Maximum Air Flow Rate {m3/s}
+    Zone 4 Inlet Node ATInlet,  !- Air Inlet Node Name
+    Zone 4 Inlet Node,       !- Air Outlet Node Name
+    1.0,                     !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    Zone4DirectAir ADU,      !- Name
+    Zone 4 Inlet Node,       !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    Zone4DirectAir,          !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   NodeList,
     Zone4Inlets,             !- Name
@@ -2914,7 +2995,7 @@
     0.00165,                 !- Rated Water Flow Rate {m3/s}
     11562.8,                 !- Gross Rated Total Cooling Capacity {W}
     8133.53,                 !- Gross Rated Sensible Cooling Capacity {W}
-    7.007757577,             !- Gross Rated Cooling COP
+    7.007757577,             !- Gross Rated Cooling COP {W/W}
     -0.68126221,             !- Total Cooling Capacity Coefficient 1
     1.99529297,              !- Total Cooling Capacity Coefficient 2
     -0.93611888,             !- Total Cooling Capacity Coefficient 3
@@ -2943,7 +3024,7 @@
     1.0,                     !- Rated Air Flow Rate {m3/s}
     0.00165,                 !- Rated Water Flow Rate {m3/s}
     10078.365,               !- Gross Rated Heating Capacity {W}
-    3.167053691,             !- Gross Rated Heating COP
+    3.167053691,             !- Gross Rated Heating COP {W/W}
     -5.50102734,             !- Heating Capacity Coefficient 1
     -0.96688754,             !- Heating Capacity Coefficient 2
     7.70755007,              !- Heating Capacity Coefficient 3
@@ -3093,7 +3174,7 @@
   AirLoopHVAC:ZoneSplitter,
     Sys 5 Zone Supply Air Splitter,  !- Name
     Sys 5 Zone Equipment Inlet Node,  !- Inlet Node Name
-    Zone 5 Inlet Node;       !- Outlet 1 Node Name
+    Zone 5 Inlet Node ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ZoneMixer,
     Sys 5 Zone Return Air Mixer,  !- Name
@@ -3111,16 +3192,30 @@
   ZoneHVAC:EquipmentList,
     Zone5Equipment,          !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    Zone5DirectAir,          !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    Zone5DirectAir ADU,      !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     Zone5DirectAir,          !- Name
     FanAndCoilAvailSched,    !- Availability Schedule Name
-    Zone 5 Inlet Node,       !- Zone Supply Air Node Name
-    1.0;                     !- Maximum Air Flow Rate {m3/s}
+    Zone 5 Inlet Node ATInlet,  !- Air Inlet Node Name
+    Zone 5 Inlet Node,       !- Air Outlet Node Name
+    1.0,                     !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    Zone5DirectAir ADU,      !- Name
+    Zone 5 Inlet Node,       !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    Zone5DirectAir,          !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   NodeList,
     Zone5Inlets,             !- Name
@@ -3174,7 +3269,7 @@
     0.0033,                  !- Rated Water Flow Rate {m3/s}
     23125.59,                !- Gross Rated Total Cooling Capacity {W}
     16267,                   !- Gross Rated Sensible Cooling Capacity {W}
-    7.007757577,             !- Gross Rated Cooling COP
+    7.007757577,             !- Gross Rated Cooling COP {W/W}
     -0.68126221,             !- Total Cooling Capacity Coefficient 1
     1.99529297,              !- Total Cooling Capacity Coefficient 2
     -0.93611888,             !- Total Cooling Capacity Coefficient 3
@@ -3203,7 +3298,7 @@
     1.0,                     !- Rated Air Flow Rate {m3/s}
     0.0033,                  !- Rated Water Flow Rate {m3/s}
     19156.73,                !- Gross Rated Heating Capacity {W}
-    3.167053691,             !- Gross Rated Heating COP
+    3.167053691,             !- Gross Rated Heating COP {W/W}
     -5.50102734,             !- Heating Capacity Coefficient 1
     -0.96688754,             !- Heating Capacity Coefficient 2
     7.70755007,              !- Heating Capacity Coefficient 3
@@ -3523,113 +3618,113 @@
     Vertical Ground Heat Exchanger;  !- Equipment 1 Name
 
   GroundHeatExchanger:System,
-    Vertical Ground Heat Exchanger, !- Name
-    GHE Inlet Node,           !- Inlet Node Name
-    GHE Outlet Node,          !- Outlet Node Name
-    0.00330000,               !- Design Flow Rate {m3/s}
-    Site:GroundTemperature:Undisturbed:KusudaAchenbach, !- Undisturbed Ground Temperature Model Type
-    Vertical Ground Heat Exchanger Ground Temps, !- Undisturbed Ground Temperature Model Name
-    0.692626E+00,             !- Ground Thermal Conductivity {W/m-K}
-    0.234700E+07,             !- Ground Thermal Heat Capacity {J/m3-K}
-    Vertical Ground Heat Exchanger g-functions; !- Response Factors Object Name
+    Vertical Ground Heat Exchanger,  !- Name
+    GHE Inlet Node,          !- Inlet Node Name
+    GHE Outlet Node,         !- Outlet Node Name
+    0.00330000,              !- Design Flow Rate {m3/s}
+    Site:GroundTemperature:Undisturbed:KusudaAchenbach,  !- Undisturbed Ground Temperature Model Type
+    Vertical Ground Heat Exchanger Ground Temps,  !- Undisturbed Ground Temperature Model Name
+    0.692626E+00,            !- Ground Thermal Conductivity {W/m-K}
+    0.234700E+07,            !- Ground Thermal Heat Capacity {J/m3-K}
+    Vertical Ground Heat Exchanger g-functions;  !- GHE:Vertical:ResponseFactors Object Name
 
   GroundHeatExchanger:Vertical:Properties,
-    Vertical Ground Heat Exchanger Props, !- Name
-    1,                        !- Depth of Top of Borehole {m}
-    76.2,                     !- Bore Hole Length {m}
-    0.127016,                 !- Borehole Diameter {m}
-    0.692626E+00,             !- Grout Thermal Conductivity {W/m-K}
-    3.90E+06,                 !- Grout Thermal Heat Capacity {J/m3-K}
-    0.391312E+00,             !- Pipe Thermal Conductivity {W/m-K}
-    1.542E+06,                !- Pipe Thermal Heat Capacity {J/m3-K}
-    2.66667E-02,              !- Pipe Out Diameter {m}
-    2.41285E-03,              !- Pipe Thickness {m}
-    5.1225E-02;               !- U-Tube Distance {m}
+    Vertical Ground Heat Exchanger Props,  !- Name
+    1,                       !- Depth of Top of Borehole {m}
+    76.2,                    !- Borehole Length {m}
+    0.127016,                !- Borehole Diameter {m}
+    0.692626E+00,            !- Grout Thermal Conductivity {W/m-K}
+    3.90E+06,                !- Grout Thermal Heat Capacity {J/m3-K}
+    0.391312E+00,            !- Pipe Thermal Conductivity {W/m-K}
+    1.542E+06,               !- Pipe Thermal Heat Capacity {J/m3-K}
+    2.66667E-02,             !- Pipe Outer Diameter {m}
+    2.41285E-03,             !- Pipe Thickness {m}
+    5.1225E-02;              !- U-Tube Distance {m}
 
   Site:GroundTemperature:Undisturbed:KusudaAchenbach,
-    Vertical Ground Heat Exchanger Ground Temps, !- Undisturbed Ground Temperature Model Name
-    0.692626E+00,             !- Soil Thermal Conductivity {W/m-K}
-    920,                      !- Soil Density {kg/m3}
-    2551.09,                  !- Soil Specific Heat {J/kg-K}
-    13.375,                   !- Average Soil Surface Temperature {C}
-    3.2,                      !- Average Amplitude of Surface Temperature {deltaC}
-    8;                        !- Phase Shift of Minimum Surface Temperature {days}
+    Vertical Ground Heat Exchanger Ground Temps,  !- Name
+    0.692626E+00,            !- Soil Thermal Conductivity {W/m-K}
+    920,                     !- Soil Density {kg/m3}
+    2551.09,                 !- Soil Specific Heat {J/kg-K}
+    13.375,                  !- Average Soil Surface Temperature {C}
+    3.2,                     !- Average Amplitude of Surface Temperature {deltaC}
+    8;                       !- Phase Shift of Minimum Surface Temperature {days}
 
   GroundHeatExchanger:ResponseFactors,
-    Vertical Ground Heat Exchanger g-functions, !- Name
-    Vertical Ground Heat Exchanger Props, !- Name
-    120,                      !- Number of Bore Holes
-    0.0005,                   !- G-Function Reference Ratio {dimensionless}
-    -15.2996,                 !- G-Function Ln(T/Ts) Value 1
-    -0.348322,                !- G-Function G Value 1
-    -14.201,                  !- G-Function Ln(T/Ts) Value 2
-    0.022208,                 !- G-Function G Value 2
-    -13.2202,                 !- G-Function Ln(T/Ts) Value 3
-    0.412345,                 !- G-Function G Value 3
-    -12.2086,                 !- G-Function Ln(T/Ts) Value 4
-    0.867498,                 !- G-Function G Value 4
-    -11.1888,                 !- G-Function Ln(T/Ts) Value 5
-    1.357839,                 !- G-Function G Value 5
-    -10.1816,                 !- G-Function Ln(T/Ts) Value 6
-    1.852024,                 !- G-Function G Value 6
-    -9.1815,                  !- G-Function Ln(T/Ts) Value 7
-    2.345656,                 !- G-Function G Value 7
-    -8.6809,                  !- G-Function Ln(T/Ts) Value 8
-    2.593958,                 !- G-Function G Value 8
-    -8.5,                     !- G-Function Ln(T/Ts) Value 9
-    2.679,                    !- G-Function G Value 9
-    -7.8,                     !- G-Function Ln(T/Ts) Value 10
-    3.023,                    !- G-Function G Value 10
-    -7.2,                     !- G-Function Ln(T/Ts) Value 11
-    3.32,                     !- G-Function G Value 11
-    -6.5,                     !- G-Function Ln(T/Ts) Value 12
-    3.681,                    !- G-Function G Value 12
-    -5.9,                     !- G-Function Ln(T/Ts) Value 13
-    4.071,                    !- G-Function G Value 13
-    -5.2,                     !- G-Function Ln(T/Ts) Value 14
-    4.828,                    !- G-Function G Value 14
-    -4.5,                     !- G-Function Ln(T/Ts) Value 15
-    6.253,                    !- G-Function G Value 15
-    -3.963,                   !- G-Function Ln(T/Ts) Value 16
-    7.894,                    !- G-Function G Value 16
-    -3.27,                    !- G-Function Ln(T/Ts) Value 17
-    11.82,                    !- G-Function G Value 17
-    -2.864,                   !- G-Function Ln(T/Ts) Value 18
-    15.117,                   !- G-Function G Value 18
-    -2.577,                   !- G-Function Ln(T/Ts) Value 19
-    18.006,                   !- G-Function G Value 19
-    -2.171,                   !- G-Function Ln(T/Ts) Value 20
-    22.887,                   !- G-Function G Value 20
-    -1.884,                   !- G-Function Ln(T/Ts) Value 21
-    26.924,                   !- G-Function G Value 21
-    -1.191,                   !- G-Function Ln(T/Ts) Value 22
-    38.004,                   !- G-Function G Value 22
-    -0.497,                   !- G-Function Ln(T/Ts) Value 23
-    49.919,                   !- G-Function G Value 23
-    -0.274,                   !- G-Function Ln(T/Ts) Value 24
-    53.407,                   !- G-Function G Value 24
-    -0.051,                   !- G-Function Ln(T/Ts) Value 25
-    56.632,                   !- G-Function G Value 25
-    0.196,                    !- G-Function Ln(T/Ts) Value 26
-    59.825,                   !- G-Function G Value 26
-    0.419,                    !- G-Function Ln(T/Ts) Value 27
-    62.349,                   !- G-Function G Value 27
-    0.642,                    !- G-Function Ln(T/Ts) Value 28
-    64.524,                   !- G-Function G Value 28
-    0.873,                    !- G-Function Ln(T/Ts) Value 29
-    66.412,                   !- G-Function G Value 29
-    1.112,                    !- G-Function Ln(T/Ts) Value 30
-    67.993,                   !- G-Function G Value 30
-    1.335,                    !- G-Function Ln(T/Ts) Value 31
-    69.162,                   !- G-Function G Value 31
-    1.679,                    !- G-Function Ln(T/Ts) Value 32
-    70.476,                   !- G-Function G Value 32
-    2.028,                    !- G-Function Ln(T/Ts) Value 33
-    71.361,                   !- G-Function G Value 33
-    2.275,                    !- G-Function Ln(T/Ts) Value 34
-    71.79,                    !- G-Function G Value 34
-    3.003,                    !- G-Function Ln(T/Ts) Value 35
-    72.511;                   !- G-Function G Value 35
+    Vertical Ground Heat Exchanger g-functions,  !- Name
+    Vertical Ground Heat Exchanger Props,  !- GHE:Vertical:Properties Object Name
+    120,                     !- Number of Boreholes
+    0.0005,                  !- G-Function Reference Ratio {dimensionless}
+    -15.2996,                !- g-Function Ln(T/Ts) Value 1
+    -0.348322,               !- g-Function g Value 1
+    -14.201,                 !- g-Function Ln(T/Ts) Value 2
+    0.022208,                !- g-Function g Value 2
+    -13.2202,                !- g-Function Ln(T/Ts) Value 3
+    0.412345,                !- g-Function g Value 3
+    -12.2086,                !- g-Function Ln(T/Ts) Value 4
+    0.867498,                !- g-Function g Value 4
+    -11.1888,                !- g-Function Ln(T/Ts) Value 5
+    1.357839,                !- g-Function g Value 5
+    -10.1816,                !- g-Function Ln(T/Ts) Value 6
+    1.852024,                !- g-Function g Value 6
+    -9.1815,                 !- g-Function Ln(T/Ts) Value 7
+    2.345656,                !- g-Function g Value 7
+    -8.6809,                 !- g-Function Ln(T/Ts) Value 8
+    2.593958,                !- g-Function g Value 8
+    -8.5,                    !- g-Function Ln(T/Ts) Value 9
+    2.679,                   !- g-Function g Value 9
+    -7.8,                    !- g-Function Ln(T/Ts) Value 10
+    3.023,                   !- g-Function g Value 10
+    -7.2,                    !- g-Function Ln(T/Ts) Value 11
+    3.32,                    !- g-Function g Value 11
+    -6.5,                    !- g-Function Ln(T/Ts) Value 12
+    3.681,                   !- g-Function g Value 12
+    -5.9,                    !- g-Function Ln(T/Ts) Value 13
+    4.071,                   !- g-Function g Value 13
+    -5.2,                    !- g-Function Ln(T/Ts) Value 14
+    4.828,                   !- g-Function g Value 14
+    -4.5,                    !- g-Function Ln(T/Ts) Value 15
+    6.253,                   !- g-Function g Value 15
+    -3.963,                  !- g-Function Ln(T/Ts) Value 16
+    7.894,                   !- g-Function g Value 16
+    -3.27,                   !- g-Function Ln(T/Ts) Value 17
+    11.82,                   !- g-Function g Value 17
+    -2.864,                  !- g-Function Ln(T/Ts) Value 18
+    15.117,                  !- g-Function g Value 18
+    -2.577,                  !- g-Function Ln(T/Ts) Value 19
+    18.006,                  !- g-Function g Value 19
+    -2.171,                  !- g-Function Ln(T/Ts) Value 20
+    22.887,                  !- g-Function g Value 20
+    -1.884,                  !- g-Function Ln(T/Ts) Value 21
+    26.924,                  !- g-Function g Value 21
+    -1.191,                  !- g-Function Ln(T/Ts) Value 22
+    38.004,                  !- g-Function g Value 22
+    -0.497,                  !- g-Function Ln(T/Ts) Value 23
+    49.919,                  !- g-Function g Value 23
+    -0.274,                  !- g-Function Ln(T/Ts) Value 24
+    53.407,                  !- g-Function g Value 24
+    -0.051,                  !- g-Function Ln(T/Ts) Value 25
+    56.632,                  !- g-Function g Value 25
+    0.196,                   !- g-Function Ln(T/Ts) Value 26
+    59.825,                  !- g-Function g Value 26
+    0.419,                   !- g-Function Ln(T/Ts) Value 27
+    62.349,                  !- g-Function g Value 27
+    0.642,                   !- g-Function Ln(T/Ts) Value 28
+    64.524,                  !- g-Function g Value 28
+    0.873,                   !- g-Function Ln(T/Ts) Value 29
+    66.412,                  !- g-Function g Value 29
+    1.112,                   !- g-Function Ln(T/Ts) Value 30
+    67.993,                  !- g-Function g Value 30
+    1.335,                   !- g-Function Ln(T/Ts) Value 31
+    69.162,                  !- g-Function g Value 31
+    1.679,                   !- g-Function Ln(T/Ts) Value 32
+    70.476,                  !- g-Function g Value 32
+    2.028,                   !- g-Function Ln(T/Ts) Value 33
+    71.361,                  !- g-Function g Value 33
+    2.275,                   !- g-Function Ln(T/Ts) Value 34
+    71.79,                   !- g-Function g Value 34
+    3.003,                   !- g-Function Ln(T/Ts) Value 35
+    72.511;                  !- g-Function g Value 35
 
   Pump:ConstantSpeed,
     Cond Circ Pump,          !- Name
@@ -3682,9 +3777,9 @@
 
   Output:Variable,*,Zone Air Humidity Ratio,timestep;
 
-  Output:Variable,*,Fan Electric Power,timestep;
+  Output:Variable,*,Fan Electricity Rate,timestep;
 
-  Output:Variable,*,Heating Coil Electric Power,timestep;
+  Output:Variable,*,Heating Coil Electricity Rate,timestep;
 
   Output:Variable,*,Cooling Coil Total Cooling Rate,timestep;
 
@@ -3710,9 +3805,9 @@
 
   Output:Variable,*,Heating Coil Heating Rate,timestep;
 
-  Output:Variable,*,Heating Coil Gas Rate,timestep;
+  Output:Variable,*,Heating Coil NaturalGas Rate,timestep;
 
-  Output:Variable,*,Fan Electric Power,timestep;
+  Output:Variable,*,Fan Electricity Rate,timestep;
 
   Output:Variable,*,Cooling Coil Air Mass Flow Rate,timestep;
 
@@ -3752,7 +3847,7 @@
 
   Output:Meter:MeterFileOnly,Electricity:Plant,monthly;
 
-  Output:Meter:MeterFileOnly,Gas:Facility,monthly;
+  Output:Meter:MeterFileOnly,NaturalGas:Facility,monthly;
 
   Output:Meter:MeterFileOnly,Electricity:Facility,runperiod;
 
@@ -3764,7 +3859,7 @@
 
   Output:Meter:MeterFileOnly,Electricity:Plant,runperiod;
 
-  Output:Meter:MeterFileOnly,Gas:Facility,runperiod;
+  Output:Meter:MeterFileOnly,NaturalGas:Facility,runperiod;
 
   OutputControl:Table:Style,
     HTML;                    !- Column Separator

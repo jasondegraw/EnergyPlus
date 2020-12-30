@@ -60,13 +60,13 @@
 ! Environmental Emissions:        None
 ! Utility Tariffs:                None
 
-  Version,9.0;
+  Version,9.4;
 
   Building,
     LBuildingAppGPar,        !- Name
     0,                       !- North Axis {deg}
     Suburbs,                 !- Terrain
-    0.04,                    !- Loads Convergence Tolerance Value
+    0.04,                    !- Loads Convergence Tolerance Value {W}
     0.4,                     !- Temperature Convergence Tolerance Value {deltaC}
     FullInteriorAndExterior, !- Solar Distribution
     20,                      !- Maximum Number of Warmup Days
@@ -99,11 +99,13 @@
     World;                   !- Rectangular Surface Coordinate System
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     1,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     12,                      !- End Month
     31,                      !- End Day of Month
+    ,                        !- End Year
     ,                        !- Day of Week for Start Day
     Yes,                     !- Use Weather File Holidays and Special Days
     Yes,                     !- Use Weather File Daylight Saving Period
@@ -123,7 +125,9 @@
     Yes,                     !- Do System Sizing Calculation
     No,                      !- Do Plant Sizing Calculation
     No,                      !- Run Simulation for Sizing Periods
-    Yes;                     !- Run Simulation for Weather File Run Periods
+    Yes,                     !- Run Simulation for Weather File Run Periods
+    No,                      !- Do HVAC Sizing Simulation for Sizing Periods
+    1;                       !- Maximum Number of HVAC Sizing Simulation Passes
 
   SizingPeriod:DesignDay,
     CHICAGO_IL_USA Annual Heating 99% Design Conditions DB,  !- Name
@@ -277,9 +281,9 @@
 
   Output:Meter:MeterFileOnly,Electricity:HVAC,monthly;
 
-  Output:Meter:MeterFileOnly,Gas:HVAC,monthly;
+  Output:Meter:MeterFileOnly,NaturalGas:HVAC,monthly;
 
-  Output:Meter:MeterFileOnly,Gas:Facility,monthly;
+  Output:Meter:MeterFileOnly,NaturalGas:Facility,monthly;
 
   Output:Meter:MeterFileOnly,Electricity:Facility,runperiod;
 
@@ -289,9 +293,9 @@
 
   Output:Meter:MeterFileOnly,Electricity:HVAC,runperiod;
 
-  Output:Meter:MeterFileOnly,Gas:HVAC,runperiod;
+  Output:Meter:MeterFileOnly,NaturalGas:HVAC,runperiod;
 
-  Output:Meter:MeterFileOnly,Gas:Facility,runperiod;
+  Output:Meter:MeterFileOnly,NaturalGas:Facility,runperiod;
 
   Material:AirGap,
     AirGap,                  !- Name
@@ -544,7 +548,6 @@
     Main_ExtWall_a_b,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -560,7 +563,6 @@
     Main_ExtWall_a_b,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -576,7 +578,6 @@
     Main_ExtWall_a_b,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -592,7 +593,6 @@
     Main_ExtWall_a_b,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -608,7 +608,6 @@
     Main_ExtWall_a_b,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -624,7 +623,6 @@
     Main_ExtWall_a_b,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -640,7 +638,6 @@
     Main_ExtWall_a_b,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -656,7 +653,6 @@
     Main_ExtWall_a_b,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -690,7 +686,6 @@
     Main_ExtWall_b_c,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -706,7 +701,6 @@
     Main_ExtWall_b_c,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -722,7 +716,6 @@
     Main_ExtWall_b_c,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -756,7 +749,6 @@
     Main_ExtWall_c_d,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -772,7 +764,6 @@
     Main_ExtWall_c_d,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -788,7 +779,6 @@
     Main_ExtWall_c_d,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -804,7 +794,6 @@
     Main_ExtWall_c_d,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -820,7 +809,6 @@
     Main_ExtWall_c_d,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -836,7 +824,6 @@
     Main_ExtWall_c_d,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -852,7 +839,6 @@
     Main_ExtWall_c_d,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -886,7 +872,6 @@
     Main_ExtWall_d_e,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -902,7 +887,6 @@
     Main_ExtWall_d_e,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -918,7 +902,6 @@
     Main_ExtWall_d_e,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -952,7 +935,6 @@
     Main_ExtWall_e_f,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -968,7 +950,6 @@
     Main_ExtWall_e_f,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -984,7 +965,6 @@
     Main_ExtWall_e_f,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1000,7 +980,6 @@
     Main_ExtWall_e_f,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1034,7 +1013,6 @@
     Main_ExtWall_f_a,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1050,7 +1028,6 @@
     Main_ExtWall_f_a,        !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1735,7 +1712,7 @@
   InternalMass,
     Main_Zone_a_b_g_l_Furniture1,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_a_b_g_l,       !- Zone Name
+    Main_Zone_a_b_g_l,       !- Zone or ZoneList Name
     90.7638663194365;        !- Surface Area {m2}
 
                              !- Name
@@ -1743,7 +1720,7 @@
   InternalMass,
     Main_Zone_a_b_g_l_Furniture2,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_a_b_g_l,       !- Zone Name
+    Main_Zone_a_b_g_l,       !- Zone or ZoneList Name
     90.7638663194365;        !- Surface Area {m2}
 
   Zone,
@@ -1803,7 +1780,7 @@
   InternalMass,
     Main_Zone_b_c_h_g_Furniture1,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_b_c_h_g,       !- Zone Name
+    Main_Zone_b_c_h_g,       !- Zone or ZoneList Name
     21.908520224611;         !- Surface Area {m2}
 
                              !- Name
@@ -1811,7 +1788,7 @@
   InternalMass,
     Main_Zone_b_c_h_g_Furniture2,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_b_c_h_g,       !- Zone Name
+    Main_Zone_b_c_h_g,       !- Zone or ZoneList Name
     21.908520224611;         !- Surface Area {m2}
 
   Zone,
@@ -1871,7 +1848,7 @@
   InternalMass,
     Main_Zone_c_d_i_h_Furniture1,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_c_d_i_h,       !- Zone Name
+    Main_Zone_c_d_i_h,       !- Zone or ZoneList Name
     68.8553478084919;        !- Surface Area {m2}
 
                              !- Name
@@ -1879,7 +1856,7 @@
   InternalMass,
     Main_Zone_c_d_i_h_Furniture2,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_c_d_i_h,       !- Zone Name
+    Main_Zone_c_d_i_h,       !- Zone or ZoneList Name
     68.8553478084919;        !- Surface Area {m2}
 
   Zone,
@@ -1939,7 +1916,7 @@
   InternalMass,
     Main_Zone_d_e_j_i_Furniture1,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_d_e_j_i,       !- Zone Name
+    Main_Zone_d_e_j_i,       !- Zone or ZoneList Name
     31.2978850559206;        !- Surface Area {m2}
 
                              !- Name
@@ -1947,7 +1924,7 @@
   InternalMass,
     Main_Zone_d_e_j_i_Furniture2,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_d_e_j_i,       !- Zone Name
+    Main_Zone_d_e_j_i,       !- Zone or ZoneList Name
     31.2978850559206;        !- Surface Area {m2}
 
   Zone,
@@ -2007,7 +1984,7 @@
   InternalMass,
     Main_Zone_e_f_k_j_Furniture1,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_e_f_k_j,       !- Zone Name
+    Main_Zone_e_f_k_j,       !- Zone or ZoneList Name
     21.908520224611;         !- Surface Area {m2}
 
                              !- Name
@@ -2015,7 +1992,7 @@
   InternalMass,
     Main_Zone_e_f_k_j_Furniture2,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_e_f_k_j,       !- Zone Name
+    Main_Zone_e_f_k_j,       !- Zone or ZoneList Name
     21.908520224611;         !- Surface Area {m2}
 
   Zone,
@@ -2075,7 +2052,7 @@
   InternalMass,
     Main_Zone_l_k_f_a_Furniture1,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_l_k_f_a,       !- Zone Name
+    Main_Zone_l_k_f_a,       !- Zone or ZoneList Name
     53.206406994198;         !- Surface Area {m2}
 
                              !- Name
@@ -2083,7 +2060,7 @@
   InternalMass,
     Main_Zone_l_k_f_a_Furniture2,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_l_k_f_a,       !- Zone Name
+    Main_Zone_l_k_f_a,       !- Zone or ZoneList Name
     53.206406994198;         !- Surface Area {m2}
 
   Zone,
@@ -2143,7 +2120,7 @@
   InternalMass,
     Main_Zone_g_h_i_l_Furniture1,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_g_h_i_l,       !- Zone Name
+    Main_Zone_g_h_i_l,       !- Zone or ZoneList Name
     100.153236291745;        !- Surface Area {m2}
 
                              !- Name
@@ -2151,7 +2128,7 @@
   InternalMass,
     Main_Zone_g_h_i_l_Furniture2,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_g_h_i_l,       !- Zone Name
+    Main_Zone_g_h_i_l,       !- Zone or ZoneList Name
     100.153236291745;        !- Surface Area {m2}
 
   Zone,
@@ -2211,7 +2188,7 @@
   InternalMass,
     Main_Zone_i_j_k_l_Furniture1,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_i_j_k_l,       !- Zone Name
+    Main_Zone_i_j_k_l,       !- Zone or ZoneList Name
     50.0766181458726;        !- Surface Area {m2}
 
                              !- Name
@@ -2219,7 +2196,7 @@
   InternalMass,
     Main_Zone_i_j_k_l_Furniture2,  !- Name
     FurnitureConstruction,   !- Construction Name
-    Main_Zone_i_j_k_l,       !- Zone Name
+    Main_Zone_i_j_k_l,       !- Zone or ZoneList Name
     50.0766181458726;        !- Surface Area {m2}
 
   Schedule:Compact,

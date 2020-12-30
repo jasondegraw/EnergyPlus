@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -53,10 +53,14 @@
 #include <ObjexxFCL/Optional.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace HeatingCoils {
 
@@ -66,6 +70,10 @@ namespace HeatingCoils {
     // MODULE PARAMETER DEFINITIONS
     extern Real64 const MinAirMassFlow;
     extern int NumDesuperheaterCoil; // Total number of desuperheater heating coil objects in input
+    extern int NumElecCoil;
+    extern int NumElecCoilMultiStage;
+    extern int NumFuelCoil;
+    extern int NumGasCoilMultiStage;
 
     // reclaim heat object types
     extern int const COMPRESSORRACK_REFRIGERATEDCASE;
@@ -109,7 +117,7 @@ namespace HeatingCoils {
         std::string HeatingCoilType;  // Type of HeatingCoil ie. Heating or Cooling
         std::string HeatingCoilModel; // Type of HeatingCoil ie. Simple, Detailed, etc.
         int HCoilType_Num;
-        int FuelType_Num;            // Type of fuel used, reference resource type integers
+        DataGlobalConstants::ResourceType FuelType_Num; // Type of fuel used, reference resource type integers
         std::string Schedule;        // HeatingCoil Operation Schedule
         int SchedPtr;                // Pointer to the correct schedule
         int InsuffTemperatureWarn;   // Used for recurring error message
@@ -169,7 +177,8 @@ namespace HeatingCoils {
         int AirLoopNum;                      // Airloop number
         // Default Constructor
         HeatingCoilEquipConditions()
-            : HCoilType_Num(0), FuelType_Num(0), SchedPtr(0), InsuffTemperatureWarn(0), InletAirMassFlowRate(0.0), OutletAirMassFlowRate(0.0),
+            : HCoilType_Num(0), FuelType_Num(DataGlobalConstants::ResourceType::None), SchedPtr(0), InsuffTemperatureWarn(0),
+              InletAirMassFlowRate(0.0), OutletAirMassFlowRate(0.0),
               InletAirTemp(0.0), OutletAirTemp(0.0), InletAirHumRat(0.0), OutletAirHumRat(0.0), InletAirEnthalpy(0.0), OutletAirEnthalpy(0.0),
               HeatingCoilLoad(0.0), HeatingCoilRate(0.0), FuelUseLoad(0.0), ElecUseLoad(0.0), FuelUseRate(0.0), ElecUseRate(0.0), Efficiency(0.0),
               NominalCapacity(0.0), DesiredOutletTemp(0.0), DesiredOutletHumRat(0.0), AvailTemperature(0.0), AirInletNodeNum(0), AirOutletNodeNum(0),
@@ -197,7 +206,7 @@ namespace HeatingCoils {
 
     // Functions
 
-    void SimulateHeatingCoilComponents(std::string const &CompName,
+    void SimulateHeatingCoilComponents(EnergyPlusData &state, std::string const &CompName,
                                        bool const FirstHVACIteration,
                                        Optional<Real64 const> QCoilReq = _, // coil load to be met
                                        Optional_int CompIndex = _,
@@ -212,7 +221,7 @@ namespace HeatingCoils {
     // Get Input Section of the Module
     //******************************************************************************
 
-    void GetHeatingCoilInput();
+    void GetHeatingCoilInput(EnergyPlusData &state);
 
     // End of Get Input subroutines for the HB Module
     //******************************************************************************
@@ -220,9 +229,9 @@ namespace HeatingCoils {
     // Beginning Initialization Section of the Module
     //******************************************************************************
 
-    void InitHeatingCoil(int const CoilNum, bool const FirstHVACIteration, Real64 const QCoilRequired);
+    void InitHeatingCoil(EnergyPlusData &state, int const CoilNum, bool const FirstHVACIteration, Real64 const QCoilRequired);
 
-    void SizeHeatingCoil(int const CoilNum);
+    void SizeHeatingCoil(EnergyPlusData &state, int const CoilNum);
 
     // End Initialization Section of the Module
     //******************************************************************************
@@ -230,35 +239,39 @@ namespace HeatingCoils {
     // Begin Algorithm Section of the Module
     //******************************************************************************
 
-    void CalcElectricHeatingCoil(int const CoilNum, // index to heating coil
+    void CalcElectricHeatingCoil(EnergyPlusData &state,
+                                 int const CoilNum, // index to heating coil
                                  Real64 &QCoilReq,
                                  Real64 &QCoilActual,       // coil load actually delivered (W)
                                  int const FanOpMode,       // fan operating mode
                                  Real64 const PartLoadRatio // part-load ratio of heating coil
     );
 
-    void CalcMultiStageElectricHeatingCoil(int &CoilNum,            // the number of the electric heating coil to be simulated
+    void CalcMultiStageElectricHeatingCoil(EnergyPlusData &state,
+                                           int &CoilNum,            // the number of the electric heating coil to be simulated
                                            Real64 const SpeedRatio, // SpeedRatio varies between 1.0 (maximum speed) and 0.0 (minimum speed)
                                            Real64 const CycRatio,   // cycling part load ratio
                                            int const StageNum,      // Stage number
                                            int const FanOpMode      // Fan operation mode
     );
 
-    void CalcFuelHeatingCoil(int const CoilNum, // index to heating coil
+    void CalcFuelHeatingCoil(EnergyPlusData &state,
+                             int const CoilNum, // index to heating coil
                              Real64 const QCoilReq,
                              Real64 &QCoilActual,       // coil load actually delivered (W)
                              int const FanOpMode,       // fan operating mode
                              Real64 const PartLoadRatio // part-load ratio of heating coil
     );
 
-    void CalcMultiStageGasHeatingCoil(int &CoilNum,            // the number of the Gas heating coil to be simulated
+    void CalcMultiStageGasHeatingCoil(EnergyPlusData &state,
+                                      int &CoilNum,            // the number of the Gas heating coil to be simulated
                                       Real64 const SpeedRatio, // SpeedRatio varies between 1.0 (maximum speed) and 0.0 (minimum speed)
                                       Real64 const CycRatio,   // cycling part load ratio
                                       int const StageNum,      // Speed number
                                       int const FanOpMode      // Fan operation mode
     );
 
-    void CalcDesuperheaterHeatingCoil(int const CoilNum,     // index to desuperheater heating coil
+    void CalcDesuperheaterHeatingCoil(EnergyPlusData &state, int const CoilNum,     // index to desuperheater heating coil
                                       Real64 const QCoilReq, // load requested by the simulation for load based control [W]
                                       Real64 &QCoilActual    // coil load actually delivered
     );
@@ -269,7 +282,7 @@ namespace HeatingCoils {
     // Beginning of Update subroutines for the HeatingCoil Module
     // *****************************************************************************
 
-    void UpdateHeatingCoil(int const CoilNum);
+    void UpdateHeatingCoil(EnergyPlusData &state, int const CoilNum);
 
     //        End of Update subroutines for the HeatingCoil Module
     // *****************************************************************************
@@ -277,63 +290,63 @@ namespace HeatingCoils {
     // Beginning of Reporting subroutines for the HeatingCoil Module
     // *****************************************************************************
 
-    void ReportHeatingCoil(int const CoilNum);
+    void ReportHeatingCoil(EnergyPlusData &state, int const CoilNum);
 
     //        End of Reporting subroutines for the HeatingCoil Module
 
-    void GetCoilIndex(std::string const &HeatingCoilName, int &HeatingCoilIndex, bool &ErrorsFound);
+    void GetCoilIndex(EnergyPlusData &state, std::string const &HeatingCoilName, int &HeatingCoilIndex, bool &ErrorsFound);
 
-    void CheckHeatingCoilSchedule(std::string const &CompType, // unused1208
+    void CheckHeatingCoilSchedule(EnergyPlusData &state, std::string const &CompType, // unused1208
                                   std::string const &CompName,
                                   Real64 &Value,
                                   int &CompIndex);
 
-    Real64 GetCoilCapacity(std::string const &CoilType, // must match coil types in this module
+    Real64 GetCoilCapacity(EnergyPlusData &state, std::string const &CoilType, // must match coil types in this module
                            std::string const &CoilName, // must match coil names for the coil type
                            bool &ErrorsFound            // set to true if problem
     );
 
-    int GetCoilAvailScheduleIndex(std::string const &CoilType, // must match coil types in this module
+    int GetCoilAvailScheduleIndex(EnergyPlusData &state, std::string const &CoilType, // must match coil types in this module
                                   std::string const &CoilName, // must match coil names for the coil type
                                   bool &ErrorsFound            // set to true if problem
     );
 
-    int GetCoilInletNode(std::string const &CoilType, // must match coil types in this module
+    int GetCoilInletNode(EnergyPlusData &state, std::string const &CoilType, // must match coil types in this module
                          std::string const &CoilName, // must match coil names for the coil type
                          bool &ErrorsFound            // set to true if problem
     );
 
-    int GetCoilOutletNode(std::string const &CoilType, // must match coil types in this module
+    int GetCoilOutletNode(EnergyPlusData &state, std::string const &CoilType, // must match coil types in this module
                           std::string const &CoilName, // must match coil names for the coil type
                           bool &ErrorsFound            // set to true if problem
     );
 
-    int GetHeatReclaimSourceIndex(std::string const &CoilType, // must match coil types in this module
+    int GetHeatReclaimSourceIndex(EnergyPlusData &state, std::string const &CoilType, // must match coil types in this module
                                   std::string const &CoilName, // must match coil names for the coil type
                                   bool &ErrorsFound            // set to true if problem
     );
 
-    int GetCoilControlNodeNum(std::string const &CoilType, // must match coil types in this module
+    int GetCoilControlNodeNum(EnergyPlusData &state, std::string const &CoilType, // must match coil types in this module
                               std::string const &CoilName, // must match coil names for the coil type
                               bool &ErrorsFound            // set to true if problem
     );
 
-    int GetHeatingCoilTypeNum(std::string const &CoilType, // must match coil types in this module
+    int GetHeatingCoilTypeNum(EnergyPlusData &state, std::string const &CoilType, // must match coil types in this module
                               std::string const &CoilName, // must match coil names for the coil type
                               bool &ErrorsFound            // set to true if problem
     );
 
-    int GetHeatingCoilIndex(std::string const &CoilType, // must match coil types in this module
+    int GetHeatingCoilIndex(EnergyPlusData &state, std::string const &CoilType, // must match coil types in this module
                             std::string const &CoilName, // must match coil names for the coil type
                             bool &ErrorsFound            // set to true if problem
     );
 
-    int GetHeatingCoilPLFCurveIndex(std::string const &CoilType, // must match coil types in this module
+    int GetHeatingCoilPLFCurveIndex(EnergyPlusData &state, std::string const &CoilType, // must match coil types in this module
                                     std::string const &CoilName, // must match coil names for the coil type
                                     bool &ErrorsFound            // set to true if problem
     );
 
-    int GetHeatingCoilNumberOfStages(std::string const &CoilType, // must match coil types in this module
+    int GetHeatingCoilNumberOfStages(EnergyPlusData &state, std::string const &CoilType, // must match coil types in this module
                                      std::string const &CoilName, // must match coil names for the coil type
                                      bool &ErrorsFound            // set to true if problem
     );
@@ -344,17 +357,25 @@ namespace HeatingCoils {
 
     // sets data to a coil that is used as a regeneration air heating coil in
     // desiccant dehumidification system
-    void SetHeatingCoilData(int const CoilNum,                           // Number of electric or gas heating Coil
+    void SetHeatingCoilData(EnergyPlusData &state, int const CoilNum,                           // Number of electric or gas heating Coil
                             bool &ErrorsFound,                           // Set to true if certain errors found
                             Optional_bool DesiccantRegenerationCoil = _, // Flag that this coil is used as regeneration air heating coil
                             Optional_int DesiccantDehumIndex = _         // Index for the desiccant dehum system where this caoil is used
     );
 
-    void SetHeatingCoilAirLoopNumber(std::string const &HeatingCoilName, int AirLoopNum, bool &ErrorsFound);
+    void SetHeatingCoilAirLoopNumber(EnergyPlusData &state, std::string const &HeatingCoilName, int AirLoopNum, bool &ErrorsFound);
 
     //        End of Utility subroutines for the HeatingCoil Module
 
 } // namespace HeatingCoils
+
+struct HeatingCoilsData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

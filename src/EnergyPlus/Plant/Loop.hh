@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -48,11 +48,17 @@
 #ifndef PlantTopologyLoop_hh_INCLUDED
 #define PlantTopologyLoop_hh_INCLUDED
 
-#include <Plant/LoopSide.hh>
-#include <Plant/PlantLoopSolver.hh>
+#include <EnergyPlus/Plant/LoopSide.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
+
 namespace DataPlant {
+
+    // "Both" is used as a special flag and is never assigned to the loop's TypeOfLoop member
+    enum class LoopType {Unassigned, Plant, Condenser, Both};
 
     struct PlantLoopData
     {
@@ -93,9 +99,6 @@ namespace DataPlant {
         int LoopDemandCalcScheme;        // Load distribution scheme 1 SingleSetPoint,
         // 2 DualSetPointwithDeadBand
         int CommonPipeType;
-        std::string EconomizerHtExchanger;       // DSU review, should move these out of here
-        std::string EconPlantSideSensedNodeName; // DSU review, should move these out of here
-        std::string EconCondSideSensedNodeName;  // DSU review, should move these out of here
         int EconPlantSideSensedNodeNum;          // DSU review, should move these out of here
         int EconCondSideSensedNodeNum;           // DSU review, should move these out of here
         int EconPlacement;                       // DSU review, should move these out of here
@@ -103,13 +106,23 @@ namespace DataPlant {
         int EconComp;                            // DSU review, should move these out of here
         Real64 EconControlTempDiff;              // DSU review, should move these out of here
         bool LoopHasConnectionComp;
-        int TypeOfLoop;
+        LoopType TypeOfLoop;
         int PressureSimType;
         bool HasPressureComponents;
         Real64 PressureDrop;
         bool UsePressureForPumpCalcs;
         Real64 PressureEffectiveK;
-        PlantLoopSolver::PlantLoopSolverClass loopSolver;
+        // report variables
+        Real64 CoolingDemand;       // Plant Loop Cooling Demand, W
+        Real64 HeatingDemand;       // Plant Loop Heating Demand[W]
+        Real64 DemandNotDispatched; // Plant Loop Demand that was not distributed [W]
+        Real64 UnmetDemand;         // Plant Loop Unmet Demand [W]
+        Real64 BypassFrac;            // Debug Variable
+        Real64 InletNodeFlowrate;     // Debug Variable
+        Real64 InletNodeTemperature;  // Debug Variable
+        Real64 OutletNodeFlowrate;    // Debug Variable
+        Real64 OutletNodeTemperature; // Debug Variable
+        int LastLoopSideSimulated;
 
         // Default Constructor
         PlantLoopData()
@@ -119,11 +132,20 @@ namespace DataPlant {
               MaxMassFlowRate(0.0), Volume(0.0), VolumeWasAutoSized(false), // true if Volume was set to autocalculate
               CirculationTime(2.0), Mass(0.0), EMSCtrl(false), EMSValue(0.0), NumOpSchemes(0), LoadDistribution(0), PlantSizNum(0),
               LoopDemandCalcScheme(0), CommonPipeType(0), EconPlantSideSensedNodeNum(0), EconCondSideSensedNodeNum(0), EconPlacement(0),
-              EconBranch(0), EconComp(0), EconControlTempDiff(0.0), LoopHasConnectionComp(false), TypeOfLoop(0), PressureSimType(1),
-              HasPressureComponents(false), PressureDrop(0.0), UsePressureForPumpCalcs(false), PressureEffectiveK(0.0)
+              EconBranch(0), EconComp(0), EconControlTempDiff(0.0), LoopHasConnectionComp(false), TypeOfLoop(LoopType::Unassigned), PressureSimType(1),
+              HasPressureComponents(false), PressureDrop(0.0), UsePressureForPumpCalcs(false), PressureEffectiveK(0.0),
+              CoolingDemand(0.0), HeatingDemand(0.0), DemandNotDispatched(0.0), UnmetDemand(0.0), BypassFrac(0.0),
+              InletNodeFlowrate(0.0), InletNodeTemperature(0.0), OutletNodeFlowrate(0.0), OutletNodeTemperature(0.0), LastLoopSideSimulated(0)
         {
-            this->loopSolver = PlantLoopSolver::PlantLoopSolverClass();
         }
+
+
+        void UpdateLoopSideReportVars(EnergyPlusData &state, Real64 OtherSideDemand, Real64 LocalRemLoopDemand);
+
+        void CheckLoopExitNode(EnergyPlusData &state, bool FirstHVACIteration);
+
+        void CalcUnmetPlantDemand(EnergyPlusData &state);
+
     };
 } // namespace DataPlant
 } // namespace EnergyPlus

@@ -119,7 +119,7 @@
 ! ZONE_TERMINAL_FAN_STATIC_PRESSURE=  298.69
 ! End WebInterface Parameters
 
-  Version,9.0;
+  Version,9.4;
 
   Timestep,4;
 
@@ -131,11 +131,13 @@
     Yes;                     !- Run Simulation for Weather File Run Periods
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     1,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     12,                      !- End Month
     31,                      !- End Day of Month
+    ,                        !- End Year
     Sunday,                  !- Day of Week for Start Day
     No,                      !- Use Weather File Holidays and Special Days
     No,                      !- Use Weather File Daylight Saving Period
@@ -159,12 +161,14 @@
     25;                      !- Maximum HVAC Iterations
 
   ShadowCalculation,
-    AverageOverDaysInFrequency,  !- Calculation Method
-    30;                      !- Calculation Frequency
+    PolygonClipping,         !- Shading Calculation Method
+    Periodic,                !- Shading Calculation Update Frequency Method
+    30,                      !- Shading Calculation Update Frequency
+    15000;                   !- Maximum Figures in Shadow Overlap Calculations
 
   GlobalGeometryRules,
-    ULC,                     !- Starting Vertex Position
-    CCW,                     !- Vertex Entry Direction
+    UpperLeftCorner,         !- Starting Vertex Position
+    CounterClockWise,        !- Vertex Entry Direction
     Relative;                !- Coordinate System
 
   Building,
@@ -262,7 +266,7 @@
     9.69,                    !- Annual Average Outdoor Air Temperature {C}
     28.10;                   !- Maximum Difference In Monthly Average Outdoor Air Temperatures {deltaC}
 
-! CHICAGO_IL_USA Annual Heating 99.6%, MaxDB=-20.6°C
+! CHICAGO_IL_USA Annual Heating 99.6%, MaxDB=-20.6Â°C
 
   SizingPeriod:DesignDay,
     CHICAGO Ann Htg 99.6% Condns DB,  !- Name
@@ -292,7 +296,7 @@
     ,                        !- ASHRAE Clear Sky Optical Depth for Diffuse Irradiance (taud) {dimensionless}
     0.00;                    !- Sky Clearness
 
-! CHICAGO_IL_USA Annual Cooling (DB=>MWB) .4%, MaxDB=33.2°C MWB=23.8°C
+! CHICAGO_IL_USA Annual Cooling (DB=>MWB) .4%, MaxDB=33.2Â°C MWB=23.8Â°C
 
   SizingPeriod:DesignDay,
     CHICAGO Ann Clg .4% Condns DB=>MWB,  !- Name
@@ -1674,7 +1678,6 @@
     ZN_1_FLR_1_SEC_1_Wall_1, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1806,7 +1809,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_1_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_1,        !- Zone Name
+    ZN_1_FLR_1_SEC_1,        !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -2000,7 +2003,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_1 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_1 PTAC,   !- Name
@@ -2169,7 +2174,6 @@
     ZN_1_FLR_2_SEC_1_Wall_1, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2301,7 +2305,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_1_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_1,        !- Zone Name
+    ZN_1_FLR_2_SEC_1,        !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -2495,7 +2499,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_1 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_1 PTAC,   !- Name
@@ -2664,7 +2670,6 @@
     ZN_1_FLR_3_SEC_1_Wall_1, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2796,7 +2801,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_1_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_1,        !- Zone Name
+    ZN_1_FLR_3_SEC_1,        !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -2990,7 +2995,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_1 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_1 PTAC,   !- Name
@@ -3175,7 +3182,6 @@
     ZN_1_FLR_1_SEC_2_Wall_2, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3291,7 +3297,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_2_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_2,        !- Zone Name
+    ZN_1_FLR_1_SEC_2,        !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -3485,7 +3491,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_2 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_2 PTAC,   !- Name
@@ -3670,7 +3678,6 @@
     ZN_1_FLR_2_SEC_2_Wall_2, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3786,7 +3793,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_2_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_2,        !- Zone Name
+    ZN_1_FLR_2_SEC_2,        !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -3980,7 +3987,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_2 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_2 PTAC,   !- Name
@@ -4165,7 +4174,6 @@
     ZN_1_FLR_3_SEC_2_Wall_2, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4281,7 +4289,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_2_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_2,        !- Zone Name
+    ZN_1_FLR_3_SEC_2,        !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -4475,7 +4483,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_2 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_2 PTAC,   !- Name
@@ -4644,7 +4654,6 @@
     ZN_1_FLR_1_SEC_3_Wall_1, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4776,7 +4785,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_3_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_3,        !- Zone Name
+    ZN_1_FLR_1_SEC_3,        !- Zone or ZoneList Name
     133.1698;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -4970,7 +4979,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_3 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_3 PTAC,   !- Name
@@ -5139,7 +5150,6 @@
     ZN_1_FLR_2_SEC_3_Wall_1, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -5271,7 +5281,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_3_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_3,        !- Zone Name
+    ZN_1_FLR_2_SEC_3,        !- Zone or ZoneList Name
     133.1698;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -5465,7 +5475,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_3 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_3 PTAC,   !- Name
@@ -5634,7 +5646,6 @@
     ZN_1_FLR_3_SEC_3_Wall_1, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -5766,7 +5777,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_3_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_3,        !- Zone Name
+    ZN_1_FLR_3_SEC_3,        !- Zone or ZoneList Name
     133.1698;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -5960,7 +5971,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_3 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_3 PTAC,   !- Name
@@ -6177,7 +6190,6 @@
     ZN_1_FLR_1_SEC_4_Wall_4, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -6261,7 +6273,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_4_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_4,        !- Zone Name
+    ZN_1_FLR_1_SEC_4,        !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -6455,7 +6467,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_4 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_4 PTAC,   !- Name
@@ -6672,7 +6686,6 @@
     ZN_1_FLR_2_SEC_4_Wall_4, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -6756,7 +6769,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_4_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_4,        !- Zone Name
+    ZN_1_FLR_2_SEC_4,        !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -6950,7 +6963,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_4 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_4 PTAC,   !- Name
@@ -7167,7 +7182,6 @@
     ZN_1_FLR_3_SEC_4_Wall_4, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -7251,7 +7265,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_4_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_4,        !- Zone Name
+    ZN_1_FLR_3_SEC_4,        !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -7445,7 +7459,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_4 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_4 PTAC,   !- Name
@@ -7614,7 +7630,6 @@
     ZN_1_FLR_1_SEC_5_Wall_1, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -7746,7 +7761,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_5_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_5,        !- Zone Name
+    ZN_1_FLR_1_SEC_5,        !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -7940,7 +7955,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_5 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_5 PTAC,   !- Name
@@ -8109,7 +8126,6 @@
     ZN_1_FLR_2_SEC_5_Wall_1, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -8241,7 +8257,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_5_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_5,        !- Zone Name
+    ZN_1_FLR_2_SEC_5,        !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -8435,7 +8451,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_5 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_5 PTAC,   !- Name
@@ -8604,7 +8622,6 @@
     ZN_1_FLR_3_SEC_5_Wall_1, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -8736,7 +8753,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_5_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_5,        !- Zone Name
+    ZN_1_FLR_3_SEC_5,        !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -8930,7 +8947,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_5 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_5 PTAC,   !- Name
@@ -9115,7 +9134,6 @@
     ZN_1_FLR_1_SEC_6_Wall_2, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -9231,7 +9249,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_6_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_6,        !- Zone Name
+    ZN_1_FLR_1_SEC_6,        !- Zone or ZoneList Name
     323.8302;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -9425,7 +9443,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_6 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_6 PTAC,   !- Name
@@ -9610,7 +9630,6 @@
     ZN_1_FLR_2_SEC_6_Wall_2, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -9726,7 +9745,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_6_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_6,        !- Zone Name
+    ZN_1_FLR_2_SEC_6,        !- Zone or ZoneList Name
     323.8302;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -9920,7 +9939,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_6 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_6 PTAC,   !- Name
@@ -10105,7 +10126,6 @@
     ZN_1_FLR_3_SEC_6_Wall_2, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -10221,7 +10241,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_6_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_6,        !- Zone Name
+    ZN_1_FLR_3_SEC_6,        !- Zone or ZoneList Name
     323.8302;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -10415,7 +10435,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_6 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_6 PTAC,   !- Name
@@ -10616,7 +10638,6 @@
     ZN_1_FLR_1_SEC_7_Wall_3, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -10716,7 +10737,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_7_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_7,        !- Zone Name
+    ZN_1_FLR_1_SEC_7,        !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -10910,7 +10931,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_7 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_7 PTAC,   !- Name
@@ -11111,7 +11134,6 @@
     ZN_1_FLR_2_SEC_7_Wall_3, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -11211,7 +11233,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_7_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_7,        !- Zone Name
+    ZN_1_FLR_2_SEC_7,        !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -11405,7 +11427,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_7 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_7 PTAC,   !- Name
@@ -11606,7 +11630,6 @@
     ZN_1_FLR_3_SEC_7_Wall_3, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -11706,7 +11729,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_7_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_7,        !- Zone Name
+    ZN_1_FLR_3_SEC_7,        !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -11900,7 +11923,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_7 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_7 PTAC,   !- Name
@@ -12117,7 +12142,6 @@
     ZN_1_FLR_1_SEC_8_Wall_4, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -12201,7 +12225,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_8_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_8,        !- Zone Name
+    ZN_1_FLR_1_SEC_8,        !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -12395,7 +12419,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_8 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_8 PTAC,   !- Name
@@ -12612,7 +12638,6 @@
     ZN_1_FLR_2_SEC_8_Wall_4, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -12696,7 +12721,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_8_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_8,        !- Zone Name
+    ZN_1_FLR_2_SEC_8,        !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -12890,7 +12915,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_8 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_8 PTAC,   !- Name
@@ -13107,7 +13134,6 @@
     ZN_1_FLR_3_SEC_8_Wall_4, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -13191,7 +13217,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_8_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_8,        !- Zone Name
+    ZN_1_FLR_3_SEC_8,        !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -13385,7 +13411,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_8 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_8 PTAC,   !- Name
@@ -13586,7 +13614,6 @@
     ZN_1_FLR_1_SEC_9_Wall_3, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -13686,7 +13713,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_9_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_9,        !- Zone Name
+    ZN_1_FLR_1_SEC_9,        !- Zone or ZoneList Name
     133.1698;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -13880,7 +13907,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_9 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_9 PTAC,   !- Name
@@ -14081,7 +14110,6 @@
     ZN_1_FLR_2_SEC_9_Wall_3, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -14181,7 +14209,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_9_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_9,        !- Zone Name
+    ZN_1_FLR_2_SEC_9,        !- Zone or ZoneList Name
     133.1698;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -14375,7 +14403,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_9 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_9 PTAC,   !- Name
@@ -14576,7 +14606,6 @@
     ZN_1_FLR_3_SEC_9_Wall_3, !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -14676,7 +14705,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_9_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_9,        !- Zone Name
+    ZN_1_FLR_3_SEC_9,        !- Zone or ZoneList Name
     133.1698;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -14870,7 +14899,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_9 PTAC,   !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_9 PTAC,   !- Name
@@ -15055,7 +15086,6 @@
     ZN_1_FLR_1_SEC_10_Wall_2,!- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -15171,7 +15201,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_10_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_10,       !- Zone Name
+    ZN_1_FLR_1_SEC_10,       !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -15365,7 +15395,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_10 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_10 PTAC,  !- Name
@@ -15550,7 +15582,6 @@
     ZN_1_FLR_2_SEC_10_Wall_2,!- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -15666,7 +15697,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_10_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_10,       !- Zone Name
+    ZN_1_FLR_2_SEC_10,       !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -15860,7 +15891,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_10 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_10 PTAC,  !- Name
@@ -16045,7 +16078,6 @@
     ZN_1_FLR_3_SEC_10_Wall_2,!- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -16161,7 +16193,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_10_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_10,       !- Zone Name
+    ZN_1_FLR_3_SEC_10,       !- Zone or ZoneList Name
     137.1000;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -16355,7 +16387,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_10 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_10 PTAC,  !- Name
@@ -16556,7 +16590,6 @@
     ZN_1_FLR_1_SEC_11_Wall_3,!- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -16656,7 +16689,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_11_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_11,       !- Zone Name
+    ZN_1_FLR_1_SEC_11,       !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -16850,7 +16883,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_11 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_11 PTAC,  !- Name
@@ -17051,7 +17086,6 @@
     ZN_1_FLR_2_SEC_11_Wall_3,!- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -17151,7 +17185,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_11_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_11,       !- Zone Name
+    ZN_1_FLR_2_SEC_11,       !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -17345,7 +17379,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_11 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_11 PTAC,  !- Name
@@ -17546,7 +17582,6 @@
     ZN_1_FLR_3_SEC_11_Wall_3,!- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -17646,7 +17681,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_11_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_11,       !- Zone Name
+    ZN_1_FLR_3_SEC_11,       !- Zone or ZoneList Name
     95.3302;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -17840,7 +17875,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_11 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_11 PTAC,  !- Name
@@ -18057,7 +18094,6 @@
     ZN_1_FLR_1_SEC_12_Wall_4,!- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -18141,7 +18177,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_12_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_12,       !- Zone Name
+    ZN_1_FLR_1_SEC_12,       !- Zone or ZoneList Name
     323.8302;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -18335,7 +18371,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_12 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_12 PTAC,  !- Name
@@ -18552,7 +18590,6 @@
     ZN_1_FLR_2_SEC_12_Wall_4,!- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -18636,7 +18673,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_12_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_12,       !- Zone Name
+    ZN_1_FLR_2_SEC_12,       !- Zone or ZoneList Name
     323.8302;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -18830,7 +18867,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_12 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_12 PTAC,  !- Name
@@ -19047,7 +19086,6 @@
     ZN_1_FLR_3_SEC_12_Wall_4,!- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -19131,7 +19169,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_12_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_12,       !- Zone Name
+    ZN_1_FLR_3_SEC_12,       !- Zone or ZoneList Name
     323.8302;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -19325,7 +19363,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_12 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_12 PTAC,  !- Name
@@ -19602,7 +19642,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_13_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_13,       !- Zone Name
+    ZN_1_FLR_1_SEC_13,       !- Zone or ZoneList Name
     361.6792;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -19796,7 +19836,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_13 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_13 PTAC,  !- Name
@@ -20073,7 +20115,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_13_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_13,       !- Zone Name
+    ZN_1_FLR_2_SEC_13,       !- Zone or ZoneList Name
     361.6792;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -20267,7 +20309,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_13 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_13 PTAC,  !- Name
@@ -20544,7 +20588,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_13_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_13,       !- Zone Name
+    ZN_1_FLR_3_SEC_13,       !- Zone or ZoneList Name
     361.6792;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -20738,7 +20782,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_13 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_13 PTAC,  !- Name
@@ -20983,7 +21029,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_14_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_14,       !- Zone Name
+    ZN_1_FLR_1_SEC_14,       !- Zone or ZoneList Name
     32.9208;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -21177,7 +21223,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_14 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_14 PTAC,  !- Name
@@ -21422,7 +21470,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_14_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_14,       !- Zone Name
+    ZN_1_FLR_2_SEC_14,       !- Zone or ZoneList Name
     32.9208;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -21616,7 +21664,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_14 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_14 PTAC,  !- Name
@@ -21861,7 +21911,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_14_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_14,       !- Zone Name
+    ZN_1_FLR_3_SEC_14,       !- Zone or ZoneList Name
     32.9208;                 !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -22055,7 +22105,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_14 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_14 PTAC,  !- Name
@@ -22332,7 +22384,7 @@
   InternalMass,
     ZN_1_FLR_1_SEC_15_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_1_SEC_15,       !- Zone Name
+    ZN_1_FLR_1_SEC_15,       !- Zone or ZoneList Name
     361.6792;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -22526,7 +22578,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_1_SEC_15 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_1_SEC_15 PTAC,  !- Name
@@ -22803,7 +22857,7 @@
   InternalMass,
     ZN_1_FLR_2_SEC_15_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_2_SEC_15,       !- Zone Name
+    ZN_1_FLR_2_SEC_15,       !- Zone or ZoneList Name
     361.6792;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -22997,7 +23051,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_2_SEC_15 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_2_SEC_15 PTAC,  !- Name
@@ -23274,7 +23330,7 @@
   InternalMass,
     ZN_1_FLR_3_SEC_15_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    ZN_1_FLR_3_SEC_15,       !- Zone Name
+    ZN_1_FLR_3_SEC_15,       !- Zone or ZoneList Name
     361.6792;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -23468,7 +23524,9 @@
     ZoneHVAC:PackagedTerminalAirConditioner,  !- Zone Equipment 1 Object Type
     ZN_1_FLR_3_SEC_15 PTAC,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:PackagedTerminalAirConditioner,
     ZN_1_FLR_3_SEC_15 PTAC,  !- Name
@@ -24606,7 +24664,7 @@
 
   UtilityCost:Tariff,
     IN_EIAMonthlyRateGas,    !- Name
-    Gas:Facility,            !- Output Meter Name
+    NaturalGas:Facility,            !- Output Meter Name
     MCF,                     !- Conversion Factor Choice
     ,                        !- Energy Conversion Factor
     ,                        !- Demand Conversion Factor
@@ -24699,7 +24757,7 @@
     !
 
   FuelFactors,
-    FuelOil#1,               !- Existing Fuel Resource Name
+    FuelOilNo1,                !- Existing Fuel Resource Name
     m3,                      !- Units of Measure
     38.656E+09,              !- Energy per Unit Factor
     1.158,                   !- Source Energy Factor {J/J}
@@ -24801,9 +24859,9 @@
     SumOrAverage,            !- Aggregation Type for Variable or Meter 1
     Electricity:Facility,    !- Variable or Meter 2 Name
     Maximum,                 !- Aggregation Type for Variable or Meter 2
-    Gas:Facility,            !- Variable or Meter 3 Name
+    NaturalGas:Facility,            !- Variable or Meter 3 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 3
-    Gas:Facility,            !- Variable or Meter 4 Name
+    NaturalGas:Facility,            !- Variable or Meter 4 Name
     Maximum;                 !- Aggregation Type for Variable or Meter 4
 
   Output:Table:Monthly,
@@ -24839,17 +24897,17 @@
   Output:Table:Monthly,
     End-Use Energy Consumption - Natural Gas,  !- Name
     ,                        !- Digits After Decimal
-    InteriorEquipment:Gas,   !- Variable or Meter 1 Name
+    InteriorEquipment:NaturalGas,   !- Variable or Meter 1 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 1
-    ExteriorEquipment:Gas,   !- Variable or Meter 2 Name
+    ExteriorEquipment:NaturalGas,   !- Variable or Meter 2 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 2
-    Heating:Gas,             !- Variable or Meter 3 Name
+    Heating:NaturalGas,             !- Variable or Meter 3 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 3
-    Cooling:Gas,             !- Variable or Meter 4 Name
+    Cooling:NaturalGas,             !- Variable or Meter 4 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 4
-    WaterSystems:Gas,        !- Variable or Meter 5 Name
+    WaterSystems:NaturalGas,        !- Variable or Meter 5 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 5
-    Cogeneration:Gas,        !- Variable or Meter 6 Name
+    Cogeneration:NaturalGas,        !- Variable or Meter 6 Name
     SumOrAverage;            !- Aggregation Type for Variable or Meter 6
 
   Output:Table:Monthly,

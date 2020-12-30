@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -53,7 +53,9 @@
 // EnergyPlus Headers
 #include <EnergyPlus/DataGlobals.hh>
 #include <EnergyPlus/DataHeatBalance.hh>
-#include <HeatBalanceAirManager.hh>
+#include <EnergyPlus/HeatBalanceAirManager.hh>
+#include <EnergyPlus/IOFiles.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
 
 #include "Fixtures/EnergyPlusFixture.hh"
 
@@ -64,7 +66,6 @@ TEST_F(EnergyPlusFixture, HeatBalanceAirManager_RoomAirModelType_Test)
     // Issue User file with RoomAirSettings:AirflowNetwork is failing with fatal error #6086
 
     std::string const idf_objects = delimited_string({
-        "Version,8.6;",
         "  RoomAirModelType,",
         "  Skinny_Model,            !- Name",
         "  South Skin,              !- Zone Name",
@@ -80,7 +81,7 @@ TEST_F(EnergyPlusFixture, HeatBalanceAirManager_RoomAirModelType_Test)
 
     ASSERT_TRUE(process_idf(idf_objects));
 
-    DataGlobals::NumOfZones = 2;
+    state->dataGlobal->NumOfZones = 2;
 
     DataHeatBalance::Zone.allocate(2);
     DataHeatBalance::Zone(1).Name = "SOUTH SKIN";
@@ -88,7 +89,7 @@ TEST_F(EnergyPlusFixture, HeatBalanceAirManager_RoomAirModelType_Test)
 
     bool ErrorsFound(false);
 
-    HeatBalanceAirManager::GetRoomAirModelParameters(ErrorsFound);
+    HeatBalanceAirManager::GetRoomAirModelParameters(*state, ErrorsFound);
 
     EXPECT_TRUE(ErrorsFound);
 

@@ -22,7 +22,7 @@
 ! Plant:    None.
 ! SolDis=FullExterior, Aniso, Simple Interior and Exterior Convection
 
-  Version,9.0;
+  Version,9.4;
 
   Timestep,4;
 
@@ -30,7 +30,7 @@
     BUILDING #1,             !- Name
     0.0000000E+00,           !- North Axis {deg}
     Suburbs,                 !- Terrain
-    3.9999999E-02,           !- Loads Convergence Tolerance Value
+    3.9999999E-02,           !- Loads Convergence Tolerance Value {W}
     0.4000000,               !- Temperature Convergence Tolerance Value {deltaC}
     FullExterior,            !- Solar Distribution
     25,                      !- Maximum Number of Warmup Days
@@ -45,14 +45,18 @@
     No,                      !- Do System Sizing Calculation
     No,                      !- Do Plant Sizing Calculation
     Yes,                     !- Run Simulation for Sizing Periods
-    No;                      !- Run Simulation for Weather File Run Periods
+    No,                      !- Run Simulation for Weather File Run Periods
+    No,                      !- Do HVAC Sizing Simulation for Sizing Periods
+    1;                       !- Maximum Number of HVAC Sizing Simulation Passes
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     1,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     12,                      !- End Month
     31,                      !- End Day of Month
+    ,                        !- End Year
     Tuesday,                 !- Day of Week for Start Day
     Yes,                     !- Use Weather File Holidays and Special Days
     Yes,                     !- Use Weather File Daylight Saving Period
@@ -599,7 +603,9 @@
   GlobalGeometryRules,
     UpperLeftCorner,         !- Starting Vertex Position
     CounterClockWise,        !- Vertex Entry Direction
-    World;                   !- Coordinate System
+    World,                   !- Coordinate System
+    ,                        !- Daylighting Reference Point Coordinate System
+    World;                   !- Rectangular Surface Coordinate System
 
   BuildingSurface:Detailed,
     Zn001:Wall001,           !- Name
@@ -624,7 +630,6 @@
     Zn001:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -682,7 +687,6 @@
     Zn001:Wall003,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -740,7 +744,6 @@
     Zn001:Wall005,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -798,7 +801,6 @@
     Zn001:Wall007,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -856,7 +858,6 @@
     Zn001:Wall009,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -914,7 +915,6 @@
     Zn001:Wall011,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -972,7 +972,6 @@
     Zn001:Wall013,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1030,7 +1029,6 @@
     Zn001:Wall015,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1146,7 +1144,6 @@
     Zn002:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1204,7 +1201,6 @@
     Zn002:Wall003,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1262,7 +1258,6 @@
     Zn002:Wall005,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1320,7 +1315,6 @@
     Zn002:Wall007,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1378,7 +1372,6 @@
     Zn002:Wall009,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1436,7 +1429,6 @@
     Zn002:Wall011,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1494,7 +1486,6 @@
     Zn002:Wall013,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1552,7 +1543,6 @@
     Zn002:Wall015,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1668,7 +1658,6 @@
     Zn003:Wall001,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1726,7 +1715,6 @@
     Zn003:Wall003,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1784,7 +1772,6 @@
     Zn003:Wall005,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1842,7 +1829,6 @@
     Zn003:Wall007,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1900,7 +1886,6 @@
     Zn003:Wall009,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -1958,7 +1943,6 @@
     Zn003:Wall011,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -2016,7 +2000,6 @@
     Zn003:Wall013,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -2074,7 +2057,6 @@
     Zn003:Wall015,           !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.000000,                !- Multiplier
     4,                       !- Number of Vertices
@@ -2195,7 +2177,7 @@
 
   Output:Variable,*,Earth Tube Water Mass Flow Rate,hourly;
 
-  Output:Variable,*,Earth Tube Fan Electric Energy,hourly;
+  Output:Variable,*,Earth Tube Fan Electricity Energy,hourly;
 
   Output:Variable,*,Earth Tube Zone Inlet Air Temperature,hourly;
 

@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -50,20 +50,19 @@
 #include <ObjexxFCL/Fmath.hh>
 
 // EnergyPlus Headers
-#include <DataAirflowNetwork.hh>
-#include <DataGlobals.hh>
-#include <DataHVACGlobals.hh>
-#include <DataIPShortCuts.hh>
-#include <DataLoopNode.hh>
-#include <DataPrecisionGlobals.hh>
-#include <DataZoneEquipment.hh>
-#include <GeneralRoutines.hh>
-#include <InputProcessing/InputProcessor.hh>
-#include <MixerComponent.hh>
-#include <NodeInputManager.hh>
-#include <ReturnAirPathManager.hh>
-#include <UtilityRoutines.hh>
-#include <ZonePlenum.hh>
+#include <AirflowNetwork/Elements.hpp>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
+#include <EnergyPlus/DataHVACGlobals.hh>
+#include <EnergyPlus/DataIPShortCuts.hh>
+#include <EnergyPlus/DataLoopNode.hh>
+#include <EnergyPlus/DataZoneEquipment.hh>
+#include <EnergyPlus/GeneralRoutines.hh>
+#include <EnergyPlus/InputProcessing/InputProcessor.hh>
+#include <EnergyPlus/MixerComponent.hh>
+#include <EnergyPlus/NodeInputManager.hh>
+#include <EnergyPlus/ReturnAirPathManager.hh>
+#include <EnergyPlus/UtilityRoutines.hh>
+#include <EnergyPlus/ZonePlenum.hh>
 
 namespace EnergyPlus {
 
@@ -89,9 +88,6 @@ namespace ReturnAirPathManager {
     // USE STATEMENTS:
     // Use statements for data only modules
     // Using/Aliasing
-    using namespace DataPrecisionGlobals;
-    using DataGlobals::BeginDayFlag;
-    using DataGlobals::BeginEnvrnFlag;
     using DataZoneEquipment::NumReturnAirPaths;
     using DataZoneEquipment::ReturnAirPath;
     using DataZoneEquipment::ZoneMixer_Type;
@@ -123,7 +119,7 @@ namespace ReturnAirPathManager {
         ErrorsFound = false;
     }
 
-    void SimReturnAirPath()
+    void SimReturnAirPath(EnergyPlusData &state)
     {
 
         // SUBROUTINE INFORMATION:
@@ -146,17 +142,17 @@ namespace ReturnAirPathManager {
 
         // Obtains and Allocates Mixer related parameters from input file
         if (GetInputFlag) { // First time subroutine has been entered
-            GetReturnAirPathInput();
+            GetReturnAirPathInput(state);
             GetInputFlag = false;
         }
 
         for (ReturnAirPathNum = 1; ReturnAirPathNum <= NumReturnAirPaths; ++ReturnAirPathNum) {
 
-            CalcReturnAirPath(ReturnAirPathNum);
+            CalcReturnAirPath(state, ReturnAirPathNum);
         }
     }
 
-    void GetReturnAirPathInput()
+    void GetReturnAirPathInput(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Russ Taylor
@@ -185,7 +181,7 @@ namespace ReturnAirPathManager {
             return;
         }
         cCurrentModuleObject = "AirLoopHVAC:ReturnPath";
-        NumReturnAirPaths = inputProcessor->getNumObjectsFound(cCurrentModuleObject);
+        NumReturnAirPaths = inputProcessor->getNumObjectsFound(state, cCurrentModuleObject);
 
         if (NumReturnAirPaths > 0) {
 
@@ -193,13 +189,13 @@ namespace ReturnAirPathManager {
 
             for (PathNum = 1; PathNum <= NumReturnAirPaths; ++PathNum) {
 
-                inputProcessor->getObjectItem(cCurrentModuleObject, PathNum, cAlphaArgs, NumAlphas, rNumericArgs, NumNums, IOStat);
-                UtilityRoutines::IsNameEmpty(cAlphaArgs(1), cCurrentModuleObject, ErrorsFound);
+                inputProcessor->getObjectItem(state, cCurrentModuleObject, PathNum, cAlphaArgs, NumAlphas, rNumericArgs, NumNums, IOStat);
+                UtilityRoutines::IsNameEmpty(state, cAlphaArgs(1), cCurrentModuleObject, ErrorsFound);
 
                 ReturnAirPath(PathNum).Name = cAlphaArgs(1);
                 ReturnAirPath(PathNum).NumOfComponents = nint((NumAlphas - 2.0) / 2.0);
 
-                ReturnAirPath(PathNum).OutletNodeNum = GetOnlySingleNode(
+                ReturnAirPath(PathNum).OutletNodeNum = GetOnlySingleNode(state,
                     cAlphaArgs(2), ErrorsFound, cCurrentModuleObject, cAlphaArgs(1), NodeType_Air, NodeConnectionType_Outlet, 1, ObjectIsParent);
 
                 ReturnAirPath(PathNum).ComponentType.allocate(ReturnAirPath(PathNum).NumOfComponents);
@@ -219,12 +215,12 @@ namespace ReturnAirPathManager {
 
                         ReturnAirPath(PathNum).ComponentType(CompNum) = cAlphaArgs(Counter);
                         ReturnAirPath(PathNum).ComponentName(CompNum) = cAlphaArgs(Counter + 1);
-                        ValidateComponent(ReturnAirPath(PathNum).ComponentType(CompNum),
+                        ValidateComponent(state, ReturnAirPath(PathNum).ComponentType(CompNum),
                                           ReturnAirPath(PathNum).ComponentName(CompNum),
                                           IsNotOK,
                                           "AirLoopHVAC:ReturnPath");
                         if (IsNotOK) {
-                            ShowContinueError("In AirLoopHVAC:ReturnPath =" + ReturnAirPath(PathNum).Name);
+                            ShowContinueError(state, "In AirLoopHVAC:ReturnPath =" + ReturnAirPath(PathNum).Name);
                             ErrorsFound = true;
                         }
                         if (UtilityRoutines::SameString(cAlphaArgs(Counter), "AirLoopHVAC:ZoneMixer"))
@@ -232,9 +228,9 @@ namespace ReturnAirPathManager {
                         if (UtilityRoutines::SameString(cAlphaArgs(Counter), "AirLoopHVAC:ReturnPlenum"))
                             ReturnAirPath(PathNum).ComponentType_Num(CompNum) = ZoneReturnPlenum_Type;
                     } else {
-                        ShowSevereError("Unhandled component type in AirLoopHVAC:ReturnPath of " + cAlphaArgs(Counter));
-                        ShowContinueError("Occurs in AirLoopHVAC:ReturnPath = " + ReturnAirPath(PathNum).Name);
-                        ShowContinueError("Must be \"AirLoopHVAC:ZoneMixer\" or \"AirLoopHVAC:ReturnPlenum\"");
+                        ShowSevereError(state, "Unhandled component type in AirLoopHVAC:ReturnPath of " + cAlphaArgs(Counter));
+                        ShowContinueError(state, "Occurs in AirLoopHVAC:ReturnPath = " + ReturnAirPath(PathNum).Name);
+                        ShowContinueError(state, "Must be \"AirLoopHVAC:ZoneMixer\" or \"AirLoopHVAC:ReturnPlenum\"");
                         ErrorsFound = true;
                     }
 
@@ -244,11 +240,11 @@ namespace ReturnAirPathManager {
         }
 
         if (ErrorsFound) {
-            ShowFatalError("Errors found getting AirLoopHVAC:ReturnPath.  Preceding condition(s) causes termination.");
+            ShowFatalError(state, "Errors found getting AirLoopHVAC:ReturnPath.  Preceding condition(s) causes termination.");
         }
     }
 
-    void InitReturnAirPath(int &EP_UNUSED(ReturnAirPathNum)) // unused1208
+    void InitReturnAirPath([[maybe_unused]] int &ReturnAirPathNum) // unused1208
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Russ Taylor
@@ -263,7 +259,7 @@ namespace ReturnAirPathManager {
         // USE STATEMENTS:
     }
 
-    void CalcReturnAirPath(int &ReturnAirPathNum)
+    void CalcReturnAirPath(EnergyPlusData &state, int &ReturnAirPathNum)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Russ Taylor
@@ -278,9 +274,6 @@ namespace ReturnAirPathManager {
         // USE STATEMENTS:
 
         // Using/Aliasing
-        using DataAirflowNetwork::AirflowNetworkControlMultizone;
-        using DataAirflowNetwork::AirflowNetworkFanActivated;
-        using DataAirflowNetwork::SimulateAirflowNetwork;
         using MixerComponent::SimAirMixer;
         using ZonePlenum::SimAirZonePlenum;
 
@@ -294,27 +287,28 @@ namespace ReturnAirPathManager {
 
                 if (SELECT_CASE_var == ZoneMixer_Type) { // 'AirLoopHVAC:ZoneMixer'
 
-                    if (!(AirflowNetworkFanActivated && SimulateAirflowNetwork > AirflowNetworkControlMultizone)) {
-                        SimAirMixer(ReturnAirPath(ReturnAirPathNum).ComponentName(ComponentNum),
+                    if (!(AirflowNetwork::AirflowNetworkFanActivated &&
+                          AirflowNetwork::SimulateAirflowNetwork > AirflowNetwork::AirflowNetworkControlMultizone)) {
+                        SimAirMixer(state, ReturnAirPath(ReturnAirPathNum).ComponentName(ComponentNum),
                                     ReturnAirPath(ReturnAirPathNum).ComponentIndex(ComponentNum));
                     }
 
                 } else if (SELECT_CASE_var == ZoneReturnPlenum_Type) { // 'AirLoopHVAC:ReturnPlenum'
 
-                    SimAirZonePlenum(ReturnAirPath(ReturnAirPathNum).ComponentName(ComponentNum),
+                    SimAirZonePlenum(state, ReturnAirPath(ReturnAirPathNum).ComponentName(ComponentNum),
                                      ZoneReturnPlenum_Type,
                                      ReturnAirPath(ReturnAirPathNum).ComponentIndex(ComponentNum));
 
                 } else {
-                    ShowSevereError("Invalid AirLoopHVAC:ReturnPath Component=" + ReturnAirPath(ReturnAirPathNum).ComponentType(ComponentNum));
-                    ShowContinueError("Occurs in AirLoopHVAC:ReturnPath =" + ReturnAirPath(ReturnAirPathNum).Name);
-                    ShowFatalError("Preceding condition causes termination.");
+                    ShowSevereError(state, "Invalid AirLoopHVAC:ReturnPath Component=" + ReturnAirPath(ReturnAirPathNum).ComponentType(ComponentNum));
+                    ShowContinueError(state, "Occurs in AirLoopHVAC:ReturnPath =" + ReturnAirPath(ReturnAirPathNum).Name);
+                    ShowFatalError(state, "Preceding condition causes termination.");
                 }
             }
         }
     }
 
-    void ReportReturnAirPath(int &EP_UNUSED(ReturnAirPathNum)) // unused1208
+    void ReportReturnAirPath([[maybe_unused]] int &ReturnAirPathNum) // unused1208
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR:          Russ Taylor

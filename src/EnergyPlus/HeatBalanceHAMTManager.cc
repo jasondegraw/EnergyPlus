@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -51,25 +51,27 @@
 
 // ObjexxFCL Headers
 #include <ObjexxFCL/Fmath.hh>
-#include <ObjexxFCL/gio.hh>
 #include <ObjexxFCL/member.functions.hh>
 
 // EnergyPlus Headers
-#include <DataEnvironment.hh>
-#include <DataGlobals.hh>
-#include <DataHeatBalFanSys.hh>
-#include <DataHeatBalSurface.hh>
-#include <DataHeatBalance.hh>
-#include <DataMoistureBalance.hh>
-#include <DataSurfaces.hh>
-#include <DisplayRoutines.hh>
-#include <General.hh>
-#include <HeatBalanceHAMTManager.hh>
-#include <InputProcessing/InputProcessor.hh>
-#include <OutputProcessor.hh>
-#include <Psychrometrics.hh>
-#include <UtilityRoutines.hh>
-#include <DataAirflowNetwork.hh>  // for internal moisture source type 3
+#include <EnergyPlus/Construction.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
+#include <EnergyPlus/DataEnvironment.hh>
+#include <EnergyPlus/DataHeatBalFanSys.hh>
+#include <EnergyPlus/DataHeatBalSurface.hh>
+#include <EnergyPlus/DataHeatBalance.hh>
+#include <EnergyPlus/DataMoistureBalance.hh>
+#include <EnergyPlus/DataSurfaces.hh>
+#include <EnergyPlus/DisplayRoutines.hh>
+#include <EnergyPlus/General.hh>
+#include <EnergyPlus/HeatBalanceHAMTManager.hh>
+#include <EnergyPlus/InputProcessing/InputProcessor.hh>
+#include <EnergyPlus/Material.hh>
+#include <EnergyPlus/OutputProcessor.hh>
+#include <EnergyPlus/Psychrometrics.hh>
+#include <EnergyPlus/UtilityRoutines.hh>
+#include <AirflowNetwork/Elements.hpp>
+//#include <DataAirflowNetwork.hh>  // for internal moisture source type 3
 
 namespace EnergyPlus {
 
@@ -111,31 +113,23 @@ namespace HeatBalanceHAMTManager {
     // USE STATEMENTS:
 
     // Using/Aliasing
-    using namespace DataGlobals;
     using namespace DataMoistureBalance;
     using namespace DataSurfaces;
     using DataHeatBalSurface::MaxSurfaceTempLimit;
     using DataHeatBalSurface::MaxSurfaceTempLimitBeforeFatal;
     using DataHeatBalSurface::MinSurfaceTempLimit;
     using DataHeatBalSurface::MinSurfaceTempLimitBeforeFatal;
-    using DataHeatBalSurface::NetLWRadToSurf;
-    using DataHeatBalSurface::QRadSWInAbs;
-    using DataHeatBalSurface::QRadSWOutAbs;
+    using DataHeatBalSurface::SurfNetLWRadToSurf;
+    using DataHeatBalSurface::SurfOpaqQRadSWInAbs;
+    using DataHeatBalSurface::SurfOpaqQRadSWOutAbs;
     using namespace DataHeatBalance;
     using namespace Psychrometrics;
-    using DataEnvironment::IsRain;
-    using DataEnvironment::OutBaroPress;
-    using DataEnvironment::OutEnthalpy;
-    using DataEnvironment::SkyTemp;
-    using DataEnvironment::SunIsUp;
     using DataHeatBalFanSys::MAT;
     using DataHeatBalFanSys::QCoolingPanelSurf;
     using DataHeatBalFanSys::QElecBaseboardSurf;
     using DataHeatBalFanSys::QHTRadSysSurf;
     using DataHeatBalFanSys::QHWBaseboardSurf;
     using DataHeatBalFanSys::QSteamBaseboardSurf;
-
-    using namespace DataAirflowNetwork;
 
     // Data
     // MODULE PARAMETER DEFINITIONS:
@@ -148,10 +142,6 @@ namespace HeatBalanceHAMTManager {
     Real64 const convt(0.002);     // Temperature convergence limit
     Real64 const qvplim(100000.0); // Maximum latent heat W
     Real64 const rhmax(1.01);      // Maximum RH value
-
-    static std::string const BlankString;
-
-    // DERIVED TYPE DEFINITIONS:
 
     // MODULE VARIABLE DECLARATIONS:
     Array1D_int firstcell;
@@ -189,11 +179,11 @@ namespace HeatBalanceHAMTManager {
 
     // Object Data
     Array1D<subcell> cells;
-    Array1D<s_ims> ims; // internal moisture sources
+    Array1D<InternalMoistureSource> sources;
 
     // Functions
 
-    void ManageHeatBalHAMT(int const SurfNum, Real64 &TempSurfInTmp, Real64 &TempSurfOutTmp)
+    void ManageHeatBalHAMT(EnergyPlusData &state, int const SurfNum, Real64 &TempSurfInTmp, Real64 &TempSurfOutTmp)
     {
 
         // SUBROUTINE INFORMATION:
@@ -232,15 +222,15 @@ namespace HeatBalanceHAMTManager {
 
         if (OneTimeFlag) {
             OneTimeFlag = false;
-            DisplayString("Initialising Heat and Moisture Transfer Model");
-            GetHeatBalHAMTInput();
-            InitHeatBalHAMT();
+            DisplayString(state, "Initialising Heat and Moisture Transfer Model");
+            GetHeatBalHAMTInput(state);
+            InitHeatBalHAMT(state);
         }
 
-        CalcHeatBalHAMT(SurfNum, TempSurfInTmp, TempSurfOutTmp);
+        CalcHeatBalHAMT(state, SurfNum, TempSurfInTmp, TempSurfOutTmp);
     }
 
-    void GetHeatBalHAMTInput()
+    void GetHeatBalHAMTInput(EnergyPlusData &state)
     {
 
         // SUBROUTINE INFORMATION:
@@ -260,7 +250,7 @@ namespace HeatBalanceHAMTManager {
         static std::string const cHAMTObject5("MaterialProperty:HeatAndMoistureTransfer:Diffusion");
         static std::string const cHAMTObject6("MaterialProperty:HeatAndMoistureTransfer:ThermalConductivity");
         static std::string const cHAMTObject7("SurfaceProperties:VaporCoefficients");
-        static std::string const cHAMTObject8("Construction:InternalMoistureSource");
+        static std::string const cHAMTObject8("ConstructionProperty:InternalMoistureSource");
 
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
 
@@ -335,28 +325,28 @@ namespace HeatBalanceHAMTManager {
 
         MaxAlphas = 0;
         MaxNums = 0;
-        inputProcessor->getObjectDefMaxArgs(cHAMTObject1, NumParams, NumAlphas, NumNums);
+        inputProcessor->getObjectDefMaxArgs(state, cHAMTObject1, NumParams, NumAlphas, NumNums);
         MaxAlphas = max(MaxAlphas, NumAlphas);
         MaxNums = max(MaxNums, NumNums);
-        inputProcessor->getObjectDefMaxArgs(cHAMTObject2, NumParams, NumAlphas, NumNums);
+        inputProcessor->getObjectDefMaxArgs(state, cHAMTObject2, NumParams, NumAlphas, NumNums);
         MaxAlphas = max(MaxAlphas, NumAlphas);
         MaxNums = max(MaxNums, NumNums);
-        inputProcessor->getObjectDefMaxArgs(cHAMTObject3, NumParams, NumAlphas, NumNums);
+        inputProcessor->getObjectDefMaxArgs(state, cHAMTObject3, NumParams, NumAlphas, NumNums);
         MaxAlphas = max(MaxAlphas, NumAlphas);
         MaxNums = max(MaxNums, NumNums);
-        inputProcessor->getObjectDefMaxArgs(cHAMTObject4, NumParams, NumAlphas, NumNums);
+        inputProcessor->getObjectDefMaxArgs(state, cHAMTObject4, NumParams, NumAlphas, NumNums);
         MaxAlphas = max(MaxAlphas, NumAlphas);
         MaxNums = max(MaxNums, NumNums);
-        inputProcessor->getObjectDefMaxArgs(cHAMTObject5, NumParams, NumAlphas, NumNums);
+        inputProcessor->getObjectDefMaxArgs(state, cHAMTObject5, NumParams, NumAlphas, NumNums);
         MaxAlphas = max(MaxAlphas, NumAlphas);
         MaxNums = max(MaxNums, NumNums);
-        inputProcessor->getObjectDefMaxArgs(cHAMTObject6, NumParams, NumAlphas, NumNums);
+        inputProcessor->getObjectDefMaxArgs(state, cHAMTObject6, NumParams, NumAlphas, NumNums);
         MaxAlphas = max(MaxAlphas, NumAlphas);
         MaxNums = max(MaxNums, NumNums);
-        inputProcessor->getObjectDefMaxArgs(cHAMTObject7, NumParams, NumAlphas, NumNums);
+        inputProcessor->getObjectDefMaxArgs(state, cHAMTObject7, NumParams, NumAlphas, NumNums);
         MaxAlphas = max(MaxAlphas, NumAlphas);
         MaxNums = max(MaxNums, NumNums);
-        inputProcessor->getObjectDefMaxArgs(cHAMTObject8, NumParams, NumAlphas, NumNums);
+        inputProcessor->getObjectDefMaxArgs(state, cHAMTObject8, NumParams, NumAlphas, NumNums);
         MaxAlphas = max(MaxAlphas, NumAlphas);
         MaxNums = max(MaxNums, NumNums);
 
@@ -369,9 +359,10 @@ namespace HeatBalanceHAMTManager {
         lAlphaBlanks.dimension(MaxAlphas, false);
         lNumericBlanks.dimension(MaxNums, false);
 
-        HAMTitems = inputProcessor->getNumObjectsFound(cHAMTObject1); // MaterialProperty:HeatAndMoistureTransfer:Settings
+        HAMTitems = inputProcessor->getNumObjectsFound(state, cHAMTObject1); // MaterialProperty:HeatAndMoistureTransfer:Settings
         for (item = 1; item <= HAMTitems; ++item) {
-            inputProcessor->getObjectItem(cHAMTObject1,
+            inputProcessor->getObjectItem(state,
+                                          cHAMTObject1,
                                           item,
                                           AlphaArray,
                                           NumAlphas,
@@ -383,26 +374,28 @@ namespace HeatBalanceHAMTManager {
                                           cAlphaFieldNames,
                                           cNumericFieldNames);
 
-            matid = UtilityRoutines::FindItemInList(AlphaArray(1), Material);
+            matid = UtilityRoutines::FindItemInList(AlphaArray(1), state.dataMaterial->Material);
 
             if (matid == 0) {
-                ShowSevereError(cHAMTObject1 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
+                ShowSevereError(state, cHAMTObject1 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
                 ErrorsFound = true;
                 continue;
             }
-            if (Material(matid).ROnly) {
-                ShowWarningError(cHAMTObject1 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
+            if (state.dataMaterial->Material(matid).ROnly) {
+                ShowWarningError(state,
+                                 cHAMTObject1 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
                 continue;
             }
 
-            Material(matid).Porosity = NumArray(1);
-            Material(matid).iwater = NumArray(2);
+            state.dataMaterial->Material(matid).Porosity = NumArray(1);
+            state.dataMaterial->Material(matid).iwater = NumArray(2);
         }
 
-        HAMTitems = inputProcessor->getNumObjectsFound(cHAMTObject2); // MaterialProperty:HeatAndMoistureTransfer:SorptionIsotherm
+        HAMTitems = inputProcessor->getNumObjectsFound(state, cHAMTObject2); // MaterialProperty:HeatAndMoistureTransfer:SorptionIsotherm
         for (item = 1; item <= HAMTitems; ++item) {
-            inputProcessor->getObjectItem(cHAMTObject2,
+            inputProcessor->getObjectItem(state,
+                                          cHAMTObject2,
                                           item,
                                           AlphaArray,
                                           NumAlphas,
@@ -414,55 +407,57 @@ namespace HeatBalanceHAMTManager {
                                           cAlphaFieldNames,
                                           cNumericFieldNames);
 
-            matid = UtilityRoutines::FindItemInList(AlphaArray(1), Material);
+            matid = UtilityRoutines::FindItemInList(AlphaArray(1), state.dataMaterial->Material);
 
             if (matid == 0) {
-                ShowSevereError(cHAMTObject2 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
+                ShowSevereError(state, cHAMTObject2 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
                 ErrorsFound = true;
                 continue;
             }
-            if (Material(matid).ROnly) {
-                ShowWarningError(cHAMTObject2 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
+            if (state.dataMaterial->Material(matid).ROnly) {
+                ShowWarningError(state,
+                                 cHAMTObject2 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
                 continue;
             }
 
             Numid = 1;
 
-            Material(matid).niso = int(NumArray(Numid));
+            state.dataMaterial->Material(matid).niso = int(NumArray(Numid));
 
-            for (iso = 1; iso <= Material(matid).niso; ++iso) {
+            for (iso = 1; iso <= state.dataMaterial->Material(matid).niso; ++iso) {
                 ++Numid;
-                Material(matid).isorh(iso) = NumArray(Numid);
+                state.dataMaterial->Material(matid).isorh(iso) = NumArray(Numid);
                 ++Numid;
-                Material(matid).isodata(iso) = NumArray(Numid);
+                state.dataMaterial->Material(matid).isodata(iso) = NumArray(Numid);
             }
 
-            ++Material(matid).niso;
-            Material(matid).isorh(Material(matid).niso) = rhmax;
-            Material(matid).isodata(Material(matid).niso) = Material(matid).Porosity * wdensity;
+            ++state.dataMaterial->Material(matid).niso;
+            state.dataMaterial->Material(matid).isorh(state.dataMaterial->Material(matid).niso) = rhmax;
+            state.dataMaterial->Material(matid).isodata(state.dataMaterial->Material(matid).niso) =
+                state.dataMaterial->Material(matid).Porosity * wdensity;
 
-            ++Material(matid).niso;
-            Material(matid).isorh(Material(matid).niso) = 0.0;
-            Material(matid).isodata(Material(matid).niso) = 0.0;
+            ++state.dataMaterial->Material(matid).niso;
+            state.dataMaterial->Material(matid).isorh(state.dataMaterial->Material(matid).niso) = 0.0;
+            state.dataMaterial->Material(matid).isodata(state.dataMaterial->Material(matid).niso) = 0.0;
         }
 
         // check the isotherm
         for (matid = 1; matid <= TotMaterials; ++matid) {
-            if (Material(matid).niso > 0) {
+            if (state.dataMaterial->Material(matid).niso > 0) {
                 // - First sort
-                for (jj = 1; jj <= Material(matid).niso - 1; ++jj) {
-                    for (ii = jj + 1; ii <= Material(matid).niso; ++ii) {
-                        if (Material(matid).isorh(jj) > Material(matid).isorh(ii)) {
+                for (jj = 1; jj <= state.dataMaterial->Material(matid).niso - 1; ++jj) {
+                    for (ii = jj + 1; ii <= state.dataMaterial->Material(matid).niso; ++ii) {
+                        if (state.dataMaterial->Material(matid).isorh(jj) > state.dataMaterial->Material(matid).isorh(ii)) {
 
-                            dumrh = Material(matid).isorh(jj);
-                            dumdata = Material(matid).isodata(jj);
+                            dumrh = state.dataMaterial->Material(matid).isorh(jj);
+                            dumdata = state.dataMaterial->Material(matid).isodata(jj);
 
-                            Material(matid).isorh(jj) = Material(matid).isorh(ii);
-                            Material(matid).isodata(jj) = Material(matid).isodata(ii);
+                            state.dataMaterial->Material(matid).isorh(jj) = state.dataMaterial->Material(matid).isorh(ii);
+                            state.dataMaterial->Material(matid).isodata(jj) = state.dataMaterial->Material(matid).isodata(ii);
 
-                            Material(matid).isorh(ii) = dumrh;
-                            Material(matid).isodata(ii) = dumdata;
+                            state.dataMaterial->Material(matid).isorh(ii) = dumrh;
+                            state.dataMaterial->Material(matid).isodata(ii) = dumdata;
                         }
                     }
                 }
@@ -470,27 +465,28 @@ namespace HeatBalanceHAMTManager {
                 isoerrrise = false;
                 for (ii = 1; ii <= 100; ++ii) {
                     avflag = true;
-                    for (jj = 1; jj <= Material(matid).niso - 1; ++jj) {
-                        if (Material(matid).isodata(jj) > Material(matid).isodata(jj + 1)) {
+                    for (jj = 1; jj <= state.dataMaterial->Material(matid).niso - 1; ++jj) {
+                        if (state.dataMaterial->Material(matid).isodata(jj) > state.dataMaterial->Material(matid).isodata(jj + 1)) {
                             isoerrrise = true;
-                            avdata = (Material(matid).isodata(jj) + Material(matid).isodata(jj + 1)) / 2.0;
-                            Material(matid).isodata(jj) = avdata;
-                            Material(matid).isodata(jj + 1) = avdata;
+                            avdata = (state.dataMaterial->Material(matid).isodata(jj) + state.dataMaterial->Material(matid).isodata(jj + 1)) / 2.0;
+                            state.dataMaterial->Material(matid).isodata(jj) = avdata;
+                            state.dataMaterial->Material(matid).isodata(jj + 1) = avdata;
                             avflag = false;
                         }
                     }
                     if (avflag) break;
                 }
                 if (isoerrrise) {
-                    ShowWarningError(cHAMTObject2 + " data not rising - Check material " + Material(matid).Name);
-                    ShowContinueError("Isotherm data has been fixed, and the simulation continues.");
+                    ShowWarningError(state, cHAMTObject2 + " data not rising - Check material " + state.dataMaterial->Material(matid).Name);
+                    ShowContinueError(state, "Isotherm data has been fixed, and the simulation continues.");
                 }
             }
         }
 
-        HAMTitems = inputProcessor->getNumObjectsFound(cHAMTObject3); // MaterialProperty:HeatAndMoistureTransfer:Suction
+        HAMTitems = inputProcessor->getNumObjectsFound(state, cHAMTObject3); // MaterialProperty:HeatAndMoistureTransfer:Suction
         for (item = 1; item <= HAMTitems; ++item) {
-            inputProcessor->getObjectItem(cHAMTObject3,
+            inputProcessor->getObjectItem(state,
+                                          cHAMTObject3,
                                           item,
                                           AlphaArray,
                                           NumAlphas,
@@ -502,37 +498,41 @@ namespace HeatBalanceHAMTManager {
                                           cAlphaFieldNames,
                                           cNumericFieldNames);
 
-            matid = UtilityRoutines::FindItemInList(AlphaArray(1), Material);
+            matid = UtilityRoutines::FindItemInList(AlphaArray(1), state.dataMaterial->Material);
 
             if (matid == 0) {
-                ShowSevereError(cHAMTObject3 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
+                ShowSevereError(state, cHAMTObject3 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
                 ErrorsFound = true;
                 continue;
             }
-            if (Material(matid).ROnly) {
-                ShowWarningError(cHAMTObject3 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
+            if (state.dataMaterial->Material(matid).ROnly) {
+                ShowWarningError(state,
+                                 cHAMTObject3 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
                 continue;
             }
 
             Numid = 1;
 
-            Material(matid).nsuc = NumArray(Numid);
-            for (suc = 1; suc <= Material(matid).nsuc; ++suc) {
+            state.dataMaterial->Material(matid).nsuc = NumArray(Numid);
+            for (suc = 1; suc <= state.dataMaterial->Material(matid).nsuc; ++suc) {
                 ++Numid;
-                Material(matid).sucwater(suc) = NumArray(Numid);
+                state.dataMaterial->Material(matid).sucwater(suc) = NumArray(Numid);
                 ++Numid;
-                Material(matid).sucdata(suc) = NumArray(Numid);
+                state.dataMaterial->Material(matid).sucdata(suc) = NumArray(Numid);
             }
 
-            ++Material(matid).nsuc;
-            Material(matid).sucwater(Material(matid).nsuc) = Material(matid).isodata(Material(matid).niso);
-            Material(matid).sucdata(Material(matid).nsuc) = Material(matid).sucdata(Material(matid).nsuc - 1);
+            ++state.dataMaterial->Material(matid).nsuc;
+            state.dataMaterial->Material(matid).sucwater(state.dataMaterial->Material(matid).nsuc) =
+                state.dataMaterial->Material(matid).isodata(state.dataMaterial->Material(matid).niso);
+            state.dataMaterial->Material(matid).sucdata(state.dataMaterial->Material(matid).nsuc) =
+                state.dataMaterial->Material(matid).sucdata(state.dataMaterial->Material(matid).nsuc - 1);
         }
 
-        HAMTitems = inputProcessor->getNumObjectsFound(cHAMTObject4); // MaterialProperty:HeatAndMoistureTransfer:Redistribution
+        HAMTitems = inputProcessor->getNumObjectsFound(state, cHAMTObject4); // MaterialProperty:HeatAndMoistureTransfer:Redistribution
         for (item = 1; item <= HAMTitems; ++item) {
-            inputProcessor->getObjectItem(cHAMTObject4,
+            inputProcessor->getObjectItem(state,
+                                          cHAMTObject4,
                                           item,
                                           AlphaArray,
                                           NumAlphas,
@@ -544,35 +544,39 @@ namespace HeatBalanceHAMTManager {
                                           cAlphaFieldNames,
                                           cNumericFieldNames);
 
-            matid = UtilityRoutines::FindItemInList(AlphaArray(1), Material);
+            matid = UtilityRoutines::FindItemInList(AlphaArray(1), state.dataMaterial->Material);
             if (matid == 0) {
-                ShowSevereError(cHAMTObject4 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
+                ShowSevereError(state, cHAMTObject4 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
                 ErrorsFound = true;
                 continue;
             }
-            if (Material(matid).ROnly) {
-                ShowWarningError(cHAMTObject4 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
+            if (state.dataMaterial->Material(matid).ROnly) {
+                ShowWarningError(state,
+                                 cHAMTObject4 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
                 continue;
             }
             Numid = 1;
 
-            Material(matid).nred = NumArray(Numid);
-            for (red = 1; red <= Material(matid).nred; ++red) {
+            state.dataMaterial->Material(matid).nred = NumArray(Numid);
+            for (red = 1; red <= state.dataMaterial->Material(matid).nred; ++red) {
                 ++Numid;
-                Material(matid).redwater(red) = NumArray(Numid);
+                state.dataMaterial->Material(matid).redwater(red) = NumArray(Numid);
                 ++Numid;
-                Material(matid).reddata(red) = NumArray(Numid);
+                state.dataMaterial->Material(matid).reddata(red) = NumArray(Numid);
             }
 
-            ++Material(matid).nred;
-            Material(matid).redwater(Material(matid).nred) = Material(matid).isodata(Material(matid).niso);
-            Material(matid).reddata(Material(matid).nred) = Material(matid).reddata(Material(matid).nred - 1);
+            ++state.dataMaterial->Material(matid).nred;
+            state.dataMaterial->Material(matid).redwater(state.dataMaterial->Material(matid).nred) =
+                state.dataMaterial->Material(matid).isodata(state.dataMaterial->Material(matid).niso);
+            state.dataMaterial->Material(matid).reddata(state.dataMaterial->Material(matid).nred) =
+                state.dataMaterial->Material(matid).reddata(state.dataMaterial->Material(matid).nred - 1);
         }
 
-        HAMTitems = inputProcessor->getNumObjectsFound(cHAMTObject5); // MaterialProperty:HeatAndMoistureTransfer:Diffusion
+        HAMTitems = inputProcessor->getNumObjectsFound(state, cHAMTObject5); // MaterialProperty:HeatAndMoistureTransfer:Diffusion
         for (item = 1; item <= HAMTitems; ++item) {
-            inputProcessor->getObjectItem(cHAMTObject5,
+            inputProcessor->getObjectItem(state,
+                                          cHAMTObject5,
                                           item,
                                           AlphaArray,
                                           NumAlphas,
@@ -584,38 +588,42 @@ namespace HeatBalanceHAMTManager {
                                           cAlphaFieldNames,
                                           cNumericFieldNames);
 
-            matid = UtilityRoutines::FindItemInList(AlphaArray(1), Material);
+            matid = UtilityRoutines::FindItemInList(AlphaArray(1), state.dataMaterial->Material);
             if (matid == 0) {
-                ShowSevereError(cHAMTObject5 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
+                ShowSevereError(state, cHAMTObject5 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
                 ErrorsFound = true;
                 continue;
             }
-            if (Material(matid).ROnly) {
-                ShowWarningError(cHAMTObject5 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
+            if (state.dataMaterial->Material(matid).ROnly) {
+                ShowWarningError(state,
+                                 cHAMTObject5 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
                 continue;
             }
 
             Numid = 1;
 
-            Material(matid).nmu = NumArray(Numid);
-            if (Material(matid).nmu > 0) {
-                for (mu = 1; mu <= Material(matid).nmu; ++mu) {
+            state.dataMaterial->Material(matid).nmu = NumArray(Numid);
+            if (state.dataMaterial->Material(matid).nmu > 0) {
+                for (mu = 1; mu <= state.dataMaterial->Material(matid).nmu; ++mu) {
                     ++Numid;
-                    Material(matid).murh(mu) = NumArray(Numid);
+                    state.dataMaterial->Material(matid).murh(mu) = NumArray(Numid);
                     ++Numid;
-                    Material(matid).mudata(mu) = NumArray(Numid);
+                    state.dataMaterial->Material(matid).mudata(mu) = NumArray(Numid);
                 }
 
-                ++Material(matid).nmu;
-                Material(matid).murh(Material(matid).nmu) = Material(matid).isorh(Material(matid).niso);
-                Material(matid).mudata(Material(matid).nmu) = Material(matid).mudata(Material(matid).nmu - 1);
+                ++state.dataMaterial->Material(matid).nmu;
+                state.dataMaterial->Material(matid).murh(state.dataMaterial->Material(matid).nmu) =
+                    state.dataMaterial->Material(matid).isorh(state.dataMaterial->Material(matid).niso);
+                state.dataMaterial->Material(matid).mudata(state.dataMaterial->Material(matid).nmu) =
+                    state.dataMaterial->Material(matid).mudata(state.dataMaterial->Material(matid).nmu - 1);
             }
         }
 
-        HAMTitems = inputProcessor->getNumObjectsFound(cHAMTObject6); // MaterialProperty:HeatAndMoistureTransfer:ThermalConductivity
+        HAMTitems = inputProcessor->getNumObjectsFound(state, cHAMTObject6); // MaterialProperty:HeatAndMoistureTransfer:ThermalConductivity
         for (item = 1; item <= HAMTitems; ++item) {
-            inputProcessor->getObjectItem(cHAMTObject6,
+            inputProcessor->getObjectItem(state,
+                                          cHAMTObject6,
                                           item,
                                           AlphaArray,
                                           NumAlphas,
@@ -627,38 +635,42 @@ namespace HeatBalanceHAMTManager {
                                           cAlphaFieldNames,
                                           cNumericFieldNames);
 
-            matid = UtilityRoutines::FindItemInList(AlphaArray(1), Material);
+            matid = UtilityRoutines::FindItemInList(AlphaArray(1), state.dataMaterial->Material);
             if (matid == 0) {
-                ShowSevereError(cHAMTObject6 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
+                ShowSevereError(state, cHAMTObject6 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
                 ErrorsFound = true;
                 continue;
             }
-            if (Material(matid).ROnly) {
-                ShowWarningError(cHAMTObject6 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
+            if (state.dataMaterial->Material(matid).ROnly) {
+                ShowWarningError(state,
+                                 cHAMTObject6 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is defined as an R-only value material.");
                 continue;
             }
             Numid = 1;
 
-            Material(matid).ntc = NumArray(Numid);
-            if (Material(matid).ntc > 0) {
-                for (tc = 1; tc <= Material(matid).ntc; ++tc) {
+            state.dataMaterial->Material(matid).ntc = NumArray(Numid);
+            if (state.dataMaterial->Material(matid).ntc > 0) {
+                for (tc = 1; tc <= state.dataMaterial->Material(matid).ntc; ++tc) {
                     ++Numid;
-                    Material(matid).tcwater(tc) = NumArray(Numid);
+                    state.dataMaterial->Material(matid).tcwater(tc) = NumArray(Numid);
                     ++Numid;
-                    Material(matid).tcdata(tc) = NumArray(Numid);
+                    state.dataMaterial->Material(matid).tcdata(tc) = NumArray(Numid);
                 }
 
-                ++Material(matid).ntc;
-                Material(matid).tcwater(Material(matid).ntc) = Material(matid).isodata(Material(matid).niso);
-                Material(matid).tcdata(Material(matid).ntc) = Material(matid).tcdata(Material(matid).ntc - 1);
+                ++state.dataMaterial->Material(matid).ntc;
+                state.dataMaterial->Material(matid).tcwater(state.dataMaterial->Material(matid).ntc) =
+                    state.dataMaterial->Material(matid).isodata(state.dataMaterial->Material(matid).niso);
+                state.dataMaterial->Material(matid).tcdata(state.dataMaterial->Material(matid).ntc) =
+                    state.dataMaterial->Material(matid).tcdata(state.dataMaterial->Material(matid).ntc - 1);
             }
         }
 
         // Vapor Transfer coefficients
-        HAMTitems = inputProcessor->getNumObjectsFound(cHAMTObject7); // SurfaceProperties:VaporCoefficients
+        HAMTitems = inputProcessor->getNumObjectsFound(state, cHAMTObject7); // SurfaceProperties:VaporCoefficients
         for (item = 1; item <= HAMTitems; ++item) {
-            inputProcessor->getObjectItem(cHAMTObject7,
+            inputProcessor->getObjectItem(state,
+                                          cHAMTObject7,
                                           item,
                                           AlphaArray,
                                           NumAlphas,
@@ -672,8 +684,8 @@ namespace HeatBalanceHAMTManager {
 
             vtcsid = UtilityRoutines::FindItemInList(AlphaArray(1), Surface);
             if (vtcsid == 0) {
-                ShowSevereError(cHAMTObject7 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
+                ShowSevereError(state, cHAMTObject7 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
                 ErrorsFound = true;
                 continue;
             }
@@ -690,14 +702,15 @@ namespace HeatBalanceHAMTManager {
         }
 
         // Internal Moisture Source
-        HAMTitems = inputProcessor->getNumObjectsFound(cHAMTObject8); // Construction:InternalMoistureSource
+        HAMTitems = inputProcessor->getNumObjectsFound(state, cHAMTObject8); // Construction:InternalMoistureSource
 
-        ims.allocate(HAMTitems);
+        sources.allocate(HAMTitems);
 
         TotImsMax = HAMTitems;
 
         for (item = 1; item <= HAMTitems; item++) {
-            inputProcessor->getObjectItem(cHAMTObject8,
+            inputProcessor->getObjectItem(state,
+                                          cHAMTObject8,
                                           item,
                                           AlphaArray,
                                           NumAlphas,
@@ -709,40 +722,40 @@ namespace HeatBalanceHAMTManager {
                                           cAlphaFieldNames,
                                           cNumericFieldNames);
 
-            ims(item).imsid = item;
-            ims(item).sid = UtilityRoutines::FindItemInList(AlphaArray(2), Surface);
-            ims(item).lid = NumArray(1);
+            sources(item).id = item;
+            sources(item).surface_id = UtilityRoutines::FindItemInList(AlphaArray(2), Surface);
+            sources(item).layer_id = NumArray(1);
 
-            ims(item).SourceType = NumArray(2);
-            ims(item).moistairflow_Input = NumArray(3);
-            ims(item).StackHeight = NumArray(4);
-            ims(item).ComponentAirPermeance = NumArray(5);
-            ims(item).MechanicalVentilationOverpressure = NumArray(6);
+            //sources(item).SourceType = NumArray(2);
+            sources(item).moist_airflow_input = NumArray(3);
+            sources(item).stack_height = NumArray(4);
+            sources(item).component_air_permeance = NumArray(5);
+            sources(item).mechanical_ventilation_overpressure = NumArray(6);
 
-            if (ims(item).sid == 0) {
-                ShowSevereError(cHAMTObject8 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
+            if (sources(item).surface_id == 0) {
+                ShowSevereError(state, cHAMTObject8 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "The basic material must be defined in addition to specifying HeatAndMoistureTransfer properties.");
                 ErrorsFound = true;
                 continue;
             }
 
-            if (ims(item).SourceType == 1 && lNumericBlanks(3) == true) {
-                ShowSevereError(cHAMTObject8 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("No user defined input for Air Flow throguh Component found. Internal Moisture Source Type 1 requires this input.");
+            if (sources(item).type == InternalMoistureSource::Type::UserDefined && lNumericBlanks(3) == true) {
+                ShowSevereError(state, cHAMTObject8 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "No user defined input for Air Flow throguh Component found. Internal Moisture Source Type 1 requires this input.");
                 ErrorsFound = true;
                 continue;
             }
 
-            if (ims(item).SourceType == 2 && lNumericBlanks(4) == true) {
-                ShowSevereError(cHAMTObject8 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("No user defined input for Stack Height for Component found. Internal Moisture Source Type 2 requires this input.");
+            if (sources(item).type == InternalMoistureSource::Type::StackAndOverPressure && lNumericBlanks(4) == true) {
+                ShowSevereError(state, cHAMTObject8 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "No user defined input for Stack Height for Component found. Internal Moisture Source Type 2 requires this input.");
                 ErrorsFound = true;
                 continue;
             }
 
-            if (ims(item).SourceType == 2 && lNumericBlanks(5) == true) {
-                ShowSevereError(cHAMTObject8 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
-                ShowContinueError("No user defined input for Component Air Permeance found. Internal Moisture Source Type 2 requires this input.");
+            if (sources(item).type == InternalMoistureSource::Type::StackAndOverPressure && lNumericBlanks(5) == true) {
+                ShowSevereError(state, cHAMTObject8 + ' ' + cAlphaFieldNames(1) + "=\"" + AlphaArray(1) + "\" is invalid (undefined).");
+                ShowContinueError(state, "No user defined input for Component Air Permeance found. Internal Moisture Source Type 2 requires this input.");
                 ErrorsFound = true;
                 continue;
             }
@@ -756,11 +769,11 @@ namespace HeatBalanceHAMTManager {
         lNumericBlanks.deallocate();
 
         if (ErrorsFound) {
-            ShowFatalError("GetHeatBalHAMTInput: Errors found getting input.  Program terminates.");
+            ShowFatalError(state, "GetHeatBalHAMTInput: Errors found getting input.  Program terminates.");
         }
     }
 
-    void InitHeatBalHAMT()
+    void InitHeatBalHAMT(EnergyPlusData &state)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Phillip Biddulph
@@ -778,9 +791,8 @@ namespace HeatBalanceHAMTManager {
         // na
 
         // Using/Aliasing
-        using General::RoundSigDigits;
+
         using General::ScanForReports;
-        using General::TrimSigDigits;
 
         // Locals
         // SUBROUTINE ARGUMENT DEFINITIONS:
@@ -806,7 +818,6 @@ namespace HeatBalanceHAMTManager {
         int conid;
         int lid;
         int matid;
-        int imsid; // internal moisture source id
         int did;
         int adj1;
         int adj2;
@@ -820,104 +831,113 @@ namespace HeatBalanceHAMTManager {
         Real64 waterd; // water density
         bool DoReport;
 
-        // Formats
-        static gio::Fmt Format_1966("('! <HAMT cells>, Surface Name, Construction Name, Cell Numbers')");
-        static gio::Fmt Format_1965("('! <HAMT origins>, Surface Name, Construction Name, Cell origins (m) ')");
-        static gio::Fmt Format_1968("('HAMT cells, ',A,',',A,400(,:,',',i4))");
-        static gio::Fmt Format_1967("('HAMT origins,',A,',',A,400(,:,',',f10.7))");
-        static gio::Fmt Format_108("('! <Material Nominal Resistance>, Material Name,  Nominal R')");
-        static gio::Fmt Format_111("('Material Nominal Resistance's,2(',',A))");
-
-        deltat = TimeStepZone * 3600.0;
+        deltat = state.dataGlobal->TimeStepZone * 3600.0;
 
         // Check the materials information and work out how many cells are required.
         errorCount = 0;
         TotCellsMax = 0;
         for (sid = 1; sid <= TotSurfaces; ++sid) {
-            if (Surface(sid).Class == SurfaceClass_Window) continue;
+            if (Surface(sid).Class == SurfaceClass::Window) continue;
             if (Surface(sid).HeatTransferAlgorithm != HeatTransferModel_HAMT) continue;
             conid = Surface(sid).Construction;
             if (conid == 0) continue;
-            for (lid = 1; lid <= Construct(conid).TotLayers; ++lid) {
-                matid = Construct(conid).LayerPoint(lid);
-                if (Material(matid).ROnly) {
-                    ShowSevereError(RoutineName + "Construction=" + Construct(conid).Name + " cannot contain R-only value materials.");
-                    ShowContinueError("Reference Material=\"" + Material(matid).Name + "\".");
+            for (lid = 1; lid <= state.dataConstruction->Construct(conid).TotLayers; ++lid) {
+                matid = state.dataConstruction->Construct(conid).LayerPoint(lid);
+                if (state.dataMaterial->Material(matid).ROnly) {
+                    ShowSevereError(state,
+                                    RoutineName + "Construction=" + state.dataConstruction->Construct(conid).Name +
+                                        " cannot contain R-only value materials.");
+                    ShowContinueError(state, "Reference Material=\"" + state.dataMaterial->Material(matid).Name + "\".");
                     ++errorCount;
                     continue;
                 }
 
-                if (Material(matid).nmu < 0) {
-                    ShowSevereError(RoutineName + "Construction=" + Construct(conid).Name);
-                    ShowContinueError("Reference Material=\"" + Material(matid).Name +
+                if (state.dataMaterial->Material(matid).nmu < 0) {
+                    ShowSevereError(state, RoutineName + "Construction=" + state.dataConstruction->Construct(conid).Name);
+                    ShowContinueError(state,
+                                      "Reference Material=\"" + state.dataMaterial->Material(matid).Name +
                                       "\" does not have required Water Vapor Diffusion Resistance Factor (mu) data.");
                     ++errorCount;
                 }
 
-                if (Material(matid).niso < 0) {
-                    ShowSevereError(RoutineName + "Construction=" + Construct(conid).Name);
-                    ShowContinueError("Reference Material=\"" + Material(matid).Name + "\" does not have required isotherm data.");
+                if (state.dataMaterial->Material(matid).niso < 0) {
+                    ShowSevereError(state, RoutineName + "Construction=" + state.dataConstruction->Construct(conid).Name);
+                    ShowContinueError(state,
+                                      "Reference Material=\"" + state.dataMaterial->Material(matid).Name + "\" does not have required isotherm data.");
                     ++errorCount;
                 }
-                if (Material(matid).nsuc < 0) {
-                    ShowSevereError(RoutineName + "Construction=" + Construct(conid).Name);
-                    ShowContinueError("Reference Material=\"" + Material(matid).Name +
+                if (state.dataMaterial->Material(matid).nsuc < 0) {
+                    ShowSevereError(state, RoutineName + "Construction=" + state.dataConstruction->Construct(conid).Name);
+                    ShowContinueError(state,
+                                      "Reference Material=\"" + state.dataMaterial->Material(matid).Name +
                                       "\" does not have required liquid transport coefficient (suction) data.");
                     ++errorCount;
                 }
-                if (Material(matid).nred < 0) {
-                    ShowSevereError(RoutineName + "Construction=" + Construct(conid).Name);
-                    ShowContinueError("Reference Material=\"" + Material(matid).Name +
+                if (state.dataMaterial->Material(matid).nred < 0) {
+                    ShowSevereError(state, RoutineName + "Construction=" + state.dataConstruction->Construct(conid).Name);
+                    ShowContinueError(state,
+                                      "Reference Material=\"" + state.dataMaterial->Material(matid).Name +
                                       "\" does not have required liquid transport coefficient (redistribution) data.");
                     ++errorCount;
                 }
-                if (Material(matid).ntc < 0) {
-                    if (Material(matid).Conductivity > 0) {
-                        ShowWarningError(RoutineName + "Construction=" + Construct(conid).Name);
-                        ShowContinueError("Reference Material=\"" + Material(matid).Name +
+                if (state.dataMaterial->Material(matid).ntc < 0) {
+                    if (state.dataMaterial->Material(matid).Conductivity > 0) {
+                        ShowWarningError(state, RoutineName + "Construction=" + state.dataConstruction->Construct(conid).Name);
+                        ShowContinueError(state,
+                                          "Reference Material=\"" + state.dataMaterial->Material(matid).Name +
                                           "\" does not have thermal conductivity data. Using fixed value.");
-                        Material(matid).ntc = 2;
-                        Material(matid).tcwater(1) = 0.0;
-                        Material(matid).tcdata(1) = Material(matid).Conductivity;
-                        Material(matid).tcwater(2) = Material(matid).isodata(Material(matid).niso);
-                        Material(matid).tcdata(2) = Material(matid).Conductivity;
+                        state.dataMaterial->Material(matid).ntc = 2;
+                        state.dataMaterial->Material(matid).tcwater(1) = 0.0;
+                        state.dataMaterial->Material(matid).tcdata(1) = state.dataMaterial->Material(matid).Conductivity;
+                        state.dataMaterial->Material(matid).tcwater(2) =
+                            state.dataMaterial->Material(matid).isodata(state.dataMaterial->Material(matid).niso);
+                        state.dataMaterial->Material(matid).tcdata(2) = state.dataMaterial->Material(matid).Conductivity;
                     } else {
-                        ShowSevereError(RoutineName + "Construction=" + Construct(conid).Name);
-                        ShowContinueError("Reference Material=\"" + Material(matid).Name + "\" does not have required thermal conductivity data.");
+                        ShowSevereError(state, RoutineName + "Construction=" + state.dataConstruction->Construct(conid).Name);
+                        ShowContinueError(state,
+                                          "Reference Material=\"" + state.dataMaterial->Material(matid).Name +
+                                          "\" does not have required thermal conductivity data.");
                         ++errorCount;
                     }
                 }
 
                 // convert material water content to RH
 
-                waterd = Material(matid).iwater * Material(matid).Density;
-                interp(Material(matid).niso, Material(matid).isodata, Material(matid).isorh, waterd, Material(matid).irh);
+                waterd = state.dataMaterial->Material(matid).iwater * state.dataMaterial->Material(matid).Density;
+                interp(state.dataMaterial->Material(matid).niso,
+                       state.dataMaterial->Material(matid).isodata,
+                       state.dataMaterial->Material(matid).isorh,
+                       waterd, state.dataMaterial->Material(matid).irh);
 
-                Material(matid).divs = int(Material(matid).Thickness / Material(matid).divsize) + Material(matid).divmin;
-                if (Material(matid).divs > Material(matid).divmax) {
-                    Material(matid).divs = Material(matid).divmax;
+                state.dataMaterial->Material(matid).divs =
+                    int(state.dataMaterial->Material(matid).Thickness / state.dataMaterial->Material(matid).divsize) +
+                    state.dataMaterial->Material(matid).divmin;
+                if (state.dataMaterial->Material(matid).divs > state.dataMaterial->Material(matid).divmax) {
+                    state.dataMaterial->Material(matid).divs = state.dataMaterial->Material(matid).divmax;
                 }
                 // Check length of cell - reduce number of divisions if necessary
-                Real64 const sin_negPIOvr2 = std::sin(-Pi / 2.0);
+                Real64 const sin_negPIOvr2 = std::sin(-DataGlobalConstants::Pi / 2.0);
                 while (true) {
-                    testlen =
-                        Material(matid).Thickness * ((std::sin(Pi * (-1.0 / double(Material(matid).divs)) - Pi / 2.0) / 2.0) - (sin_negPIOvr2 / 2.0));
+                    testlen = state.dataMaterial->Material(matid).Thickness *
+                              ((std::sin(DataGlobalConstants::Pi * (-1.0 / double(state.dataMaterial->Material(matid).divs)) -
+                                         DataGlobalConstants::Pi / 2.0) / 2.0) -
+                               (sin_negPIOvr2 / 2.0));
                     if (testlen > adjdist) break;
-                    --Material(matid).divs;
-                    if (Material(matid).divs < 1) {
-                        ShowSevereError(RoutineName + "Construction=" + Construct(conid).Name);
-                        ShowContinueError("Reference Material=\"" + Material(matid).Name + "\" is too thin.");
+                    --state.dataMaterial->Material(matid).divs;
+                    if (state.dataMaterial->Material(matid).divs < 1) {
+                        ShowSevereError(state, RoutineName + "Construction=" + state.dataConstruction->Construct(conid).Name);
+                        ShowContinueError(state, "Reference Material=\"" + state.dataMaterial->Material(matid).Name + "\" is too thin.");
                         ++errorCount;
                         break;
                     }
                 }
-                TotCellsMax += Material(matid).divs;
+                TotCellsMax += state.dataMaterial->Material(matid).divs;
             }
             TotCellsMax += 7;
         }
 
         if (errorCount > 0) {
-            ShowFatalError("CombinedHeatAndMoistureFiniteElement: Incomplete data to start solution, program terminates.");
+            ShowFatalError(state, "CombinedHeatAndMoistureFiniteElement: Incomplete data to start solution, program terminates.");
         }
 
         // Make the cells and initialize
@@ -932,7 +952,7 @@ namespace HeatBalanceHAMTManager {
         // Set up surface cell structure
         for (sid = 1; sid <= TotSurfaces; ++sid) {
             if (!Surface(sid).HeatTransSurf) continue;
-            if (Surface(sid).Class == SurfaceClass_Window) continue;
+            if (Surface(sid).Class == SurfaceClass::Window) continue;
             if (Surface(sid).HeatTransferAlgorithm != HeatTransferModel_HAMT) continue;
             // Boundary Cells
             runor = -0.02;
@@ -981,31 +1001,34 @@ namespace HeatBalanceHAMTManager {
 
             // Material Cells
             conid = Surface(sid).Construction;
-            for (lid = 1; lid <= Construct(conid).TotLayers; ++lid) {
-                matid = Construct(conid).LayerPoint(lid);
+            for (lid = 1; lid <= state.dataConstruction->Construct(conid).TotLayers; ++lid) {
+                matid = state.dataConstruction->Construct(conid).LayerPoint(lid);
 
-                for (did = 1; did <= Material(matid).divs; ++did) {
+                for (did = 1; did <= state.dataMaterial->Material(matid).divs; ++did) {
                     ++cid;
 
                     cells(cid).matid = matid;
                     cells(cid).sid = sid;
-                    cells(cid).lid = lid; // layer Id to cell info for internal moisture source
+                    cells(cid).layer_id = lid; // layer Id to cell info for internal moisture source
 
-                    cells(cid).temp = Material(matid).itemp;
-                    cells(cid).tempp1 = Material(matid).itemp;
-                    cells(cid).tempp2 = Material(matid).itemp;
+                    cells(cid).temp = state.dataMaterial->Material(matid).itemp;
+                    cells(cid).tempp1 = state.dataMaterial->Material(matid).itemp;
+                    cells(cid).tempp2 = state.dataMaterial->Material(matid).itemp;
 
-                    cells(cid).rh = Material(matid).irh;
-                    cells(cid).rhp1 = Material(matid).irh;
-                    cells(cid).rhp2 = Material(matid).irh;
+                    cells(cid).rh = state.dataMaterial->Material(matid).irh;
+                    cells(cid).rhp1 = state.dataMaterial->Material(matid).irh;
+                    cells(cid).rhp2 = state.dataMaterial->Material(matid).irh;
 
-                    cells(cid).density = Material(matid).Density;
-                    cells(cid).spech = Material(matid).SpecHeat;
+                    cells(cid).density = state.dataMaterial->Material(matid).Density;
+                    cells(cid).spech = state.dataMaterial->Material(matid).SpecHeat;
 
                     // Make cells smaller near the surface
                     cells(cid).length(1) =
-                        Material(matid).Thickness * ((std::sin(Pi * (-double(did) / double(Material(matid).divs)) - Pi / 2.0) / 2.0) -
-                                                     (std::sin(Pi * (-double(did - 1) / double(Material(matid).divs)) - Pi / 2.0) / 2.0));
+                        state.dataMaterial->Material(matid).Thickness *
+                        ((std::sin(DataGlobalConstants::Pi * (-double(did) / double(state.dataMaterial->Material(matid).divs)) -
+                                   DataGlobalConstants::Pi / 2.0) / 2.0) -
+                         (std::sin(DataGlobalConstants::Pi * (-double(did - 1) / double(state.dataMaterial->Material(matid).divs)) -
+                                   DataGlobalConstants::Pi / 2.0) / 2.0));
 
                     cells(cid).origin(1) = runor + cells(cid).length(1) / 2.0;
                     runor += cells(cid).length(1);
@@ -1013,9 +1036,9 @@ namespace HeatBalanceHAMTManager {
                     cells(cid).volume = cells(cid).length(1) * Surface(sid).Area;
 
                     // connect internal moisture source with cell
-                    for (imsid = 1; imsid <= TotImsMax; ++imsid) {
-                        if ((cells(cid).sid == ims(imsid).sid) && (cells(cid).lid == ims(imsid).lid)) {
-                            cells(cid).imsid = imsid;
+                    for (int imsid = 1; imsid <= sources.size(); ++imsid) {
+                        if ((cells(cid).sid == sources(imsid).surface_id) && (cells(cid).layer_id == sources(imsid).layer_id)) {
+                            cells(cid).source_id = imsid;
                         }
                     }
                 }
@@ -1074,12 +1097,14 @@ namespace HeatBalanceHAMTManager {
         }
 
         // Reset surface virtual cell origins and volumes. Initialize report variables.
-        gio::write(OutputFileInits, Format_1966);
-        gio::write(OutputFileInits, Format_1965);
+        static constexpr auto Format_1966("! <HAMT cells>, Surface Name, Construction Name, Cell Numbers\n");
+        print(state.files.eio, Format_1966);
+        static constexpr auto Format_1965("! <HAMT origins>, Surface Name, Construction Name, Cell origins (m) \n");
+        print(state.files.eio, Format_1965);
         // cCurrentModuleObject='MaterialProperty:HeatAndMoistureTransfer:*'
         for (sid = 1; sid <= TotSurfaces; ++sid) {
             if (!Surface(sid).HeatTransSurf) continue;
-            if (Surface(sid).Class == SurfaceClass_Window) continue;
+            if (Surface(sid).Class == SurfaceClass::Window) continue;
             if (Surface(sid).HeatTransferAlgorithm != HeatTransferModel_HAMT) continue;
             cells(Extcell(sid)).origin(1) += cells(Extcell(sid)).length(1) / 2.0;
             cells(Intcell(sid)).origin(1) -= cells(Intcell(sid)).length(1) / 2.0;
@@ -1091,33 +1116,39 @@ namespace HeatBalanceHAMTManager {
             surftemp(sid) = 0.0;
             surfexttemp(sid) = 0.0;
             surfvp(sid) = 0.0;
-            SetupOutputVariable(
+            SetupOutputVariable(state,
                 "HAMT Surface Average Water Content Ratio", OutputProcessor::Unit::kg_kg, watertot(sid), "Zone", "State", Surface(sid).Name);
-            SetupOutputVariable("HAMT Surface Inside Face Temperature", OutputProcessor::Unit::C, surftemp(sid), "Zone", "State", Surface(sid).Name);
-            SetupOutputVariable(
+            SetupOutputVariable(state, "HAMT Surface Inside Face Temperature", OutputProcessor::Unit::C, surftemp(sid), "Zone", "State", Surface(sid).Name);
+            SetupOutputVariable(state,
                 "HAMT Surface Inside Face Relative Humidity", OutputProcessor::Unit::Perc, surfrh(sid), "Zone", "State", Surface(sid).Name);
-            SetupOutputVariable(
+            SetupOutputVariable(state,
                 "HAMT Surface Inside Face Vapor Pressure", OutputProcessor::Unit::Pa, surfvp(sid), "Zone", "State", Surface(sid).Name);
-            SetupOutputVariable(
+            SetupOutputVariable(state,
                 "HAMT Surface Outside Face Temperature", OutputProcessor::Unit::C, surfexttemp(sid), "Zone", "State", Surface(sid).Name);
-            SetupOutputVariable(
-                "HAMT Surface Outside Face Relative Humidity", OutputProcessor::Unit::Perc, surfextrh(sid), "Zone", "State", Surface(sid).Name);
+            SetupOutputVariable(state,
+                                "HAMT Surface Outside Face Relative Humidity",
+                                OutputProcessor::Unit::Perc,
+                                surfextrh(sid),
+                                "Zone",
+                                "State",
+                                Surface(sid).Name);
 
             // write cell origins to initialization output file
             conid = Surface(sid).Construction;
-            gio::write(OutputFileInits, "('HAMT cells, ',A,',',A,$)") << Surface(sid).Name << Construct(conid).Name;
+            print(state.files.eio, "HAMT cells, {},{}", Surface(sid).Name, state.dataConstruction->Construct(conid).Name);
             for (int concell = 1, concell_end = Intcell(sid) - Extcell(sid) + 1; concell <= concell_end; ++concell) {
-                gio::write(OutputFileInits, "(',',i4,$)") << concell;
+                print(state.files.eio, ",{:4}", concell);
             }
-            gio::write(OutputFileInits);
-            gio::write(OutputFileInits, "('HAMT origins,',A,',',A,$)") << Surface(sid).Name << Construct(conid).Name;
+            print(state.files.eio, "\n");
+            print(state.files.eio, "HAMT origins,{},{}", Surface(sid).Name, state.dataConstruction->Construct(conid).Name);
             for (int cellid = Extcell(sid); cellid <= Intcell(sid); ++cellid) {
-                gio::write(OutputFileInits, "(','f10.7,$)") << cells(cellid).origin(1);
+                print(state.files.eio, ",{:10.7F}", cells(cellid).origin(1));
             }
-            gio::write(OutputFileInits);
+            print(state.files.eio, "\n");
 
             for (int cellid = Extcell(sid), concell = 1; cellid <= Intcell(sid); ++cellid, ++concell) {
-                SetupOutputVariable("HAMT Surface Temperature Cell " + TrimSigDigits(concell) + "",
+                SetupOutputVariable(state,
+                                    format("HAMT Surface Temperature Cell {}", concell),
                                     OutputProcessor::Unit::C,
                                     cells(cellid).temp,
                                     "Zone",
@@ -1125,7 +1156,8 @@ namespace HeatBalanceHAMTManager {
                                     Surface(sid).Name);
             }
             for (int cellid = Extcell(sid), concell = 1; cellid <= Intcell(sid); ++cellid, ++concell) {
-                SetupOutputVariable("HAMT Surface Water Content Cell " + TrimSigDigits(concell) + "",
+                SetupOutputVariable(state,
+                                    format("HAMT Surface Water Content Cell {}", concell),
                                     OutputProcessor::Unit::kg_kg,
                                     cells(cellid).wreport,
                                     "Zone",
@@ -1133,7 +1165,8 @@ namespace HeatBalanceHAMTManager {
                                     Surface(sid).Name);
             }
             for (int cellid = Extcell(sid), concell = 1; cellid <= Intcell(sid); ++cellid, ++concell) {
-                SetupOutputVariable("HAMT Surface Relative Humidity Cell " + TrimSigDigits(concell) + "",
+                SetupOutputVariable(state,
+                                    format("HAMT Surface Relative Humidity Cell {}", concell),
                                     OutputProcessor::Unit::Perc,
                                     cells(cellid).rhp,
                                     "Zone",
@@ -1142,19 +1175,21 @@ namespace HeatBalanceHAMTManager {
             }
         }
 
-        ScanForReports("Constructions", DoReport, "Constructions");
+        ScanForReports(state, "Constructions", DoReport, "Constructions");
         if (DoReport) {
 
-            gio::write(OutputFileInits, Format_108);
+            static constexpr auto Format_108("! <Material Nominal Resistance>, Material Name,  Nominal R\n");
+            print(state.files.eio, Format_108);
 
             for (MaterNum = 1; MaterNum <= TotMaterials; ++MaterNum) {
 
-                gio::write(OutputFileInits, Format_111) << Material(MaterNum).Name << RoundSigDigits(NominalR(MaterNum), 4);
+                static constexpr auto Format_111("Material Nominal Resistance,{},{:.4R}\n");
+                print(state.files.eio, Format_111, state.dataMaterial->Material(MaterNum).Name, NominalR(MaterNum));
             }
         }
     }
 
-    void CalcHeatBalHAMT(int const sid, Real64 &TempSurfInTmp, Real64 &TempSurfOutTmp)
+    void CalcHeatBalHAMT(EnergyPlusData &state, int const sid, Real64 &TempSurfInTmp, Real64 &TempSurfOutTmp)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Phillip Biddulph
@@ -1172,10 +1207,9 @@ namespace HeatBalanceHAMTManager {
         // na
 
         // Using/Aliasing
-        using DataHeatBalSurface::QAdditionalHeatSourceInside;
+        using DataHeatBalSurface::SurfQAdditionalHeatSourceInside;
         using DataSurfaces::OSCM;
         using DataSurfaces::OtherSideCondModeledExt;
-        using General::RoundSigDigits;
 
         // Locals
         // SUBROUTINE ARGUMENT DEFINITIONS:
@@ -1214,13 +1248,12 @@ namespace HeatBalanceHAMTManager {
         Real64 tempmax;
         Real64 tempmin;
 
-        Real64 InternalMoistureSource;
+        Real64 internal_moisture_source;
 
         int ii;
         int matid;
         int itter;
         int cid;
-        int imsid; // internal moisture source id
         // unused1208    INTEGER :: cid1
         int adj;
         int adjl;
@@ -1231,7 +1264,7 @@ namespace HeatBalanceHAMTManager {
         static int qvpErrReport(0);
         Real64 denominator;
 
-        if (BeginEnvrnFlag && MyEnvrnFlag(sid)) {
+        if (state.dataGlobal->BeginEnvrnFlag && MyEnvrnFlag(sid)) {
             cells(Extcell(sid)).rh = 0.0;
             cells(Extcell(sid)).rhp1 = 0.0;
             cells(Extcell(sid)).rhp2 = 0.0;
@@ -1251,22 +1284,22 @@ namespace HeatBalanceHAMTManager {
             for (cid = Extcell(sid) + 1; cid <= Intcell(sid) - 1; ++cid) {
                 matid = cells(cid).matid;
 
-                cells(cid).temp = Material(matid).itemp;
-                cells(cid).tempp1 = Material(matid).itemp;
-                cells(cid).tempp2 = Material(matid).itemp;
+                cells(cid).temp = state.dataMaterial->Material(matid).itemp;
+                cells(cid).tempp1 = state.dataMaterial->Material(matid).itemp;
+                cells(cid).tempp2 = state.dataMaterial->Material(matid).itemp;
 
-                cells(cid).rh = Material(matid).irh;
-                cells(cid).rhp1 = Material(matid).irh;
-                cells(cid).rhp2 = Material(matid).irh;
+                cells(cid).rh = state.dataMaterial->Material(matid).irh;
+                cells(cid).rhp1 = state.dataMaterial->Material(matid).irh;
+                cells(cid).rhp2 = state.dataMaterial->Material(matid).irh;
 
-                if (cells(cid).imsid) {
-                    if (ims(cells(cid).imsid).SourceType == 3) {
-                        if (!ims(cells(cid).imsid).AirflowNetworkid) {
-                            if (AirflowNetworkNumOfSurfaces) {
-                                for (ii = 1; ii <= AirflowNetworkNumOfSurfaces; ++ii) {
-                                    if (Surface(ims(cells(cid).imsid).sid).Name.compare(AirflowNetworkLinkageData(ii).Name) == 0) {
+                if (cells(cid).source_id) {
+                    if (sources(cells(cid).source_id).type == InternalMoistureSource::Type::AirflowNetwork) {
+                        if (!sources(cells(cid).source_id).afn_id) {
+                            if (AirflowNetwork::AirflowNetworkNumOfSurfaces) {
+                                for (ii = 1; ii <= AirflowNetwork::AirflowNetworkNumOfSurfaces; ++ii) {
+                                    if (Surface(sources(cells(cid).source_id).surface_id).Name.compare(AirflowNetwork::AirflowNetworkLinkageData(ii).Name) == 0) {
                                         // assign network link to cell with internal moisture source type 3
-                                        ims(cells(cid).imsid).AirflowNetworkid = AirflowNetworkLinkageData(ii).LinkNum;
+                                        sources(cells(cid).source_id).afn_id = AirflowNetwork::AirflowNetworkLinkageData(ii).LinkNum;
                                         break;
                                     }
                                 }
@@ -1278,7 +1311,7 @@ namespace HeatBalanceHAMTManager {
 
             MyEnvrnFlag(sid) = false;
         }
-        if (!BeginEnvrnFlag) {
+        if (!state.dataGlobal->BeginEnvrnFlag) {
             MyEnvrnFlag(sid) = true;
         }
 
@@ -1290,9 +1323,9 @@ namespace HeatBalanceHAMTManager {
             cells(ExtSkycell(sid)).temp = OSCM(Surface(sid).OSCMPtr).TRad;
             cells(Extcell(sid)).Qadds = 0.0; // eliminate incident shortwave on underlying surface
         } else {
-            cells(ExtSkycell(sid)).temp = SkyTemp;
+            cells(ExtSkycell(sid)).temp = state.dataEnvrn->SkyTemp;
 
-            cells(Extcell(sid)).Qadds = Surface(sid).Area * QRadSWOutAbs(sid);
+            cells(Extcell(sid)).Qadds = Surface(sid).Area * SurfOpaqQRadSWOutAbs(sid);
         }
 
         cells(ExtGrncell(sid)).temp = TempOutsideAirFD(sid);
@@ -1315,14 +1348,14 @@ namespace HeatBalanceHAMTManager {
 
         cells(IntConcell(sid)).htc = HConvInFD(sid);
 
-        cells(Intcell(sid)).Qadds =
-            Surface(sid).Area * (QRadSWInAbs(sid) + NetLWRadToSurf(sid) + QHTRadSysSurf(sid) + QCoolingPanelSurf(sid) + QHWBaseboardSurf(sid) +
-                                 QSteamBaseboardSurf(sid) + QElecBaseboardSurf(sid) + QRadThermInAbs(sid) + QAdditionalHeatSourceInside(sid));
+        cells(Intcell(sid)).Qadds = Surface(sid).Area * (SurfOpaqQRadSWInAbs(sid) + SurfNetLWRadToSurf(sid) + QHTRadSysSurf(sid) +
+                                                         QCoolingPanelSurf(sid) + QHWBaseboardSurf(sid) + QSteamBaseboardSurf(sid) +
+                                                         QElecBaseboardSurf(sid) + SurfQRadThermInAbs(sid) + SurfQAdditionalHeatSourceInside(sid));
         // Check, Is this per unit area or for the whole wall.
         //    cells(Intcell(sid))%Qadds=QRadSWInAbs(sid)+NetLWRadToSurf(sid)+QHtRadSysSurf(sid)+QRadThermInAbs(sid)
 
-        cells(ExtConcell(sid)).rh = PsyRhFnTdbRhov(cells(ExtConcell(sid)).temp, RhoOut, HAMTExt);
-        cells(IntConcell(sid)).rh = PsyRhFnTdbRhov(cells(IntConcell(sid)).temp, RhoIn, HAMTInt);
+        cells(ExtConcell(sid)).rh = PsyRhFnTdbRhov(state, cells(ExtConcell(sid)).temp, RhoOut, HAMTExt);
+        cells(IntConcell(sid)).rh = PsyRhFnTdbRhov(state, cells(IntConcell(sid)).temp, RhoIn, HAMTInt);
 
         if (cells(ExtConcell(sid)).rh > rhmax) {
             cells(ExtConcell(sid)).rh = rhmax;
@@ -1336,7 +1369,7 @@ namespace HeatBalanceHAMTManager {
             cells(ExtConcell(sid)).vtc = extvtc(sid);
         } else {
             if (cells(ExtConcell(sid)).rh > 0) {
-                cells(ExtConcell(sid)).vtc = HMassConvExtFD(sid) * RhoOut / (PsyPsatFnTemp(TempOutsideAirFD(sid)) * cells(ExtConcell(sid)).rh);
+                cells(ExtConcell(sid)).vtc = HMassConvExtFD(sid) * RhoOut / (PsyPsatFnTemp(state, TempOutsideAirFD(sid)) * cells(ExtConcell(sid)).rh);
             } else {
                 cells(ExtConcell(sid)).vtc = 10000.0;
             }
@@ -1344,10 +1377,10 @@ namespace HeatBalanceHAMTManager {
 
         if (intvtcflag(sid)) {
             cells(IntConcell(sid)).vtc = intvtc(sid);
-            HMassConvInFD(sid) = cells(IntConcell(sid)).vtc * PsyPsatFnTemp(MAT(Surface(sid).Zone)) * cells(IntConcell(sid)).rh / RhoIn;
+            HMassConvInFD(sid) = cells(IntConcell(sid)).vtc * PsyPsatFnTemp(state, MAT(Surface(sid).Zone)) * cells(IntConcell(sid)).rh / RhoIn;
         } else {
             if (cells(IntConcell(sid)).rh > 0) {
-                cells(IntConcell(sid)).vtc = HMassConvInFD(sid) * RhoIn / (PsyPsatFnTemp(MAT(Surface(sid).Zone)) * cells(IntConcell(sid)).rh);
+                cells(IntConcell(sid)).vtc = HMassConvInFD(sid) * RhoIn / (PsyPsatFnTemp(state, MAT(Surface(sid).Zone)) * cells(IntConcell(sid)).rh);
             } else {
                 cells(IntConcell(sid)).vtc = 10000.0;
             }
@@ -1375,54 +1408,74 @@ namespace HeatBalanceHAMTManager {
 
             for (cid = firstcell(sid); cid <= lastcell(sid); ++cid) {
                 matid = cells(cid).matid;
-                cells(cid).vp = RHtoVP(cells(cid).rh, cells(cid).temp);
-                cells(cid).vpp1 = RHtoVP(cells(cid).rhp1, cells(cid).tempp1);
-                cells(cid).vpsat = PsyPsatFnTemp(cells(cid).tempp1);
+                cells(cid).vp = RHtoVP(state, cells(cid).rh, cells(cid).temp);
+                cells(cid).vpp1 = RHtoVP(state, cells(cid).rhp1, cells(cid).tempp1);
+                cells(cid).vpsat = PsyPsatFnTemp(state, cells(cid).tempp1);
                 if (matid > 0) {
-                    interp(
-                        Material(matid).niso, Material(matid).isorh, Material(matid).isodata, cells(cid).rhp1, cells(cid).water, cells(cid).dwdphi);
-                    if (IsRain && rainswitch) {
-                        interp(Material(matid).nsuc, Material(matid).sucwater, Material(matid).sucdata, cells(cid).water, cells(cid).dw);
+                    interp(state.dataMaterial->Material(matid).niso,
+                           state.dataMaterial->Material(matid).isorh,
+                           state.dataMaterial->Material(matid).isodata,
+                           cells(cid).rhp1,
+                           cells(cid).water,
+                           cells(cid).dwdphi);
+                    if (state.dataEnvrn->IsRain && rainswitch) {
+                        interp(state.dataMaterial->Material(matid).nsuc,
+                               state.dataMaterial->Material(matid).sucwater,
+                               state.dataMaterial->Material(matid).sucdata,
+                               cells(cid).water,
+                               cells(cid).dw);
                     } else {
-                        interp(Material(matid).nred, Material(matid).redwater, Material(matid).reddata, cells(cid).water, cells(cid).dw);
+                        interp(state.dataMaterial->Material(matid).nred,
+                               state.dataMaterial->Material(matid).redwater,
+                               state.dataMaterial->Material(matid).reddata,
+                               cells(cid).water,
+                               cells(cid).dw);
                     }
-                    interp(Material(matid).nmu, Material(matid).murh, Material(matid).mudata, cells(cid).rhp1, cells(cid).mu);
-                    interp(Material(matid).ntc, Material(matid).tcwater, Material(matid).tcdata, cells(cid).water, cells(cid).wthermalc);
+                    interp(state.dataMaterial->Material(matid).nmu,
+                           state.dataMaterial->Material(matid).murh,
+                           state.dataMaterial->Material(matid).mudata,
+                           cells(cid).rhp1,
+                           cells(cid).mu);
+                    interp(state.dataMaterial->Material(matid).ntc,
+                           state.dataMaterial->Material(matid).tcwater,
+                           state.dataMaterial->Material(matid).tcdata,
+                           cells(cid).water,
+                           cells(cid).wthermalc);
                 }
 
                 // calc Wadds
-                if (cells(cid).imsid > 0) {
+                if (cells(cid).source_id > 0) {
                     matid = cells(cid).matid;
-                    imsid = cells(cid).imsid;
+                    int imsid = cells(cid).source_id;
 
-                    if (ims(imsid).SourceType == 1) {         // user defined input of the air flow
-                        ims(imsid).moistairflow = ims(imsid).moistairflow_Input;
-                    } else if (ims(imsid).SourceType == 2) {  // infiltration model according to Kuenzel, extended with ventilation pressure
-                        ims(imsid).DeltaPressure = cells(Extcell(sid)).density *
+                    if (sources(imsid).type == InternalMoistureSource::Type::UserDefined) {         // user defined input of the air flow
+                        sources(imsid).moist_airflow = sources(imsid).moist_airflow_input;
+                    } else if (sources(imsid).type == InternalMoistureSource::Type::StackAndOverPressure) {  // infiltration model according to Kuenzel, extended with ventilation pressure
+                        sources(imsid).delta_pressure = cells(Extcell(sid)).density *
                                                        ((cells(Extcell(sid)).temp - cells(Intcell(sid)).temp) / cells(Intcell(sid)).temp) *
-                                                       GravityConstant * (ims(imsid).StackHeight / 2) - ims(imsid).MechanicalVentilationOverpressure;
-                        ims(imsid).moistairflow = std::abs(ims(imsid).DeltaPressure) * (ims(imsid).ComponentAirPermeance) / 3600;
-                    } else if (ims(imsid).SourceType == 3) {  // air flow through component from multizone airflow network
-                        if (ims(imsid).AirflowNetworkid) {
-                            ims(imsid).moistairflow = AirflowNetworkLinkSimu(ims(imsid).AirflowNetworkid).VolFLOW / Surface(ims(imsid).sid).Area;
+                                                       DataGlobalConstants::GravityConstant * (sources(imsid).stack_height / 2) - sources(imsid).mechanical_ventilation_overpressure;
+                        sources(imsid).moist_airflow = std::abs(sources(imsid).delta_pressure) * (sources(imsid).component_air_permeance) / 3600;
+                    } else if (sources(imsid).type == InternalMoistureSource::Type::AirflowNetwork) {  // air flow through component from multizone airflow network
+                        if (sources(imsid).afn_id) {
+                            sources(imsid).moist_airflow = AirflowNetwork::AirflowNetworkLinkSimu(sources(imsid).afn_id).VolFLOW / Surface(sources(imsid).surface_id).Area;
                         } else {
-                            ims(imsid).moistairflow = 0;
+                            sources(imsid).moist_airflow = 0;
                         }
                     } else {
-                        ims(imsid).moistairflow = 0.0;
+                        sources(imsid).moist_airflow = 0.0;
                     }
 
 
-                    if (ims(imsid).moistairflow >= 0) {
-                        InternalMoistureSource = ims(imsid).moistairflow *
-                                                 (cells(IntConcell(sid)).rh * SatAbsHum(cells(IntConcell(sid)).temp) - SatAbsHum(cells(cid).temp));
+                    if (sources(imsid).moist_airflow >= 0) {
+                        internal_moisture_source = sources(imsid).moist_airflow *
+                                                 (cells(IntConcell(sid)).rh * SatAbsHum(state, cells(IntConcell(sid)).temp) - SatAbsHum(state, cells(cid).temp));
                     } else {
-                        InternalMoistureSource = -ims(imsid).moistairflow *
-                                                 (cells(IntConcell(sid)).rh * SatAbsHum(cells(IntConcell(sid)).temp) - SatAbsHum(cells(cid).temp));
+                        internal_moisture_source = -sources(imsid).moist_airflow *
+                                                 (cells(IntConcell(sid)).rh * SatAbsHum(state, cells(IntConcell(sid)).temp) - SatAbsHum(state, cells(cid).temp));
                     }
 
-                    if (InternalMoistureSource > 0) {
-                        cells(cid).Wadds = Surface(sid).Area * (cells(cid).length(1) / Material(matid).Thickness) * InternalMoistureSource;
+                    if (internal_moisture_source > 0) {
+                        cells(cid).Wadds = Surface(sid).Area * (cells(cid).length(1) / state.dataMaterial->Material(matid).Thickness) * internal_moisture_source;
                     } else {
                         cells(cid).Wadds = 0;
                     }
@@ -1452,7 +1505,7 @@ namespace HeatBalanceHAMTManager {
                     if (cells(cid).vtc > 0) {
                         vaporr1 = 1.0 / (cells(cid).overlap(ii) * cells(cid).vtc);
                     } else if (cells(cid).matid > 0) {
-                        vaporr1 = (cells(cid).dist(ii) * cells(cid).mu) / (cells(cid).overlap(ii) * WVDC(cells(cid).tempp1, OutBaroPress));
+                        vaporr1 = (cells(cid).dist(ii) * cells(cid).mu) / (cells(cid).overlap(ii) * WVDC(cells(cid).tempp1, state.dataEnvrn->OutBaroPress));
                     } else {
                         vaporr1 = 0.0;
                     }
@@ -1468,7 +1521,7 @@ namespace HeatBalanceHAMTManager {
                     if (cells(adj).vtc > 0) {
                         vaporr2 = 1.0 / (cells(cid).overlap(ii) * cells(adj).vtc);
                     } else if (cells(adj).matid > 0) {
-                        vaporr2 = cells(adj).mu * cells(adj).dist(adjl) / (WVDC(cells(adj).tempp1, OutBaroPress) * cells(cid).overlap(ii));
+                        vaporr2 = cells(adj).mu * cells(adj).dist(adjl) / (WVDC(cells(adj).tempp1, state.dataEnvrn->OutBaroPress) * cells(cid).overlap(ii));
                     } else {
                         vaporr2 = 0.0;
                     }
@@ -1491,12 +1544,12 @@ namespace HeatBalanceHAMTManager {
                     qvp = vpdiff * whv;
                 }
                 if (std::abs(qvp) > qvplim) {
-                    if (!WarmupFlag) {
+                    if (!state.dataGlobal->WarmupFlag) {
                         ++qvpErrCount;
                         if (qvpErrCount < 16) {
-                            ShowWarningError("HeatAndMoistureTransfer: Large Latent Heat for Surface " + Surface(sid).Name);
+                            ShowWarningError(state, "HeatAndMoistureTransfer: Large Latent Heat for Surface " + Surface(sid).Name);
                         } else {
-                            ShowRecurringWarningErrorAtEnd("HeatAndMoistureTransfer: Large Latent Heat Errors ", qvpErrReport);
+                            ShowRecurringWarningErrorAtEnd(state, "HeatAndMoistureTransfer: Large Latent Heat Errors ", qvpErrReport);
                         }
                     }
                     qvp = 0.0;
@@ -1510,13 +1563,14 @@ namespace HeatBalanceHAMTManager {
             tempmax = maxval(cells, &subcell::tempp1);
             tempmin = minval(cells, &subcell::tempp1);
             if (tempmax > MaxSurfaceTempLimit) {
-                if (!WarmupFlag) {
+                if (!state.dataGlobal->WarmupFlag) {
                     if (Surface(sid).HighTempErrCount == 0) {
-                        ShowSevereMessage("HAMT: Temperature (high) out of bounds (" + RoundSigDigits(tempmax, 2) +
-                                          ") for surface=" + Surface(sid).Name);
-                        ShowContinueErrorTimeStamp("");
+                        ShowSevereMessage(state,
+                                          format("HAMT: Temperature (high) out of bounds ({:.2R}) for surface={}", tempmax, Surface(sid).Name));
+                        ShowContinueErrorTimeStamp(state, "");
                     }
-                    ShowRecurringWarningErrorAtEnd("HAMT: Temperature Temperature (high) out of bounds; Surface=" + Surface(sid).Name,
+                    ShowRecurringWarningErrorAtEnd(state,
+                                                   "HAMT: Temperature Temperature (high) out of bounds; Surface=" + Surface(sid).Name,
                                                    Surface(sid).HighTempErrCount,
                                                    tempmax,
                                                    tempmax,
@@ -1526,21 +1580,21 @@ namespace HeatBalanceHAMTManager {
                 }
             }
             if (tempmax > MaxSurfaceTempLimitBeforeFatal) {
-                if (!WarmupFlag) {
-                    ShowSevereError("HAMT: HAMT: Temperature (high) out of bounds ( " + RoundSigDigits(tempmax, 2) +
-                                    ") for surface=" + Surface(sid).Name);
-                    ShowContinueErrorTimeStamp("");
-                    ShowFatalError("Program terminates due to preceding condition.");
+                if (!state.dataGlobal->WarmupFlag) {
+                    ShowSevereError(state,
+                                    format("HAMT: HAMT: Temperature (high) out of bounds ( {:.2R}) for surface={}", tempmax, Surface(sid).Name));
+                    ShowContinueErrorTimeStamp(state, "");
+                    ShowFatalError(state, "Program terminates due to preceding condition.");
                 }
             }
             if (tempmin < MinSurfaceTempLimit) {
-                if (!WarmupFlag) {
+                if (!state.dataGlobal->WarmupFlag) {
                     if (Surface(sid).HighTempErrCount == 0) {
-                        ShowSevereMessage("HAMT: Temperature (low) out of bounds (" + RoundSigDigits(tempmin, 2) +
-                                          ") for surface=" + Surface(sid).Name);
-                        ShowContinueErrorTimeStamp("");
+                        ShowSevereMessage(state, format("HAMT: Temperature (low) out of bounds ({:.2R}) for surface={}", tempmin, Surface(sid).Name));
+                        ShowContinueErrorTimeStamp(state, "");
                     }
-                    ShowRecurringWarningErrorAtEnd("HAMT: Temperature Temperature (high) out of bounds; Surface=" + Surface(sid).Name,
+                    ShowRecurringWarningErrorAtEnd(state,
+                                                   "HAMT: Temperature Temperature (high) out of bounds; Surface=" + Surface(sid).Name,
                                                    Surface(sid).HighTempErrCount,
                                                    tempmin,
                                                    tempmin,
@@ -1550,11 +1604,11 @@ namespace HeatBalanceHAMTManager {
                 }
             }
             if (tempmin < MinSurfaceTempLimitBeforeFatal) {
-                if (!WarmupFlag) {
-                    ShowSevereError("HAMT: HAMT: Temperature (low) out of bounds ( " + RoundSigDigits(tempmin, 2) +
-                                    ") for surface=" + Surface(sid).Name);
-                    ShowContinueErrorTimeStamp("");
-                    ShowFatalError("Program terminates due to preceding condition.");
+                if (!state.dataGlobal->WarmupFlag) {
+                    ShowSevereError(state,
+                                    format("HAMT: HAMT: Temperature (low) out of bounds ( {:.2R}) for surface={}", tempmin, Surface(sid).Name));
+                    ShowContinueErrorTimeStamp(state, "");
+                    ShowFatalError(state, "Program terminates due to preceding condition.");
                 }
             }
 
@@ -1573,7 +1627,7 @@ namespace HeatBalanceHAMTManager {
                     if (cells(cid).vtc > 0) {
                         vaporr1 = 1.0 / (cells(cid).overlap(ii) * cells(cid).vtc);
                     } else if (cells(cid).matid > 0) {
-                        vaporr1 = (cells(cid).dist(ii) * cells(cid).mu) / (cells(cid).overlap(ii) * WVDC(cells(cid).tempp1, OutBaroPress));
+                        vaporr1 = (cells(cid).dist(ii) * cells(cid).mu) / (cells(cid).overlap(ii) * WVDC(cells(cid).tempp1, state.dataEnvrn->OutBaroPress));
                     } else {
                         vaporr1 = 0.0;
                     }
@@ -1581,7 +1635,8 @@ namespace HeatBalanceHAMTManager {
                     if (cells(adj).vtc > 0) {
                         vaporr2 = 1.0 / (cells(cid).overlap(ii) * cells(adj).vtc);
                     } else if (cells(adj).matid > 0) {
-                        vaporr2 = (cells(adj).dist(adjl) * cells(adj).mu) / (cells(cid).overlap(ii) * WVDC(cells(adj).tempp1, OutBaroPress));
+                        vaporr2 = (cells(adj).dist(adjl) * cells(adj).mu) /
+                                  (cells(cid).overlap(ii) * WVDC(cells(adj).tempp1, state.dataEnvrn->OutBaroPress));
                     } else {
                         vaporr2 = 0.0;
                     }
@@ -1620,9 +1675,9 @@ namespace HeatBalanceHAMTManager {
                 if (denominator != 0.0) {
                     cells(cid).rhp1 = (phiorsum + vporsum + cells(cid).Wadds + (wcap * cells(cid).rh) / deltat) / denominator;
                 } else {
-                    ShowSevereError("CalcHeatBalHAMT: demoninator in calculating RH is zero.  Check material properties for accuracy.");
-                    ShowContinueError("...Problem occurs in Material=\"" + Material(cells(cid).matid).Name + "\".");
-                    ShowFatalError("Program terminates due to preceding condition.");
+                    ShowSevereError(state, "CalcHeatBalHAMT: demoninator in calculating RH is zero.  Check material properties for accuracy.");
+                    ShowContinueError(state, "...Problem occurs in Material=\"" + state.dataMaterial->Material(cells(cid).matid).Name + "\".");
+                    ShowFatalError(state, "Program terminates due to preceding condition.");
                 }
 
                 if (cells(cid).rhp1 > rhmax) {
@@ -1653,12 +1708,12 @@ namespace HeatBalanceHAMTManager {
         TempSurfOutTmp = cells(Extcell(sid)).tempp1;
         TempSurfInTmp = cells(Intcell(sid)).tempp1;
 
-        TempSurfInP = cells(Intcell(sid)).rhp1 * PsyPsatFnTemp(cells(Intcell(sid)).tempp1);
+        TempSurfInP = cells(Intcell(sid)).rhp1 * PsyPsatFnTemp(state, cells(Intcell(sid)).tempp1);
 
-        RhoVaporSurfIn(sid) = TempSurfInP / (461.52 * (MAT(Surface(sid).Zone) + KelvinConv));
+        RhoVaporSurfIn(sid) = TempSurfInP / (461.52 * (MAT(Surface(sid).Zone) + DataGlobalConstants::KelvinConv));
     }
 
-    void UpdateHeatBalHAMT(int const sid)
+    void UpdateHeatBalHAMT(EnergyPlusData &state, int const sid)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Phillip Biddulph
@@ -1721,10 +1776,10 @@ namespace HeatBalanceHAMTManager {
         surfextrh(sid) = 100.0 * cells(Extcell(sid)).rh;
         surftemp(sid) = cells(Intcell(sid)).temp;
         surfexttemp(sid) = cells(Extcell(sid)).temp;
-        surfvp(sid) = RHtoVP(cells(Intcell(sid)).rh, cells(Intcell(sid)).temp);
+        surfvp(sid) = RHtoVP(state, cells(Intcell(sid)).rh, cells(Intcell(sid)).temp);
     }
 
-    void interp(int const ndata, Array1A<Real64> const xx, Array1A<Real64> const yy, Real64 const invalue, Real64 &outvalue, Optional<Real64> outgrad)
+    void interp(int const ndata, const Array1D<Real64> &xx, const Array1D<Real64> &yy, Real64 const invalue, Real64 &outvalue, Optional<Real64> outgrad)
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Phillip Biddulph
@@ -1746,8 +1801,8 @@ namespace HeatBalanceHAMTManager {
         // na
 
         // Argument array dimensioning
-        xx.dim(ndata);
-        yy.dim(ndata);
+        EP_SIZE_CHECK(xx, ndata);
+        EP_SIZE_CHECK(yy, ndata);
 
         // Locals
         // SUBROUTINE ARGUMENT DEFINITIONS:
@@ -1799,7 +1854,7 @@ namespace HeatBalanceHAMTManager {
         }
     }
 
-    Real64 RHtoVP(Real64 const RH, Real64 const Temperature)
+    Real64 RHtoVP(EnergyPlusData &state, Real64 const RH, Real64 const Temperature)
     {
         // FUNCTION INFORMATION:
         //       AUTHOR         Phillip Biddulph
@@ -1838,7 +1893,7 @@ namespace HeatBalanceHAMTManager {
 
         Real64 VPSat;
 
-        VPSat = PsyPsatFnTemp(Temperature);
+        VPSat = PsyPsatFnTemp(state, Temperature);
 
         RHtoVP = RH * VPSat;
 
@@ -1885,12 +1940,12 @@ namespace HeatBalanceHAMTManager {
         // FUNCTION LOCAL VARIABLE DECLARATIONS:
         // na
 
-        WVDC = (2.e-7 * std::pow(Temperature + KelvinConv, 0.81)) / ambp;
+        WVDC = (2.e-7 * std::pow(Temperature + DataGlobalConstants::KelvinConv, 0.81)) / ambp;
 
         return WVDC;
     }
 
-    Real64 SatAbsHum(Real64 const Temperature)
+    Real64 SatAbsHum(EnergyPlusData &state, Real64 const Temperature)
     {
         // FUNCTION INFORMATION:
         //       AUTHOR         Florian Antretter
@@ -1929,7 +1984,7 @@ namespace HeatBalanceHAMTManager {
 
         Real64 VPSat;
 
-        VPSat = PsyPsatFnTemp(Temperature);
+        VPSat = PsyPsatFnTemp(state, Temperature);
 
         Real64 IdealGasConst;
 

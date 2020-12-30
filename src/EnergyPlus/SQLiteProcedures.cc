@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -45,25 +45,23 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-// ObjexxFCL Headers
-
-// EnergyPlus Headers
-#include "SQLiteProcedures.hh"
-#include "CommandLineInterface.hh"
-#include "DataEnvironment.hh"
-#include "DataGlobals.hh"
-#include "DataHeatBalance.hh"
-#include "DataPrecisionGlobals.hh"
-#include "DataRoomAirModel.hh"
-#include "DataStringGlobals.hh"
-#include "DataSystemVariables.hh"
-#include "General.hh"
-#include "InputProcessing/InputProcessor.hh"
-#include "ScheduleManager.hh"
-#include "UtilityRoutines.hh"
-
+// C++ headers
 #include <sstream>
 #include <stdexcept>
+
+// EnergyPlus Headers
+#include <EnergyPlus/Construction.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
+#include <EnergyPlus/DataEnvironment.hh>
+#include <EnergyPlus/DataHeatBalance.hh>
+#include <EnergyPlus/DataRoomAirModel.hh>
+#include <EnergyPlus/DataStringGlobals.hh>
+#include <EnergyPlus/General.hh>
+#include <EnergyPlus/InputProcessing/InputProcessor.hh>
+#include <EnergyPlus/Material.hh>
+#include <EnergyPlus/SQLiteProcedures.hh>
+#include <EnergyPlus/ScheduleManager.hh>
+#include <EnergyPlus/UtilityRoutines.hh>
 
 namespace EnergyPlus {
 
@@ -83,21 +81,27 @@ const int SQLite::UnitsId = 6;
 
 std::unique_ptr<SQLite> sqlite;
 
-std::unique_ptr<SQLite> CreateSQLiteDatabase()
+std::unique_ptr<SQLite> CreateSQLiteDatabase(EnergyPlusData &state)
 {
+    if (!state.files.outputControl.sqlite) {
+        return nullptr;
+    }
     try {
-        int numberOfSQLiteObjects = inputProcessor->getNumObjectsFound("Output:SQLite");
+        int numberOfSQLiteObjects = inputProcessor->getNumObjectsFound(state, "Output:SQLite");
         bool writeOutputToSQLite = false;
         bool writeTabularDataToSQLite = false;
 
-        if (numberOfSQLiteObjects == 1) {
+        if (numberOfSQLiteObjects == 0) {
+            state.files.outputControl.sqlite = false;
+            return nullptr;
+        } else if (numberOfSQLiteObjects == 1) {
             Array1D_string alphas(5);
             int numAlphas;
             Array1D<Real64> numbers(2);
             int numNumbers;
             int status;
 
-            inputProcessor->getObjectItem("Output:SQLite", 1, alphas, numAlphas, numbers, numNumbers, status);
+            inputProcessor->getObjectItem(state, "Output:SQLite", 1, alphas, numAlphas, numbers, numNumbers, status);
             if (numAlphas > 0) {
                 std::string option = alphas(1);
                 if (UtilityRoutines::SameString(option, "SimpleAndTabular")) {
@@ -116,15 +120,15 @@ std::unique_ptr<SQLite> CreateSQLiteDatabase()
                                                   writeOutputToSQLite,
                                                   writeTabularDataToSQLite));
     } catch (const std::runtime_error &error) {
-        ShowFatalError(error.what());
+        ShowFatalError(state, error.what());
         return nullptr;
     }
 }
 
-void CreateSQLiteZoneExtendedOutput()
+void CreateSQLiteZoneExtendedOutput(EnergyPlusData &state)
 {
     if (sqlite && sqlite->writeOutputToSQLite()) {
-        for (int zoneNum = 1; zoneNum <= DataGlobals::NumOfZones; ++zoneNum) {
+        for (int zoneNum = 1; zoneNum <= state.dataGlobal->NumOfZones; ++zoneNum) {
             sqlite->addZoneData(zoneNum, DataHeatBalance::Zone(zoneNum));
         }
         for (int listNum = 1; listNum <= DataHeatBalance::NumOfZoneLists; ++listNum) {
@@ -136,20 +140,20 @@ void CreateSQLiteZoneExtendedOutput()
         for (int scheduleNumber = 1, numberOfSchedules = ScheduleManager::GetNumberOfSchedules(); scheduleNumber <= numberOfSchedules;
              ++scheduleNumber) {
             sqlite->addScheduleData(scheduleNumber,
-                                    ScheduleManager::GetScheduleName(scheduleNumber),
-                                    ScheduleManager::GetScheduleType(scheduleNumber),
-                                    ScheduleManager::GetScheduleMinValue(scheduleNumber),
-                                    ScheduleManager::GetScheduleMaxValue(scheduleNumber));
+                                    ScheduleManager::GetScheduleName(state, scheduleNumber),
+                                    ScheduleManager::GetScheduleType(state, scheduleNumber),
+                                    ScheduleManager::GetScheduleMinValue(state, scheduleNumber),
+                                    ScheduleManager::GetScheduleMaxValue(state, scheduleNumber));
         }
         for (int surfaceNumber = 1; surfaceNumber <= DataSurfaces::TotSurfaces; ++surfaceNumber) {
             auto const &surface = DataSurfaces::Surface(surfaceNumber);
             sqlite->addSurfaceData(surfaceNumber, surface, DataSurfaces::cSurfaceClass(surface.Class));
         }
         for (int materialNum = 1; materialNum <= DataHeatBalance::TotMaterials; ++materialNum) {
-            sqlite->addMaterialData(materialNum, DataHeatBalance::Material(materialNum));
+            sqlite->addMaterialData(materialNum, state.dataMaterial->Material(materialNum));
         }
         for (int constructNum = 1; constructNum <= DataHeatBalance::TotConstructs; ++constructNum) {
-            auto const &construction = DataHeatBalance::Construct(constructNum);
+            auto const &construction = state.dataConstruction->Construct(constructNum);
             if (construction.TotGlassLayers == 0) {
                 sqlite->addConstructionData(constructNum, construction, construction.UValue);
             } else {
@@ -186,8 +190,8 @@ void CreateSQLiteZoneExtendedOutput()
         for (int ventNum = 1; ventNum <= DataHeatBalance::TotVentilation; ++ventNum) {
             sqlite->addVentilationData(ventNum, DataHeatBalance::Ventilation(ventNum));
         }
-        for (int zoneNum = 1; zoneNum <= DataGlobals::NumOfZones; ++zoneNum) {
-            sqlite->addRoomAirModelData(zoneNum, DataRoomAirModel::AirModel(zoneNum));
+        for (int zoneNum = 1; zoneNum <= state.dataGlobal->NumOfZones; ++zoneNum) {
+            sqlite->addRoomAirModelData(zoneNum, state.dataRoomAirMod->AirModel(zoneNum));
         }
 
         sqlite->createZoneExtendedOutput();
@@ -217,6 +221,8 @@ SQLite::SQLite(std::shared_ptr<std::ostream> errorStream,
         sqliteExecuteCommand("PRAGMA locking_mode = EXCLUSIVE;");
         sqliteExecuteCommand("PRAGMA journal_mode = OFF;");
         sqliteExecuteCommand("PRAGMA synchronous = OFF;");
+        sqliteExecuteCommand("PRAGMA encoding=\"UTF-8\";");
+
         // Turn this to ON for Foreign Key constraints.
         // This must be turned ON for every connection
         // Currently, inserting into daylighting tables does not work with this ON. The ZoneIndex referenced by DaylightMaps does not exist in
@@ -327,6 +333,13 @@ void SQLite::sqliteCommit()
 {
     if (m_writeOutputToSQLite) {
         sqliteExecuteCommand("COMMIT;");
+    }
+}
+
+void SQLite::sqliteRollback()
+{
+    if (m_writeOutputToSQLite) {
+        sqliteExecuteCommand("ROLLBACK;");
     }
 }
 
@@ -970,14 +983,14 @@ void SQLite::initializeDaylightMapTables()
 
     const std::string daylightMapHourlyReportsTableSQL = "CREATE TABLE DaylightMapHourlyReports ( "
                                                          "HourlyReportIndex INTEGER PRIMARY KEY, "
-                                                         "MapNumber INTEGER, Month INTEGER, DayOfMonth INTEGER, Hour INTEGER, "
+                                                         "MapNumber INTEGER, Year INTEGER, Month INTEGER, DayOfMonth INTEGER, Hour INTEGER, "
                                                          "FOREIGN KEY(MapNumber) REFERENCES DaylightMaps(MapNumber) "
                                                          "ON DELETE CASCADE ON UPDATE CASCADE "
                                                          ");";
 
     sqliteExecuteCommand(daylightMapHourlyReportsTableSQL);
 
-    const std::string daylightMapHourlyTitleInsertSQL = "INSERT INTO DaylightMapHourlyReports VALUES(?,?,?,?,?);";
+    const std::string daylightMapHourlyTitleInsertSQL = "INSERT INTO DaylightMapHourlyReports VALUES(?,?,?,?,?,?);";
 
     sqlitePrepareStatement(m_daylightMapHourlyTitleInsertStmt, daylightMapHourlyTitleInsertSQL);
 
@@ -1150,12 +1163,12 @@ void SQLite::initializeTabularDataTable()
 
     sqliteExecuteCommand(sql);
 
-    sqliteExecuteCommand("INSERT INTO StringTypes VALUES(" + std::to_string(ReportNameId) + ",'ReportName');");
-    sqliteExecuteCommand("INSERT INTO StringTypes VALUES(" + std::to_string(ReportForStringId) + ",'ReportForString');");
-    sqliteExecuteCommand("INSERT INTO StringTypes VALUES(" + std::to_string(TableNameId) + ",'TableName');");
-    sqliteExecuteCommand("INSERT INTO StringTypes VALUES(" + std::to_string(RowNameId) + ",'RowName');");
-    sqliteExecuteCommand("INSERT INTO StringTypes VALUES(" + std::to_string(ColumnNameId) + ",'ColumnName');");
-    sqliteExecuteCommand("INSERT INTO StringTypes VALUES(" + std::to_string(UnitsId) + ",'Units');");
+    sqliteExecuteCommand(format("INSERT INTO StringTypes VALUES({},'ReportName');", ReportNameId));
+    sqliteExecuteCommand(format("INSERT INTO StringTypes VALUES({},'ReportForString');", ReportForStringId));
+    sqliteExecuteCommand(format("INSERT INTO StringTypes VALUES({},'TableName');", TableNameId));
+    sqliteExecuteCommand(format("INSERT INTO StringTypes VALUES({},'RowName');", RowNameId));
+    sqliteExecuteCommand(format("INSERT INTO StringTypes VALUES({},'ColumnName');", ColumnNameId));
+    sqliteExecuteCommand(format("INSERT INTO StringTypes VALUES({},'Units');", UnitsId));
 
     const std::string sql2 = "CREATE TABLE Strings ( "
                              "StringIndex INTEGER PRIMARY KEY, "
@@ -1256,10 +1269,10 @@ std::string SQLite::storageType(const int storageTypeIndex)
     std::string result;
 
     switch (storageTypeIndex) {
-    case 1:
+    case 1: // static_cast<int>(OutputProcessor::StoreType::Averaged)
         result = "Avg";
         break;
-    case 2:
+    case 2: // static_cast<int>(OutputProcessor::StoreType::Summed)
         result = "Sum";
         break;
     default:
@@ -1274,11 +1287,11 @@ std::string SQLite::timestepTypeName(const int timestepType)
     std::string result;
 
     switch (timestepType) {
-    case 1:
-        result = "HVAC System";
-        break;
-    case 2:
+    case 1: // static_cast<int>(OutputProcessor::TimeStepType::TimeStepZone)
         result = "Zone";
+        break;
+    case 2: // static_cast<int>(OutputProcessor::TimeStepType::TimeStepSystem)
+        result = "HVAC System";
         break;
     default:
         result = "Unknown!!!";
@@ -1500,7 +1513,7 @@ void SQLite::createSQLiteReportDataRecord(int const recordIndex,
 }
 
 void SQLite::createSQLiteTimeIndexRecord(int const reportingInterval,
-                                         int const EP_UNUSED(recordIndex),
+                                         [[maybe_unused]] int const recordIndex,
                                          int const cumlativeSimulationDays,
                                          int const curEnvirNum,
                                          int const simulationYear,
@@ -1803,22 +1816,25 @@ void SQLite::createSQLiteDaylightMapTitle(int const mapNum,
 }
 
 void SQLite::createSQLiteDaylightMap(int const mapNum,
+                                     int const year,
                                      int const month,
                                      int const dayOfMonth,
                                      int const hourOfDay,
                                      int const nX,
-                                     Array1<Real64> const &x,
+                                     Array1D<Real64> const &x,
                                      int const nY,
-                                     Array1<Real64> const &y,
+                                     Array1D<Real64> const &y,
                                      Array2<Real64> const &illuminance)
 {
     if (m_writeOutputToSQLite) {
         ++m_hourlyReportIndex;
-        sqliteBindInteger(m_daylightMapHourlyTitleInsertStmt, 1, m_hourlyReportIndex);
-        sqliteBindForeignKey(m_daylightMapHourlyTitleInsertStmt, 2, mapNum);
-        sqliteBindInteger(m_daylightMapHourlyTitleInsertStmt, 3, month);
-        sqliteBindInteger(m_daylightMapHourlyTitleInsertStmt, 4, dayOfMonth);
-        sqliteBindInteger(m_daylightMapHourlyTitleInsertStmt, 5, hourOfDay);
+        int b = 0;
+        sqliteBindInteger(m_daylightMapHourlyTitleInsertStmt, ++b, m_hourlyReportIndex);
+        sqliteBindForeignKey(m_daylightMapHourlyTitleInsertStmt, ++b, mapNum);
+        sqliteBindForeignKey(m_daylightMapHourlyTitleInsertStmt, ++b, year);
+        sqliteBindInteger(m_daylightMapHourlyTitleInsertStmt, ++b, month);
+        sqliteBindInteger(m_daylightMapHourlyTitleInsertStmt, ++b, dayOfMonth);
+        sqliteBindInteger(m_daylightMapHourlyTitleInsertStmt, ++b, hourOfDay);
 
         sqliteStepCommand(m_daylightMapHourlyTitleInsertStmt);
         sqliteResetCommand(m_daylightMapHourlyTitleInsertStmt);
@@ -2054,14 +2070,14 @@ void SQLite::createZoneExtendedOutput()
 
 void SQLite::createSQLiteEnvironmentPeriodRecord(const int curEnvirNum,
                                                  const std::string &environmentName,
-                                                 const int kindOfSim,
+                                                 const DataGlobalConstants::KindOfSim kindOfSim,
                                                  const int simulationIndex)
 {
     if (m_writeOutputToSQLite) {
         sqliteBindInteger(m_environmentPeriodInsertStmt, 1, curEnvirNum);
         sqliteBindForeignKey(m_environmentPeriodInsertStmt, 2, simulationIndex);
         sqliteBindText(m_environmentPeriodInsertStmt, 3, environmentName);
-        sqliteBindInteger(m_environmentPeriodInsertStmt, 4, kindOfSim);
+        sqliteBindInteger(m_environmentPeriodInsertStmt, 4, static_cast<int>(kindOfSim));
 
         sqliteStepCommand(m_environmentPeriodInsertStmt);
         sqliteResetCommand(m_environmentPeriodInsertStmt);
@@ -2093,11 +2109,11 @@ void SQLite::addZoneGroupData(int const number, DataHeatBalance::ZoneGroupData c
     zoneGroups.push_back(std::unique_ptr<ZoneGroup>(new ZoneGroup(m_errorStream, m_db, number, zoneGroupData)));
 }
 
-void SQLite::addMaterialData(int const number, DataHeatBalance::MaterialProperties const &materialData)
+void SQLite::addMaterialData(int const number, EnergyPlus::Material::MaterialProperties const &materialData)
 {
     materials.push_back(std::unique_ptr<Material>(new Material(m_errorStream, m_db, number, materialData)));
 }
-void SQLite::addConstructionData(int const number, DataHeatBalance::ConstructionData const &constructionData, double const &constructionUValue)
+void SQLite::addConstructionData(int const number, EnergyPlus::Construction::ConstructionProps const &constructionData, double const &constructionUValue)
 {
     constructions.push_back(std::unique_ptr<Construction>(new Construction(m_errorStream, m_db, number, constructionData, constructionUValue)));
 }
@@ -2417,8 +2433,8 @@ bool SQLite::RoomAirModel::insertIntoSQLite(sqlite3_stmt *insertStmt)
 {
     sqliteBindInteger(insertStmt, 1, number);
     sqliteBindText(insertStmt, 2, airModelName);
-    sqliteBindInteger(insertStmt, 3, airModelType);
-    sqliteBindInteger(insertStmt, 4, tempCoupleScheme);
+    sqliteBindInteger(insertStmt, 3, static_cast<int>(airModelType));
+    sqliteBindInteger(insertStmt, 4, static_cast<int>(tempCoupleScheme));
     sqliteBindLogical(insertStmt, 5, simAirModel);
 
     int rc = sqliteStepCommand(insertStmt);

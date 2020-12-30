@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -50,15 +50,18 @@
 
 // ObjexxFCL Headers
 #include <ObjexxFCL/Array1D.hh>
-#include <ObjexxFCL/Array1S.hh>
 #include <ObjexxFCL/Optional.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <DataLoopNode.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/DataLoopNode.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace NodeInputManager {
 
@@ -114,9 +117,10 @@ namespace NodeInputManager {
     // Needed for unit tests, should not be normally called.
     void clear_state();
 
-    void GetNodeNums(std::string const &Name,                      // Name for which to obtain information
+    void GetNodeNums(EnergyPlusData &state,
+                     std::string const &Name,                      // Name for which to obtain information
                      int &NumNodes,                                // Number of nodes accompanying this Name
-                     Array1S_int NodeNumbers,                      // Node Numbers accompanying this Name
+                     Array1D_int &NodeNumbers,                     // Node Numbers accompanying this Name
                      bool &ErrorsFound,                            // True when errors are found...
                      int const NodeFluidType,                      // Fluidtype for checking/setting node FluidType
                      std::string const &NodeObjectType,            // Node Object Type (i.e. "Chiller:Electric")
@@ -128,28 +132,16 @@ namespace NodeInputManager {
                      Optional_string_const InputFieldName = _      // Input Field Name
     );
 
-    void GetNodeList(std::string const &Name,                 // Node List Name for which information is obtained
-                     int &NumNodes,                           // Number of nodes accompanying this Name
-                     Array1S_int NodeNumbers,                 // NodeNumbers accompanying this Name
-                     bool &errFlag,                           // Set to true when requested Node List not found
-                     int const NodeFluidType,                 // Fluidtype for checking/setting node FluidType
-                     std::string const &NodeObjectType,       // Node Object Type (i.e. "Chiller:Electric")
-                     std::string const &NodeObjectName,       // Node Object Name (i.e. "MyChiller")
-                     int const NodeConnectionType,            // Node Connection Type (see DataLoopNode)
-                     int const NodeFluidStream,               // Which Fluid Stream (1,2,3,...)
-                     bool const ObjectIsParent,               // True/False
-                     Optional_string_const InputFieldName = _ // Input Field Name
-    );
+    void SetupNodeVarsForReporting(EnergyPlusData &state);
 
-    void SetupNodeVarsForReporting();
+    void GetNodeListsInput(EnergyPlusData &state, bool &ErrorsFound);                // Set to true when requested Node List not found, unchanged otherwise
 
-    void GetNodeListsInput(bool &ErrorsFound);
-
-    int AssignNodeNumber(std::string const &Name, // Name for assignment
+    int AssignNodeNumber(EnergyPlusData &state, std::string const &Name, // Name for assignment
                          int const NodeFluidType, // must be valid
                          bool &ErrorsFound);
 
-    int GetOnlySingleNode(std::string const &NodeName,
+    int GetOnlySingleNode(EnergyPlusData &state,
+                          std::string const &NodeName,
                           bool &errFlag,
                           std::string const &NodeObjectType,       // Node Object Type (i.e. "Chiller:Electric")
                           std::string const &NodeObjectName,       // Node Object Name (i.e. "MyChiller")
@@ -160,27 +152,35 @@ namespace NodeInputManager {
                           Optional_string_const InputFieldName = _ // Input Field Name
     );
 
-    void InitUniqueNodeCheck(std::string const &ContextName);
+    void InitUniqueNodeCheck(EnergyPlusData &state, std::string const &ContextName);
 
-    void CheckUniqueNodes(std::string const &NodeTypes,
+    void CheckUniqueNodes(EnergyPlusData &state, std::string const &NodeTypes,
                           std::string const &CheckType,
                           bool &ErrorsFound,
                           Optional_string_const CheckName = _,
                           Optional_int_const CheckNumber = _,
                           Optional_string_const ObjectName = _);
 
-    void EndUniqueNodeCheck(std::string const &ContextName);
+    void EndUniqueNodeCheck(EnergyPlusData &state, std::string const &ContextName);
 
-    void CalcMoreNodeInfo();
+    void CalcMoreNodeInfo(EnergyPlusData &state);
 
     void MarkNode(int const NodeNumber, // Node Number to be marked
                   std::string const &ObjectType,
                   std::string const &ObjectName,
                   std::string const &FieldName);
 
-    void CheckMarkedNodes(bool &ErrorsFound);
+    void CheckMarkedNodes(EnergyPlusData &state, bool &ErrorsFound);
 
 } // namespace NodeInputManager
+
+struct NodeInputManagerData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

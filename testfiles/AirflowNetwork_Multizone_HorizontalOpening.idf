@@ -137,7 +137,7 @@
 ! Environmental Emissions:        None
 ! Utility Tariffs:                None
 
-  Version,9.0;
+  Version,9.4;
 
 !-   ===========  ALL OBJECTS IN CLASS: BUILDING ===========
 
@@ -145,7 +145,7 @@
     AirflowNetwork 3 Zone Building,  !- Name
     0,                       !- North Axis {deg}
     Suburbs,                 !- Terrain
-    3.9999999E-02,           !- Loads Convergence Tolerance Value
+    3.9999999E-02,           !- Loads Convergence Tolerance Value {W}
     0.4000000,               !- Temperature Convergence Tolerance Value {deltaC}
     MinimalShadowing,        !- Solar Distribution
     25,                      !- Maximum Number of Warmup Days
@@ -174,17 +174,21 @@
     No,                      !- Do System Sizing Calculation
     No,                      !- Do Plant Sizing Calculation
     Yes,                     !- Run Simulation for Sizing Periods
-    Yes;                     !- Run Simulation for Weather File Run Periods
+    Yes,                     !- Run Simulation for Weather File Run Periods
+    No,                      !- Do HVAC Sizing Simulation for Sizing Periods
+    1;                       !- Maximum Number of HVAC Sizing Simulation Passes
 
 !-   ===========  ALL OBJECTS IN CLASS: RUNPERIOD ===========
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     7,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     7,                       !- End Month
     2,                       !- End Day of Month
-    UseWeatherFile,          !- Day of Week for Start Day
+    ,                        !- End Year
+    ,                        !- Day of Week for Start Day
     Yes,                     !- Use Weather File Holidays and Special Days
     Yes,                     !- Use Weather File Daylight Saving Period
     No,                      !- Apply Weekend Holiday Rule
@@ -1091,7 +1095,6 @@
     Surface_1,               !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0,                     !- Multiplier
     4,                       !- Number of Vertices
@@ -1107,7 +1110,6 @@
     Surface_3,               !- Building Surface Name
     DoorInSurface_17,        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0,                     !- Multiplier
     4,                       !- Number of Vertices
@@ -1123,7 +1125,6 @@
     Surface_15,              !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0,                     !- Multiplier
     4,                       !- Number of Vertices
@@ -1139,7 +1140,6 @@
     Surface_17,              !- Building Surface Name
     DoorInSurface_3,         !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0,                     !- Multiplier
     4,                       !- Number of Vertices
@@ -1155,7 +1155,6 @@
     Surface_1_T,             !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0,                     !- Multiplier
     4,                       !- Number of Vertices
@@ -1171,7 +1170,6 @@
     Surface_3_T,             !- Building Surface Name
     DoorInSurface_17_T,      !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0,                     !- Multiplier
     4,                       !- Number of Vertices
@@ -1187,7 +1185,6 @@
     Surface_15_T,            !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0,                     !- Multiplier
     4,                       !- Number of Vertices
@@ -1203,7 +1200,6 @@
     Surface_17_T,            !- Building Surface Name
     DoorInSurface_3_T,       !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0,                     !- Multiplier
     4,                       !- Number of Vertices
@@ -1219,7 +1215,6 @@
     Surface_19_T,            !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5000000,               !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0,                     !- Multiplier
     4,                       !- Number of Vertices

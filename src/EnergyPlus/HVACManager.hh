@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,9 +52,13 @@
 #include <ObjexxFCL/Array1D.hh>
 
 // EnergyPlus Headers
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace HVACManager {
 
@@ -73,11 +77,11 @@ namespace HVACManager {
     // Functions
     void clear_state();
 
-    void ManageHVAC();
+    void ManageHVAC(EnergyPlusData &state);
 
-    void SimHVAC();
+    void SimHVAC(EnergyPlusData &state);
 
-    void SimSelectedEquipment(bool &SimAirLoops,         // True when the air loops need to be (re)simulated
+    void SimSelectedEquipment(EnergyPlusData &state, bool &SimAirLoops,         // True when the air loops need to be (re)simulated
                               bool &SimZoneEquipment,    // True when zone equipment components need to be (re)simulated
                               bool &SimNonZoneEquipment, // True when non-zone equipment components need to be (re)simulated
                               bool &SimPlantLoops,       // True when the main plant loops need to be (re)simulated
@@ -85,25 +89,35 @@ namespace HVACManager {
                               bool &FirstHVACIteration,  // True when solution technique on first iteration
                               bool const LockPlantFlows);
 
-    void ResetTerminalUnitFlowLimits();
+    void ResetTerminalUnitFlowLimits(EnergyPlusData &state);
 
-    void ResolveAirLoopFlowLimits();
+    void ResolveAirLoopFlowLimits(EnergyPlusData &state);
 
-    void ResolveLockoutFlags(bool &SimAir); // TRUE means air loops must be (re)simulated
+    void ResolveLockoutFlags(EnergyPlusData &state, bool &SimAir); // TRUE means air loops must be (re)simulated
 
-    void ResetHVACControl();
+    void ResetHVACControl(EnergyPlusData &state);
 
     void ResetNodeData();
 
     void UpdateZoneListAndGroupLoads();
 
-    void ReportAirHeatBalance();
+    void ReportAirHeatBalance(EnergyPlusData &state);
 
-    void SetHeatToReturnAirFlag();
+    void SetHeatToReturnAirFlag(EnergyPlusData &state);
 
-    void UpdateZoneInletConvergenceLog();
+    void UpdateZoneInletConvergenceLog(EnergyPlusData &state);
+
+    void CheckAirLoopFlowBalance(EnergyPlusData &state);
 
 } // namespace HVACManager
+
+struct HVACManagerData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

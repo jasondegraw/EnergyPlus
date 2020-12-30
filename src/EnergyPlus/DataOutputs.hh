@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -48,16 +48,20 @@
 #ifndef DataOutputs_hh_INCLUDED
 #define DataOutputs_hh_INCLUDED
 
+// C++ Headers
+#include <cstddef>
+#include <unordered_map>
+#include <vector>
+
 // ObjexxFCL Headers
 #include <ObjexxFCL/Array1D.hh>
 
 // EnergyPlus Headers
 #include "re2/re2.h"
-#include <DataGlobals.hh>
-#include <EnergyPlus.hh>
-#include <cstddef>
-#include <unordered_map>
-#include <vector>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
+#include <EnergyPlus/UtilityRoutines.hh>
 
 namespace EnergyPlus {
 
@@ -86,7 +90,7 @@ namespace DataOutputs {
     // Types
     struct OutputReportingVariables
     {
-        OutputReportingVariables(std::string const &KeyValue, std::string const &VariableName);
+        OutputReportingVariables(EnergyPlusData &state, std::string const &KeyValue, std::string const &VariableName);
 
         std::string const key;
         std::string const variableName;
@@ -94,7 +98,16 @@ namespace DataOutputs {
         std::unique_ptr<RE2> pattern;
         std::unique_ptr<RE2> case_insensitive_pattern;
     };
-    extern std::unordered_map<std::string, std::unordered_map<std::string, OutputReportingVariables>> OutputVariablesForSimulation;
+
+
+
+    // Outer map has a Key of Variable Name, and value is inner map of Key=KeyValue, Value=struct OutputReportingVariables
+    // All of the string are considered as case insenstive (If we search for "ZONE MEAN AIR TEMPERATURE" it would find "Zone Mean Air Temperature")
+    extern std::unordered_map<std::string, std::unordered_map<std::string, OutputReportingVariables,
+                                                              UtilityRoutines::case_insensitive_hasher,
+                                                              UtilityRoutines::case_insensitive_comparator>,
+                               UtilityRoutines::case_insensitive_hasher,
+                               UtilityRoutines::case_insensitive_comparator> OutputVariablesForSimulation;
 
     // Functions
 
@@ -102,9 +115,18 @@ namespace DataOutputs {
     // Needed for unit tests, should not be normally called.
     void clear_state();
 
+    // Check if a KeyValue/VariableName is inside the map OutputVariablesForSimulation
     bool FindItemInVariableList(std::string const &KeyedValue, std::string const &VariableName);
 
 } // namespace DataOutputs
+
+struct OutputsData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -46,8 +46,10 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // EnergyPlus Headers
-#include <DataPrecisionGlobals.hh>
-#include <DataSizing.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
+#include <EnergyPlus/DataEnvironment.hh>
+#include <EnergyPlus/DataSizing.hh>
+#include <EnergyPlus/Psychrometrics.hh>
 
 namespace EnergyPlus {
 
@@ -72,8 +74,6 @@ namespace DataSizing {
     // na
 
     // Using/Aliasing
-    using namespace DataPrecisionGlobals;
-
     // Data
     // -only module should be available to other modules and routines.
     // Thus, all variables in this module must be PUBLIC.
@@ -148,8 +148,6 @@ namespace DataSizing {
     // parameter for autosize
     Real64 const AutoSize(-99999.0);
 
-    // parameter for (time-of-peak) sizing format
-    gio::Fmt PeakHrMinFmt("(I2.2,':',I2.2,':00')");
 
     // Zone Outdoor Air Method
     int const ZOAM_FlowPerPerson(1); // set the outdoor air flow rate based on number of people in the zone
@@ -256,12 +254,20 @@ namespace DataSizing {
     bool ZoneEqUnitVent(false);                     // TRUE if a unit ventilator unit is being simulated
     bool ZoneEqVentedSlab(false);                   // TRUE if a ventilated slab is being simulated
     bool ZoneEqDXCoil(false);                       // TRUE if a ZoneHVAC DX coil is being simulated
+    bool ZoneEqUnitarySys(false);                   // TRUE if a zone UnitarySystem is being simulated
     bool ZoneCoolingOnlyFan(false);                 // TRUE if a ZoneHVAC DX cooling coil is only coil in parent
     bool ZoneHeatingOnlyFan(false);                 // TRUE if zone unit only does heating and contains a fam (such as Unit Heater)
     bool ZoneSizingRunDone(false);                  // True if a zone sizing run has been successfully completed.
     bool DataErrorsFound(false);                    // used for simulation termination when errors are found
     Real64 AutoVsHardSizingThreshold(0.1);          // criteria threshold used to determine if user hard size and autosize disagree 10%
     Real64 AutoVsHardSizingDeltaTempThreshold(1.5); // temperature criteria threshold for autosize versus hard size [C]
+    Real64 DataCoilSizingAirInTemp(0.0);            // saves sizing data for use in coil object reporting
+    Real64 DataCoilSizingAirInHumRat(0.0);          // saves sizing data for use in coil object reporting
+    Real64 DataCoilSizingAirOutTemp(0.0);           // saves sizing data for use in coil object reporting
+    Real64 DataCoilSizingAirOutHumRat(0.0);         // saves sizing data for use in coil object reporting
+    Real64 DataCoilSizingFanCoolLoad(0.0);          // saves sizing data for use in coil object reporting
+    Real64 DataCoilSizingCapFT(1.0);                // saves sizing data for use in coil object reporting
+    bool DataDesAccountForFanHeat(true);            // include fan heat when true
     Real64 DataDesInletWaterTemp(0.0);              // coil inlet water temperture used for warning messages
     Real64 DataDesInletAirHumRat(0.0);              // coil inlet air humidity ratio used for warning messages
     Real64 DataDesInletAirTemp(0.0);                // coil inlet air temperature used for warning messages
@@ -287,6 +293,7 @@ namespace DataSizing {
     Real64 DataConstantUsedForSizing(0.0);          // base value used for sizing inputs that are ratios of other inputs
     Real64 DataFractionUsedForSizing(0.0);          // fractional value of base value used for sizing inputs that are ratios of other inputs
     Real64 DataNonZoneNonAirloopValue(0.0);         // used when equipment is not located in a zone or airloop
+    Real64 DataSizingFraction(1.0);                 // used when ratios of sizing is required
     int DataZoneUsedForSizing(0);                   // pointer to control zone for air loop equipment
     int DataZoneNumber(0);                          // a pointer to a served by zoneHVAC equipment
     int NumZoneHVACSizing(0);                       // Number of design specification zone HVAC sizing objects
@@ -308,6 +315,10 @@ namespace DataSizing {
     Real64 DataWaterCoilSizCoolDeltaT(0.0);         // used for sizing cooling coil water design flow rate
     Real64 DataWaterCoilSizHeatDeltaT(0.0);         // used for sizing heating coil water design flow rate
     bool DataNomCapInpMeth(false);                  // True if heating coil is sized by CoilPerfInpMeth == NomCa
+    int DataFanEnumType(-1);                        // Fan type used during sizing
+    int DataFanIndex(-1);                           // Fan index used during sizing
+    zoneFanPlacement DataFanPlacement(zoneFanPlacement::zoneFanPlaceNotSet); // identifies location of fan wrt coil
+    int DataDXSpeedNum(0);
 
     // Object Data
     Array1D<OARequirementsData> OARequirements;
@@ -351,6 +362,8 @@ namespace DataSizing {
     Array1D<Real64> PzSumBySys;      // sum of design people for system, Pz_sum
     Array1D<Real64> PsBySys;         // sum of peak concurrent people by system, Ps
     Array1D<Real64> DBySys;          // Population Diversity by system
+    Array1D<Real64> SumRpxPzBySys;   // Sum of per person OA times number of people by system, No D yet
+    Array1D<Real64> SumRaxAzBySys;   // sum of per area OA time zone area by system, does not get altered by D
     Array1D<std::string> PeakPsOccurrenceDateTimeStringBySys;    // string describing when Ps peak occurs
     Array1D<std::string> PeakPsOccurrenceEnvironmentStringBySys; // string describing Environment when Ps peak occurs
     Array1D<Real64> VouBySys;                                    // uncorrected system outdoor air requirement, for std 62.1 VRP
@@ -398,6 +411,25 @@ namespace DataSizing {
         CurOverallSimDay = 0;
         NumTimeStepsInAvg = 0;
         SaveNumPlantComps = 0;
+        SysSizingRunDone = false;
+        TermUnitSingDuct = false;
+        TermUnitPIU = false;
+        TermUnitIU = false;
+        ZoneEqFanCoil = false;
+        ZoneEqOutdoorAirUnit = false;
+        ZoneEqUnitHeater = false;
+        ZoneEqUnitVent = false;
+        ZoneEqVentedSlab = false;
+        ZoneEqDXCoil = false;
+        ZoneEqUnitarySys = false;
+        ZoneCoolingOnlyFan = false;
+        ZoneHeatingOnlyFan = false;
+        ZoneSizingRunDone = false;
+        DataErrorsFound = false; // used to flag fatal errors in water coils
+        AutoVsHardSizingThreshold = 0.1;
+        AutoVsHardSizingDeltaTempThreshold = 1.5;
+
+        // Data globals used for sizing
         DataTotCapCurveIndex = 0;
         DataPltSizCoolNum = 0;
         DataPltSizHeatNum = 0;
@@ -412,22 +444,6 @@ namespace DataSizing {
         DataScalableCapSizingON = false;
         DataSysScalableFlowSizingON = false;
         DataSysScalableCapSizingON = false;
-        SysSizingRunDone = false;
-        TermUnitSingDuct = false;
-        TermUnitPIU = false;
-        TermUnitIU = false;
-        ZoneEqFanCoil = false;
-        ZoneEqOutdoorAirUnit = false;
-        ZoneEqUnitHeater = false;
-        ZoneEqUnitVent = false;
-        ZoneEqVentedSlab = false;
-        ZoneEqDXCoil = false;
-        ZoneCoolingOnlyFan = false;
-        ZoneHeatingOnlyFan = false;
-        ZoneSizingRunDone = false;
-        DataErrorsFound = false;
-        AutoVsHardSizingThreshold = 0.1;
-        AutoVsHardSizingDeltaTempThreshold = 1.5;
         DataDesInletWaterTemp = 0.0;
         DataDesInletAirHumRat = 0.0;
         DataDesInletAirTemp = 0.0;
@@ -453,7 +469,22 @@ namespace DataSizing {
         DataConstantUsedForSizing = 0.0;
         DataFractionUsedForSizing = 0.0;
         DataNonZoneNonAirloopValue = 0.0;
+        DataSizingFraction = 1.0;
         DataZoneNumber = 0;
+        DataFanEnumType = -1;
+        DataFanIndex = -1;
+        DataFanPlacement = zoneFanPlacement::zoneFanPlaceNotSet;
+        DataWaterCoilSizCoolDeltaT = 0.0;
+        DataWaterCoilSizHeatDeltaT = 0.0;
+        DataNomCapInpMeth = false;
+        DataCoilSizingAirInTemp = 0.0;
+        DataCoilSizingAirInHumRat = 0.0;
+        DataCoilSizingAirOutTemp = 0.0;
+        DataCoilSizingAirOutHumRat = 0.0;
+        DataCoilSizingFanCoolLoad = 0.0;
+        DataCoilSizingCapFT = 1.0;
+        DataDesAccountForFanHeat = true;
+
         NumZoneHVACSizing = 0;
         NumAirTerminalSizingSpec = 0;
         NumAirTerminalUnits = 0;
@@ -505,9 +536,6 @@ namespace DataSizing {
         CalcFinalFacilitySizing.HeatZoneTempSeq.deallocate();
         CalcFinalFacilitySizing.HeatLoadSeq.deallocate();
 
-        DataWaterCoilSizCoolDeltaT = 0.0;
-        DataWaterCoilSizHeatDeltaT = 0.0;
-        DataNomCapInpMeth = false;
         VbzByZone.deallocate();
         VdzClgByZone.deallocate();
         VdzMinClgByZone.deallocate();
@@ -524,6 +552,8 @@ namespace DataSizing {
         PzSumBySys.deallocate();
         PsBySys.deallocate();
         DBySys.deallocate();
+        SumRpxPzBySys.deallocate();
+        SumRaxAzBySys.deallocate();
         PeakPsOccurrenceDateTimeStringBySys.deallocate();
         PeakPsOccurrenceEnvironmentStringBySys.deallocate();
         VouBySys.deallocate();
@@ -601,6 +631,338 @@ namespace DataSizing {
         this->DesHeatLoad = this->DesHeatLoad * ratio;
         this->HeatFlowSeq = this->HeatFlowSeq * ratio;
         this->HeatLoadSeq = this->HeatLoadSeq * ratio;
+    }
+
+    void ZoneSizingData::zeroMemberData()
+    {
+        if (!allocated(this->DOASSupMassFlowSeq)) return;
+        std::fill(this->DOASSupMassFlowSeq.begin(), this->DOASSupMassFlowSeq.end(), 0.0);
+        std::fill(this->DOASHeatLoadSeq.begin(), this->DOASHeatLoadSeq.end(), 0.0);
+        std::fill(this->DOASCoolLoadSeq.begin(), this->DOASCoolLoadSeq.end(), 0.0);
+        std::fill(this->DOASHeatAddSeq.begin(), this->DOASHeatAddSeq.end(), 0.0);
+        std::fill(this->DOASLatAddSeq.begin(), this->DOASLatAddSeq.end(), 0.0);
+        std::fill(this->DOASSupTempSeq.begin(), this->DOASSupTempSeq.end(), 0.0);
+        std::fill(this->DOASSupHumRatSeq.begin(), this->DOASSupHumRatSeq.end(), 0.0);
+        std::fill(this->DOASTotCoolLoadSeq.begin(), this->DOASTotCoolLoadSeq.end(), 0.0);
+        std::fill(this->HeatFlowSeq.begin(), this->HeatFlowSeq.end(), 0.0);
+        std::fill(this->HeatFlowSeqNoOA.begin(), this->HeatFlowSeqNoOA.end(), 0.0);
+        std::fill(this->HeatLoadSeq.begin(), this->HeatLoadSeq.end(), 0.0);
+        std::fill(this->HeatZoneTempSeq.begin(), this->HeatZoneTempSeq.end(), 0.0);
+        std::fill(this->DesHeatSetPtSeq.begin(), this->DesHeatSetPtSeq.end(), 0.0);
+        std::fill(this->HeatOutTempSeq.begin(), this->HeatOutTempSeq.end(), 0.0);
+        std::fill(this->HeatZoneRetTempSeq.begin(), this->HeatZoneRetTempSeq.end(), 0.0);
+        std::fill(this->HeatTstatTempSeq.begin(), this->HeatTstatTempSeq.end(), 0.0);
+        std::fill(this->HeatZoneHumRatSeq.begin(), this->HeatZoneHumRatSeq.end(), 0.0);
+        std::fill(this->HeatOutHumRatSeq.begin(), this->HeatOutHumRatSeq.end(), 0.0);
+        std::fill(this->CoolFlowSeq.begin(), this->CoolFlowSeq.end(), 0.0);
+        std::fill(this->CoolFlowSeqNoOA.begin(), this->CoolFlowSeqNoOA.end(), 0.0);
+        std::fill(this->CoolLoadSeq.begin(), this->CoolLoadSeq.end(), 0.0);
+        std::fill(this->CoolZoneTempSeq.begin(), this->CoolZoneTempSeq.end(), 0.0);
+        std::fill(this->DesCoolSetPtSeq.begin(), this->DesCoolSetPtSeq.end(), 0.0);
+        std::fill(this->CoolOutTempSeq.begin(), this->CoolOutTempSeq.end(), 0.0);
+        std::fill(this->CoolZoneRetTempSeq.begin(), this->CoolZoneRetTempSeq.end(), 0.0);
+        std::fill(this->CoolTstatTempSeq.begin(), this->CoolTstatTempSeq.end(), 0.0);
+        std::fill(this->CoolZoneHumRatSeq.begin(), this->CoolZoneHumRatSeq.end(), 0.0);
+        std::fill(this->CoolOutHumRatSeq.begin(), this->CoolOutHumRatSeq.end(), 0.0);
+
+        this->CoolDesDay = ""; // name of a cooling design day
+        this->HeatDesDay = ""; // name of a heating design day
+
+        this->DesHeatMassFlow = 0.0;       // zone design heating air mass flow rate [kg/s]
+        this->DesCoolMassFlow = 0.0;       // zone design cooling air mass flow rate [kg/s]
+        this->DesHeatLoad = 0.0;           // zone design heating load [W]
+        this->DesCoolLoad = 0.0;           // zone design cooling load [W]
+        this->DesHeatDens = 0.0;           // zone design heating air density [kg/m3]
+        this->DesCoolDens = 0.0;           // zone design cooling air density [kg/m3]
+        this->DesHeatVolFlow = 0.0;        // zone design heating air volume flow rate [m3/s]
+        this->DesCoolVolFlow = 0.0;        // zone design cooling air volume flow rate [m3/s]
+        this->DesHeatVolFlowMax = 0.0;     // zone design heating maximum air volume flow rate [m3/s]
+        this->DesCoolVolFlowMin = 0.0;     // zone design cooling minimum air volume flow rate [m3/s]
+        this->DesHeatCoilInTemp = 0.0;     // zone heating coil design air inlet temperature [C]
+        this->DesCoolCoilInTemp = 0.0;     // zone cooling coil design air inlet temperature [C]
+        this->DesHeatCoilInHumRat = 0.0;   // zone heating coil design air inlet humidity ratio [kg/kg]
+        this->DesCoolCoilInHumRat = 0.0;   // zone cooling coil design air inlet humidity ratio [kg/kg]
+        this->DesHeatCoilInTempTU = 0.0;   // zone heating coil design air inlet temperature (supply air)([C]
+        this->DesCoolCoilInTempTU = 0.0;   // zone cooling coil design air inlet temperature (supply air)[C]
+        this->DesHeatCoilInHumRatTU = 0.0; // zone heating coil design air inlet humidity ratio
+        this->DesCoolCoilInHumRatTU = 0.0; // zone cooling coil design air inlet humidity ratio
+        this->HeatMassFlow = 0.0;          // current zone heating air mass flow rate (HVAC time step)
+        this->CoolMassFlow = 0.0;          // current zone cooling air mass flow rate (HVAC time step)
+        this->HeatLoad = 0.0;              // current zone heating load (HVAC time step)
+        this->CoolLoad = 0.0;              // current zone heating load (HVAC time step)
+        this->HeatZoneTemp = 0.0;          // current zone temperature (heating, time step)
+        this->HeatOutTemp = 0.0;           // current outdoor temperature (heating, time step)
+        this->HeatZoneRetTemp = 0.0;       // current zone return temperature (heating, time step)
+        this->HeatTstatTemp = 0.0;         // current zone thermostat temperature (heating, time step)
+        this->CoolZoneTemp = 0.0;          // current zone temperature (cooling, time step)
+        this->CoolOutTemp = 0.0;           // current Outdoor temperature (cooling, time step)
+        this->CoolZoneRetTemp = 0.0;       // current zone return temperature (cooling, time step)
+        this->CoolTstatTemp = 0.0;         // current zone thermostat temperature (cooling, time step)
+        this->HeatZoneHumRat = 0.0;        // current zone humidity ratio (heating, time step)
+        this->CoolZoneHumRat = 0.0;        // current zone humidity ratio (cooling, time step)
+        this->HeatOutHumRat = 0.0;         // current outdoor humidity ratio (heating, time step)
+        this->CoolOutHumRat = 0.0;         // current outdoor humidity ratio (cooling, time step)
+        this->ZoneTempAtHeatPeak = 0.0;    // zone temp at max heating [C]
+        this->ZoneRetTempAtHeatPeak = 0.0; // zone return temp at max heating [C]
+        this->OutTempAtHeatPeak = 0.0;     // outdoor temperature at max heating [C]
+        this->ZoneTempAtCoolPeak = 0.0;    // zone temp at max cooling [C]
+        this->ZoneRetTempAtCoolPeak = 0.0; // zone return temp at max cooling [C]
+        this->OutTempAtCoolPeak = 0.0;     // outdoor temperature at max cooling [C]
+        this->ZoneHumRatAtHeatPeak = 0.0;  // zone humidity ratio at max heating [kg/kg]
+        this->ZoneHumRatAtCoolPeak = 0.0;  // zone humidity ratio at max cooling [kg/kg]
+        this->OutHumRatAtHeatPeak = 0.0;   // outdoor humidity at max heating [kg/kg]
+        this->OutHumRatAtCoolPeak = 0.0;   // outdoor humidity at max cooling [kg/kg]
+        this->TimeStepNumAtHeatMax = 0;    // time step number (in day) at Heating peak
+        this->TimeStepNumAtCoolMax = 0;    // time step number (in day) at cooling peak
+        this->HeatDDNum = 0;               // design day index of design day causing heating peak
+        this->CoolDDNum = 0;               // design day index of design day causing heating peak
+        this->cHeatDDDate = "";            // date of design day causing heating peak
+        this->cCoolDDDate = "";            // date of design day causing cooling peak
+        this->DOASHeatLoad = 0.0;          // current heating load from DOAS supply air [W]
+        this->DOASCoolLoad = 0.0;          // current cooling load from DOAS supply air [W]
+        this->DOASSupMassFlow = 0.0;       // current mass flow rate of DOAS supply air [kg/s]
+        this->DOASSupTemp = 0.0;           // current DOAS supply air temperature [C]
+        this->DOASSupHumRat = 0.0;         // current DOAS supply air humidity ratio [kgWater/kgDryAir]
+        this->DOASTotCoolLoad = 0.0;       // current total cooling load imposed by DOAS supply air [W]
+    }
+
+    void ZoneSizingData::allocateMemberArrays(int const numOfTimeStepInDay) {
+        this->HeatFlowSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->CoolFlowSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->HeatFlowSeqNoOA.dimension(numOfTimeStepInDay, 0.0);
+        this->CoolFlowSeqNoOA.dimension(numOfTimeStepInDay, 0.0);
+        this->HeatLoadSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->CoolLoadSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->HeatZoneTempSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->DesHeatSetPtSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->CoolZoneTempSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->DesCoolSetPtSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->HeatOutTempSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->CoolOutTempSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->HeatZoneRetTempSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->HeatTstatTempSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->CoolZoneRetTempSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->CoolTstatTempSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->HeatZoneHumRatSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->CoolZoneHumRatSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->HeatOutHumRatSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->CoolOutHumRatSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->DOASHeatLoadSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->DOASCoolLoadSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->DOASHeatAddSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->DOASLatAddSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->DOASSupMassFlowSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->DOASSupTempSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->DOASSupHumRatSeq.dimension(numOfTimeStepInDay, 0.0);
+        this->DOASTotCoolLoadSeq.dimension(numOfTimeStepInDay, 0.0);
+    }
+
+    void resetHVACSizingGlobals(int const curZoneEqNum, int const curSysNum, bool &firstPassFlag) // called in zone equipment Report function
+    {
+        // reset Data globals so that prevoiusly set variables are not used in other equipment models
+        DataTotCapCurveIndex = 0;
+        DataPltSizCoolNum = 0;
+        DataPltSizHeatNum = 0;
+        DataWaterLoopNum = 0;
+        DataCoilNum = 0;
+        DataFanOpMode = 0;
+        DataCoilIsSuppHeater = false;
+        DataIsDXCoil = false;
+        DataAutosizable = true;
+        DataEMSOverrideON = false;
+        DataScalableSizingON = false;
+        DataScalableCapSizingON = false;
+        DataSysScalableFlowSizingON = false;
+        DataSysScalableCapSizingON = false;
+        DataDesAccountForFanHeat = true;
+
+        DataDesInletWaterTemp = 0.0;
+        DataDesInletAirHumRat = 0.0;
+        DataDesInletAirTemp = 0.0;
+        DataDesOutletAirTemp = 0.0;
+        DataDesOutletAirHumRat = 0.0;
+        DataCoolCoilCap = 0.0;
+        DataFlowUsedForSizing = 0.0;
+        DataAirFlowUsedForSizing = 0.0;
+        DataWaterFlowUsedForSizing = 0.0;
+        DataCapacityUsedForSizing = 0.0;
+        DataDesignCoilCapacity = 0.0;
+        DataHeatSizeRatio = 1.0;
+        DataEMSOverride = 0.0;
+        DataBypassFrac = 0.0;
+        DataFracOfAutosizedCoolingAirflow = 1.0;
+        DataFracOfAutosizedHeatingAirflow = 1.0;
+        DataFlowPerCoolingCapacity = 0.0;
+        DataFlowPerHeatingCapacity = 0.0;
+        DataFracOfAutosizedCoolingCapacity = 1.0;
+        DataFracOfAutosizedHeatingCapacity = 1.0;
+        DataAutosizedCoolingCapacity = 0.0;
+        DataAutosizedHeatingCapacity = 0.0;
+        DataConstantUsedForSizing = 0.0;
+        DataFractionUsedForSizing = 0.0;
+        DataNonZoneNonAirloopValue = 0.0;
+        DataZoneNumber = 0;
+        DataFanEnumType = -1;
+        DataFanIndex = -1;
+        DataWaterCoilSizCoolDeltaT = 0.0;
+        DataWaterCoilSizHeatDeltaT = 0.0;
+        DataNomCapInpMeth = false;
+        DataFanPlacement = zoneFanPlacement::zoneFanPlaceNotSet;
+        DataDXSpeedNum = 0;
+        DataCoilSizingAirInTemp = 0.0;
+        DataCoilSizingAirInHumRat = 0.0;
+        DataCoilSizingAirOutTemp = 0.0;
+        DataCoilSizingAirOutHumRat = 0.0;
+
+        // These zone specific sizing variables are set in zone equipment to use for sizing.
+        // Reset to avoid chance that second zone equipment will size using these variables set by first zone equipment to be sized
+        if (curZoneEqNum > 0) {
+
+            if (ZoneEqSizing.size() == 0) {
+                firstPassFlag = false;
+                return;
+            }
+
+            ZoneEqSizing(curZoneEqNum).AirFlow = false;
+            ZoneEqSizing(curZoneEqNum).CoolingAirFlow = false;
+            ZoneEqSizing(curZoneEqNum).HeatingAirFlow = false;
+            ZoneEqSizing(curZoneEqNum).SystemAirFlow = false;
+            ZoneEqSizing(curZoneEqNum).Capacity = false;
+            ZoneEqSizing(curZoneEqNum).CoolingCapacity = false;
+            ZoneEqSizing(curZoneEqNum).HeatingCapacity = false;
+            ZoneEqSizing(curZoneEqNum).AirVolFlow = 0.0;
+            ZoneEqSizing(curZoneEqNum).MaxHWVolFlow = 0.0;
+            ZoneEqSizing(curZoneEqNum).MaxCWVolFlow = 0.0;
+            ZoneEqSizing(curZoneEqNum).OAVolFlow = 0.0;
+            ZoneEqSizing(curZoneEqNum).DesCoolingLoad = 0.0;
+            ZoneEqSizing(curZoneEqNum).DesHeatingLoad = 0.0;
+            ZoneEqSizing(curZoneEqNum).CoolingAirVolFlow = 0.0;
+            ZoneEqSizing(curZoneEqNum).HeatingAirVolFlow = 0.0;
+            ZoneEqSizing(curZoneEqNum).SystemAirVolFlow = 0.0;
+            ZoneEqSizing(curZoneEqNum).DesignSizeFromParent = false;
+        }
+
+        if (curSysNum > 0) {
+
+            if (UnitarySysEqSizing.size() == 0) {
+                firstPassFlag = false;
+                return;
+            }
+
+            UnitarySysEqSizing(curSysNum).AirFlow = false;
+            UnitarySysEqSizing(curSysNum).CoolingAirFlow = false;
+            UnitarySysEqSizing(curSysNum).HeatingAirFlow = false;
+            UnitarySysEqSizing(curSysNum).Capacity = false;
+            UnitarySysEqSizing(curSysNum).CoolingCapacity = false;
+            UnitarySysEqSizing(curSysNum).HeatingCapacity = false;
+        }
+
+        firstPassFlag = false;
+    }
+
+    void GetCoilDesFlowT(EnergyPlusData &state,
+                         int SysNum,           // central air system index
+                         Real64 CpAir,         // specific heat to be used in calculations [J/kgC]
+                         Real64 &DesFlow,      // returned design mass flow [kg/s]
+                         Real64 &DesExitTemp,  // returned design coil exit temperature [kg/s]
+                         Real64 &DesExitHumRat // returned design coil exit humidity ratio [kg/kg]
+    )
+    {
+        // FUNCTION INFORMATION:
+        //       AUTHOR         Fred Buhl
+        //       DATE WRITTEN   September 2014
+        //       MODIFIED
+        //       RE-ENGINEERED  na
+
+        // PURPOSE OF THIS FUNCTION:
+        // This function calculates the coil design air flow rate and exit temperature depending on the
+        // cooling capacity control method
+
+        // METHODOLOGY EMPLOYED:
+        // energy and mass flow balance
+
+        // REFERENCES:
+        // na
+
+        // FUNCTION LOCAL VARIABLE DECLARATIONS:
+        int DDAtSensPeak(0);
+        int TimeStepAtSensPeak(0);
+        int DDAtFlowPeak(0);
+        int TimeStepAtFlowPeak(0);
+        int CoolCapCtrl; // type of coil capacity control
+        int PeakLoadType;
+        int DDAtTotPeak(0);
+        int TimeStepAtTotPeak(0);
+        int TimeStepAtPeak(0);
+        Real64 ZoneCoolLoadSum(0); // sum of zone cooling loads at the peak [W]
+        Real64 AvgZoneTemp(0);     // average zone temperature [C]
+        Real64 AvgSupTemp(0.0);    // average supply temperature for bypass control [C]
+        Real64 TotFlow(0.0);       // total flow for bypass control [m3/s]
+        Real64 MixTemp(0.0);       // mixed air temperature at the peak [C]
+
+        CoolCapCtrl = SysSizInput(SysNum).CoolCapControl;
+        PeakLoadType = SysSizInput(SysNum).CoolingPeakLoadType;
+        DDAtSensPeak = SysSizPeakDDNum(SysNum).SensCoolPeakDD;
+        if (DDAtSensPeak > 0) {
+            TimeStepAtSensPeak = SysSizPeakDDNum(SysNum).TimeStepAtSensCoolPk(DDAtSensPeak);
+            DDAtFlowPeak = SysSizPeakDDNum(SysNum).CoolFlowPeakDD;
+            TimeStepAtFlowPeak = SysSizPeakDDNum(SysNum).TimeStepAtCoolFlowPk(DDAtFlowPeak);
+            DDAtTotPeak = SysSizPeakDDNum(SysNum).TotCoolPeakDD;
+            TimeStepAtTotPeak = SysSizPeakDDNum(SysNum).TimeStepAtTotCoolPk(DDAtTotPeak);
+
+            if (PeakLoadType == TotalCoolingLoad) {
+                TimeStepAtPeak = TimeStepAtTotPeak;
+            } else {
+                TimeStepAtPeak = TimeStepAtSensPeak;
+            }
+        } else {
+            if ((CoolCapCtrl == VT) || (CoolCapCtrl == Bypass)) {
+                ShowWarningError(state, "GetCoilDesFlow: AirLoopHVAC=" + SysSizInput(SysNum).AirPriLoopName +
+                                 "has no time of peak cooling load for sizing.");
+                ShowContinueError(state, "Using Central Cooling Capacity Control Method=VAV instead of Bypass or VT.");
+                CoolCapCtrl = VAV;
+            }
+        }
+
+        if (CoolCapCtrl == VAV) {
+            DesExitTemp = FinalSysSizing(SysNum).CoolSupTemp;
+            DesFlow = FinalSysSizing(SysNum).MassFlowAtCoolPeak / state.dataEnvrn->StdRhoAir;
+            DesExitHumRat = FinalSysSizing(SysNum).CoolSupHumRat;
+        } else if (CoolCapCtrl == OnOff) {
+            DesExitTemp = FinalSysSizing(SysNum).CoolSupTemp;
+            DesFlow = DataAirFlowUsedForSizing;
+            DesExitHumRat = FinalSysSizing(SysNum).CoolSupHumRat;
+        } else if (CoolCapCtrl == VT) {
+            if (FinalSysSizing(SysNum).CoolingPeakLoadType == SensibleCoolingLoad) {
+                ZoneCoolLoadSum = CalcSysSizing(SysNum).SumZoneCoolLoadSeq(TimeStepAtPeak);
+                AvgZoneTemp = CalcSysSizing(SysNum).CoolZoneAvgTempSeq(TimeStepAtPeak);
+            } else if (FinalSysSizing(SysNum).CoolingPeakLoadType == TotalCoolingLoad) {
+                ZoneCoolLoadSum = CalcSysSizing(SysNum).SumZoneCoolLoadSeq(TimeStepAtPeak);
+                AvgZoneTemp = CalcSysSizing(SysNum).CoolZoneAvgTempSeq(TimeStepAtPeak);
+            }
+            DesExitTemp = max(FinalSysSizing(SysNum).CoolSupTemp,
+                              AvgZoneTemp - ZoneCoolLoadSum / (state.dataEnvrn->StdRhoAir * CpAir * FinalSysSizing(SysNum).DesCoolVolFlow));
+            DesFlow = FinalSysSizing(SysNum).DesCoolVolFlow;
+            DesExitHumRat = Psychrometrics::PsyWFnTdbRhPb(state, DesExitTemp, 0.9, state.dataEnvrn->StdBaroPress, "GetCoilDesFlowT");
+        } else if (CoolCapCtrl == Bypass) {
+            if (FinalSysSizing(SysNum).CoolingPeakLoadType == SensibleCoolingLoad) {
+                ZoneCoolLoadSum = CalcSysSizing(SysNum).SumZoneCoolLoadSeq(TimeStepAtPeak);
+                AvgZoneTemp = CalcSysSizing(SysNum).CoolZoneAvgTempSeq(TimeStepAtPeak);
+            } else if (FinalSysSizing(SysNum).CoolingPeakLoadType == TotalCoolingLoad) {
+                ZoneCoolLoadSum = CalcSysSizing(SysNum).SumZoneCoolLoadSeq(TimeStepAtPeak);
+                AvgZoneTemp = CalcSysSizing(SysNum).CoolZoneAvgTempSeq(TimeStepAtPeak);
+            }
+            AvgSupTemp = AvgZoneTemp - ZoneCoolLoadSum / (state.dataEnvrn->StdRhoAir * CpAir * FinalSysSizing(SysNum).DesCoolVolFlow);
+            TotFlow = FinalSysSizing(SysNum).DesCoolVolFlow;
+            MixTemp = CalcSysSizing(SysNum).MixTempAtCoolPeak;
+            DesExitTemp = FinalSysSizing(SysNum).CoolSupTemp;
+            if (MixTemp > DesExitTemp) {
+                DesFlow = TotFlow * max(0.0, min(1.0, ((MixTemp - AvgSupTemp) / (MixTemp - DesExitTemp))));
+            } else {
+                DesFlow = TotFlow;
+            }
+            DesExitHumRat = Psychrometrics::PsyWFnTdbRhPb(state, DesExitTemp, 0.9, state.dataEnvrn->StdBaroPress, "GetCoilDesFlowT");
+        }
     }
 
 } // namespace DataSizing

@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -70,12 +70,12 @@ protected:
     {
     }
 
-    virtual void SetUp()
+    void SetUp() override
     {
         EnergyPlusFixture::SetUp(); // Sets up individual test cases.
     }
 
-    virtual void TearDown()
+    void TearDown() override
     {
         EnergyPlusFixture::TearDown(); // Remember to tear down the base fixture after cleaning up derived fixture!
     }
@@ -85,9 +85,9 @@ protected:
         return EnergyPlusFixture::process_idd(idd, errors_found);
     }
 
-    bool processErrors()
+    bool processErrors(EnergyPlusData &state)
     {
-        return inputProcessor->processErrors();
+        return inputProcessor->processErrors(state);
     }
 
     std::vector<std::string> const &validationErrors()

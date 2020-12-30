@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,8 +52,9 @@
 #include <ObjexxFCL/Array1D.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
 
@@ -70,7 +71,6 @@ namespace DataLoopNode {
     extern int const NodeType_Steam;    // 'Steam'
     extern int const NodeType_Electric; // 'Electric'
     extern Array1D_string const ValidNodeFluidTypes;
-    extern int const NumValidNodeFluidTypes;
 
     // Valid Connection Types for Nodes
     extern Array1D_string const ValidConnectionTypes;
@@ -97,7 +97,6 @@ namespace DataLoopNode {
     extern bool const ObjectIsParent;
     extern bool const ObjectIsNotParent;
     extern bool const IncrementFluidStreamYes;
-    extern bool const IncrementFluidStreamNo;
     extern Real64 const SensedNodeFlagValue;
     extern Real64 const SensedLoadFlagValue;
 
@@ -173,18 +172,21 @@ namespace DataLoopNode {
         Real64 GenContamSetPoint;  // {ppm}
         bool SPMNodeWetBulbRepReq; // Set to true when node has SPM which follows wetbulb
 
+        // error message flag
+        bool plantNodeErrorMsgIssued;
+
         // Default Constructor
         NodeData()
             : FluidType(0), FluidIndex(0), Temp(0.0), TempMin(0.0), TempMax(0.0), TempSetPoint(SensedNodeFlagValue), TempLastTimestep(0.0),
               MassFlowRateRequest(0.0), MassFlowRate(0.0), MassFlowRateMin(0.0), MassFlowRateMax(SensedNodeFlagValue), MassFlowRateMinAvail(0.0),
               MassFlowRateMaxAvail(0.0), MassFlowRateSetPoint(0.0), Quality(0.0), Press(0.0), Enthalpy(0.0), EnthalpyLastTimestep(0.0), HumRat(0.0),
               HumRatMin(SensedNodeFlagValue), HumRatMax(SensedNodeFlagValue), HumRatSetPoint(SensedNodeFlagValue),
-              TempSetPointHi(SensedNodeFlagValue), TempSetPointLo(SensedNodeFlagValue), Height(-1.0), IsLocalNode(false), OutAirDryBulbSchedNum(0.0),
-              OutAirWetBulbSchedNum(0.0), OutAirWindSpeedSchedNum(0.0), OutAirWindDirSchedNum(0.0), OutAirDryBulb(0.0),
+              TempSetPointHi(SensedNodeFlagValue), TempSetPointLo(SensedNodeFlagValue), Height(-1.0), IsLocalNode(false), OutAirDryBulbSchedNum(0),
+              OutAirWetBulbSchedNum(0), OutAirWindSpeedSchedNum(0), OutAirWindDirSchedNum(0), OutAirDryBulb(0.0),
               EMSOverrideOutAirDryBulb(false), EMSValueForOutAirDryBulb(0.0), OutAirWetBulb(0.0), EMSOverrideOutAirWetBulb(false),
               EMSValueForOutAirWetBulb(0.0), OutAirWindSpeed(0.0), EMSOverrideOutAirWindSpeed(false), EMSValueForOutAirWindSpeed(0.0),
               OutAirWindDir(0.0), EMSOverrideOutAirWindDir(false), EMSValueForOutAirWindDir(0.0), CO2(0.0), CO2SetPoint(0.0), GenContam(0.0),
-              GenContamSetPoint(0.0), SPMNodeWetBulbRepReq(false)
+              GenContamSetPoint(0.0), SPMNodeWetBulbRepReq(false), plantNodeErrorMsgIssued(false)
         {
         }
 
@@ -235,7 +237,8 @@ namespace DataLoopNode {
                  Real64 const CO2SetPoint,                // {ppm}
                  Real64 const GenContam,                  // {ppm}
                  Real64 const GenContamSetPoint,          // {ppm}
-                 bool const SPMNodeWetBulbRepReq          // Set to true when node has SPM which follows wetbulb
+                 bool const SPMNodeWetBulbRepReq,          // Set to true when node has SPM which follows wetbulb
+                 bool const plantNodeErrorMsgIssued
                  )
             : FluidType(FluidType), FluidIndex(FluidIndex), Temp(Temp), TempMin(TempMin), TempMax(TempMax), TempSetPoint(TempSetPoint),
               TempLastTimestep(TempLastTimestep), MassFlowRateRequest(MassFlowRateRequest), MassFlowRate(MassFlowRate),
@@ -250,7 +253,8 @@ namespace DataLoopNode {
               OutAirWindSpeed(OutAirWindSpeed), EMSOverrideOutAirWindSpeed(EMSOverrideOutAirWindSpeed),
               EMSValueForOutAirWindSpeed(EMSValueForOutAirWindSpeed), OutAirWindDir(OutAirWindDir),
               EMSOverrideOutAirWindDir(EMSOverrideOutAirWindDir), EMSValueForOutAirWindDir(EMSValueForOutAirWindDir), CO2(CO2),
-              CO2SetPoint(CO2SetPoint), GenContam(GenContam), GenContamSetPoint(GenContamSetPoint), SPMNodeWetBulbRepReq(SPMNodeWetBulbRepReq)
+              CO2SetPoint(CO2SetPoint), GenContam(GenContam), GenContamSetPoint(GenContamSetPoint), SPMNodeWetBulbRepReq(SPMNodeWetBulbRepReq),
+              plantNodeErrorMsgIssued(plantNodeErrorMsgIssued)
         {
         }
     };
@@ -289,17 +293,50 @@ namespace DataLoopNode {
         }
     };
 
+    // A struct to defer checking whether a node did correctly get a setpoint via the API / PythonPlugin
+    struct NodeSetpointCheckData
+    {
+        bool needsSetpointChecking;
+        bool checkTemperatureSetPoint;
+        bool checkTemperatureMinSetPoint;
+        bool checkTemperatureMaxSetPoint;
+        bool checkHumidityRatioSetPoint;
+        bool checkHumidityRatioMinSetPoint;
+        bool checkHumidityRatioMaxSetPoint;
+        bool checkMassFlowRateSetPoint;
+        bool checkMassFlowRateMinSetPoint;
+        bool checkMassFlowRateMaxSetPoint;
+
+        NodeSetpointCheckData():
+            needsSetpointChecking(false),
+            checkTemperatureSetPoint(false), checkTemperatureMinSetPoint(false),  checkTemperatureMaxSetPoint(false),
+            checkHumidityRatioSetPoint(false), checkHumidityRatioMinSetPoint(false), checkHumidityRatioMaxSetPoint(false),
+            checkMassFlowRateSetPoint(false), checkMassFlowRateMinSetPoint(false), checkMassFlowRateMaxSetPoint(false)
+        {
+        }
+
+    };
+
     // Object Data
     extern Array1D<NodeData> Node; // dim to num nodes in SimHVAC
     extern NodeData DefaultNodeValues;
     extern Array1D<MoreNodeData> MoreNodeInfo;
     extern Array1D<MarkedNodeData> MarkedNode;
+    extern Array1D<NodeSetpointCheckData> NodeSetpointCheck;
 
     // Clears the global data in DataLoopNode.
     // Needed for unit tests, should not be normally called.
     void clear_state();
 
 } // namespace DataLoopNode
+
+struct LoopNodeData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

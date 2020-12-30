@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "BSDFThetaLimits.hpp"
 #include <stdexcept>
 

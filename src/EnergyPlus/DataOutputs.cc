@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -49,8 +49,8 @@
 #include <ObjexxFCL/string.functions.hh>
 
 // EnergyPlus Headers
-#include "UtilityRoutines.hh"
-#include <DataOutputs.hh>
+#include <EnergyPlus/DataOutputs.hh>
+#include <EnergyPlus/UtilityRoutines.hh>
 
 namespace EnergyPlus {
 
@@ -83,7 +83,7 @@ namespace DataOutputs {
 
     // Data
     // MODULE PARAMETER DEFINITIONS:
-    int const NumMonthlyReports(62);
+    int const NumMonthlyReports(63);
     Array1D_string const MonthlyNamedReports(NumMonthlyReports,
                                              {"ZONECOOLINGSUMMARYMONTHLY",
                                               "ZONEHEATINGSUMMARYMONTHLY",
@@ -146,7 +146,8 @@ namespace DataOutputs {
                                               "AIRLOOPSYSTEMENERGYANDWATERUSEMONTHLY",
                                               "AIRLOOPSYSTEMCOMPONENTLOADSMONTHLY",
                                               "AIRLOOPSYSTEMCOMPONENTENERGYUSEMONTHLY",
-                                              "MECHANICALVENTILATIONLOADSMONTHLY"});
+                                              "MECHANICALVENTILATIONLOADSMONTHLY",
+                                              "HEATEMISSIONSREPORTMONTHLY"});
 
     // DERIVED TYPE DEFINITIONS:
 
@@ -162,10 +163,14 @@ namespace DataOutputs {
     int iTotalAutoCalculatableFields;    // number of fields that can be autocalculated
 
     // Object Data
-    std::unordered_map<std::string, std::unordered_map<std::string, OutputReportingVariables>> OutputVariablesForSimulation;
+    std::unordered_map<std::string, std::unordered_map<std::string, OutputReportingVariables,
+                                                      UtilityRoutines::case_insensitive_hasher,
+                                                      UtilityRoutines::case_insensitive_comparator>,
+                       UtilityRoutines::case_insensitive_hasher,
+                       UtilityRoutines::case_insensitive_comparator> OutputVariablesForSimulation;
     // Functions
 
-    OutputReportingVariables::OutputReportingVariables(std::string const &KeyValue, std::string const &VariableName)
+    OutputReportingVariables::OutputReportingVariables(EnergyPlusData &state, std::string const &KeyValue, std::string const &VariableName)
         : key(KeyValue), variableName(VariableName)
     {
         if (KeyValue == "*") return;
@@ -178,9 +183,9 @@ namespace DataOutputs {
         pattern = std::unique_ptr<RE2>(new RE2(KeyValue));
         case_insensitive_pattern = std::unique_ptr<RE2>(new RE2("(?i)" + KeyValue));
         if (!pattern->ok()) {
-            ShowSevereError("Regular expression \"" + KeyValue + "\" for variable name \"" + VariableName + "\" in input file is incorrect");
-            ShowContinueError(pattern->error());
-            ShowFatalError("Error found in regular expression. Previous error(s) cause program termination.");
+            ShowSevereError(state, "Regular expression \"" + KeyValue + "\" for variable name \"" + VariableName + "\" in input file is incorrect");
+            ShowContinueError(state, pattern->error());
+            ShowFatalError(state, "Error found in regular expression. Previous error(s) cause program termination.");
         }
     }
 

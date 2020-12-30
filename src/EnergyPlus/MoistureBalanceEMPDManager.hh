@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,10 +52,15 @@
 #include <ObjexxFCL/Array1D.hh>
 
 // EnergyPlus Headers
-#include <DataHeatBalance.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataHeatBalance.hh>
+#include <EnergyPlus/EnergyPlus.hh>
+#include <EnergyPlus/Material.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace MoistureBalanceEMPDManager {
 
@@ -88,15 +93,17 @@ namespace MoistureBalanceEMPDManager {
     // SUBROUTINE SPECIFICATION FOR MODULE MoistureBalanceEMPDManager
 
     // Functions
-    Real64 CalcDepthFromPeriod(Real64 const period,                           // in seconds
-                               DataHeatBalance::MaterialProperties const &mat // material
+    Real64 CalcDepthFromPeriod(EnergyPlusData &state,
+                               Real64 const period,                           // in seconds
+                               Material::MaterialProperties const &mat // material
     );
 
-    void GetMoistureBalanceEMPDInput();
+    void GetMoistureBalanceEMPDInput(EnergyPlusData &state);
 
-    void InitMoistureBalanceEMPD();
+    void InitMoistureBalanceEMPD(EnergyPlusData &state);
 
-    void CalcMoistureBalanceEMPD(int const SurfNum,
+    void CalcMoistureBalanceEMPD(EnergyPlusData &state,
+                                 int const SurfNum,
                                  Real64 const TempSurfIn, // INSIDE SURFACE TEMPERATURE at current time step
                                  Real64 const TempZone,   // Zone temperature at current time step.
                                  Real64 &TempSat          // Satutare surface temperature.
@@ -106,9 +113,17 @@ namespace MoistureBalanceEMPDManager {
 
     void UpdateMoistureBalanceEMPD(int const SurfNum); // Surface number
 
-    void ReportMoistureBalanceEMPD();
+    void ReportMoistureBalanceEMPD(EnergyPlusData &state);
 
 } // namespace MoistureBalanceEMPDManager
+
+struct MoistureBalanceEMPDManagerData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

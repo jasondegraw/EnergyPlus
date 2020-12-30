@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -52,11 +52,15 @@
 #include <ObjexxFCL/Array1D.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <EnergyPlus.hh>
-#include <PlantComponent.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
+#include <EnergyPlus/PlantComponent.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace PlantLoadProfile {
     // Using/Aliasing
@@ -118,13 +122,13 @@ namespace PlantLoadProfile {
         }
 
         // Functions
-        static PlantComponent *factory(std::string objectName);
+        static PlantComponent *factory(EnergyPlusData &state, std::string objectName);
 
-        void simulate(const PlantLocation &calledFromLocation, bool const FirstHVACIteration, Real64 &CurLoad, bool const RunFlag) override;
+        void simulate([[maybe_unused]] EnergyPlusData &state, const PlantLocation &calledFromLocation, bool const FirstHVACIteration, Real64 &CurLoad, bool const RunFlag) override;
 
-        void onInitLoopEquip(const PlantLocation &calledFromLocation) override;
+        void onInitLoopEquip([[maybe_unused]] EnergyPlusData &state, const PlantLocation &calledFromLocation) override;
 
-        void InitPlantProfile();
+        void InitPlantProfile(EnergyPlusData &state);
 
         void UpdatePlantProfile();
 
@@ -135,12 +139,20 @@ namespace PlantLoadProfile {
     extern Array1D<PlantProfileData> PlantProfile;
 
     // This could be static inside the class
-    void GetPlantProfileInput();
+    void GetPlantProfileInput(EnergyPlusData &state);
 
     // As could this
     void clear_state();
 
 } // namespace PlantLoadProfile
+
+struct PlantLoadProfileData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

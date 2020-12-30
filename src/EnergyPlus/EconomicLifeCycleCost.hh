@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -48,13 +48,18 @@
 #ifndef EconomicLifeCycleCost_hh_INCLUDED
 #define EconomicLifeCycleCost_hh_INCLUDED
 
+// C++ Headers
+#include <map>
+
 // ObjexxFCL Headers
 #include <ObjexxFCL/Array1D.hh>
 #include <ObjexxFCL/Array2D.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobalConstants.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
 
@@ -106,9 +111,9 @@ namespace EconomicLifeCycleCost {
     // The NIST supplement includes UPV* factors for
     //   Electricity
     //   Natural gas
-    //   Distillate oil
-    //   Liquified petroleum gas
-    //   Residual oil
+    //   Distillate oil - FuelOilNo1
+    //   Liquified petroleum gas - Propane
+    //   Residual oil - FuelOilNo2
     //   Coal
 
     extern int const startServicePeriod;
@@ -159,7 +164,6 @@ namespace EconomicLifeCycleCost {
 
     // present value factors
     extern Array1D<Real64> SPV;
-    extern Array2D<Real64> energySPV; // yearly equivalent to FEMP UPV* values
 
     // arrays related to computing after tax cashflow and present value
     extern Array1D<Real64> DepreciatedCapital;
@@ -169,6 +173,10 @@ namespace EconomicLifeCycleCost {
     extern Array1D<Real64> AfterTaxPresentValue;
 
     extern Array1D_string const MonthNames;
+
+    // arrays related to escalated energy costs
+    extern Array1D<Real64> EscalatedTotEnergy;
+    extern std::map<int, std::map<DataGlobalConstants::ResourceType, Real64>> EscalatedEnergy;
 
     // SUBROUTINE SPECIFICATIONS FOR MODULE <module_name>:
 
@@ -192,7 +200,7 @@ namespace EconomicLifeCycleCost {
 
         // Default Constructor
         RecurringCostsType()
-            : category(costCatMaintenance), startOfCosts(startServicePeriod), yearsFromStart(0), monthsFromStart(0), totalMonthsFromStart(0),
+            : category(costCatMaintenance), cost(0.0), startOfCosts(startServicePeriod), yearsFromStart(0), monthsFromStart(0), totalMonthsFromStart(0),
               repeatPeriodYears(0), repeatPeriodMonths(0), totalRepeatPeriodMonths(0), annualEscalationRate(0.0)
         {
         }
@@ -212,7 +220,7 @@ namespace EconomicLifeCycleCost {
 
         // Default Constructor
         NonrecurringCostType()
-            : category(costCatConstruction), startOfCosts(startServicePeriod), yearsFromStart(0), monthsFromStart(0), totalMonthsFromStart(0)
+            : category(costCatConstruction), cost(0.0), startOfCosts(startServicePeriod), yearsFromStart(0), monthsFromStart(0), totalMonthsFromStart(0)
         {
         }
     };
@@ -221,14 +229,14 @@ namespace EconomicLifeCycleCost {
     {
         // Members
         std::string name;           // Name
-        int resource;               // resource like electricity or natural gas (uses definitions from DataGlobalConstants)
+        DataGlobalConstants::ResourceType resource; // resource like electricity or natural gas (uses definitions from DataGlobalConstants)
         int escalationStartYear;    // Escalation Start Year 1900-2100
         int escalationStartMonth;   // Escalation Start Month 1 to 12
         Array1D<Real64> Escalation; // Escalation by year, first year is baseDateYear
         // last year is baseDateYear + lengthStudyYears - 1
 
         // Default Constructor
-        UsePriceEscalationType() : escalationStartYear(0), escalationStartMonth(0)
+        UsePriceEscalationType() : resource(DataGlobalConstants::ResourceType::None), escalationStartYear(0), escalationStartMonth(0)
         {
         }
     };
@@ -237,12 +245,12 @@ namespace EconomicLifeCycleCost {
     {
         // Members
         std::string name;           // Name
-        int resource;               // resource like electricity or natural gas (uses definitions from DataGlobalConstants)
+        DataGlobalConstants::ResourceType resource;               // resource like electricity or natural gas (uses definitions from DataGlobalConstants)
         Array1D<Real64> Adjustment; // Adjustment by year, first year is baseDateYear
         // last year is baseDateYear + lengthStudyYears - 1
 
         // Default Constructor
-        UseAdjustmentType()
+        UseAdjustmentType() : resource(DataGlobalConstants::ResourceType::None)
         {
         }
     };
@@ -252,7 +260,7 @@ namespace EconomicLifeCycleCost {
         // Members
         std::string name;         // Name - just for labeling output - use Category for aggregation
         int SourceKind;           // 1=recurring, 2=nonrecurring, 3=resource
-        int Resource;             // resource like electricity or natural gas (uses definitions from DataGlobalConstants)
+        DataGlobalConstants::ResourceType Resource;             // resource like electricity or natural gas (uses definitions from DataGlobalConstants)
         int Category;             // uses "costCat" constants above
         Array1D<Real64> mnAmount; // cashflow dollar amount by month, first year is baseDateYear
         // last year is baseDateYear + lengthStudyYears - 1
@@ -263,7 +271,7 @@ namespace EconomicLifeCycleCost {
         Array1D<Real64> yrPresVal; // present value by year, first year is baseDateYear
 
         // Default Constructor
-        CashFlowType() : pvKind(0)
+        CashFlowType() : SourceKind(0), Resource(DataGlobalConstants::ResourceType::None), Category(0), pvKind(0), presentValue(0.), orginalCost(0.)
         {
         }
     };
@@ -277,9 +285,9 @@ namespace EconomicLifeCycleCost {
 
     // Functions
 
-    void GetInputForLifeCycleCost();
+    void GetInputForLifeCycleCost(EnergyPlusData &state);
 
-    void ComputeLifeCycleCostAndReport();
+    void ComputeLifeCycleCostAndReport(EnergyPlusData &state);
 
     //======================================================================================================================
     //======================================================================================================================
@@ -289,15 +297,15 @@ namespace EconomicLifeCycleCost {
     //======================================================================================================================
     //======================================================================================================================
 
-    void GetInputLifeCycleCostParameters();
+    void GetInputLifeCycleCostParameters(EnergyPlusData &state);
 
-    void GetInputLifeCycleCostRecurringCosts();
+    void GetInputLifeCycleCostRecurringCosts(EnergyPlusData &state);
 
-    void GetInputLifeCycleCostNonrecurringCost();
+    void GetInputLifeCycleCostNonrecurringCost(EnergyPlusData &state);
 
-    void GetInputLifeCycleCostUsePriceEscalation();
+    void GetInputLifeCycleCostUsePriceEscalation(EnergyPlusData &state);
 
-    void GetInputLifeCycleCostUseAdjustment();
+    void GetInputLifeCycleCostUseAdjustment(EnergyPlusData &state);
 
     int MonthToMonthNumber(std::string const &inMonthString, int const inDefaultMonth);
 
@@ -309,7 +317,9 @@ namespace EconomicLifeCycleCost {
     //======================================================================================================================
     //======================================================================================================================
 
-    void ExpressAsCashFlows();
+    void ExpressAsCashFlows(EnergyPlusData &state);
+
+    void ComputeEscalatedEnergyCosts();
 
     void ComputePresentValue();
 
@@ -323,11 +333,19 @@ namespace EconomicLifeCycleCost {
     //======================================================================================================================
     //======================================================================================================================
 
-    void WriteTabularLifeCycleCostReport();
+    void WriteTabularLifeCycleCostReport(EnergyPlusData &state);
 
     void clear_state();
 
 } // namespace EconomicLifeCycleCost
+
+struct EconomicLifeCycleCostData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

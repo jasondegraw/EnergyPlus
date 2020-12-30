@@ -99,6 +99,7 @@ class Data:
 def parse_idd(data):
     root = {'$schema': "http://json-schema.org/draft-04/schema#", 'properties': {}}
     data.file_size = len(data.file)
+    current_group_name = '**ungrouped**'
 
     while data.index < data.file_size:
         token = look_ahead(data)
@@ -111,7 +112,7 @@ def parse_idd(data):
             eat_comment(data)
         elif token == TOKEN_GROUP:
             next_token(data)
-            eat_comment(data)
+            current_group_name = parse_line(data)
         else:
             obj_name = parse_string(data)
             if obj_name is None or obj_name == "":
@@ -119,9 +120,18 @@ def parse_idd(data):
             obj_data = parse_obj(data)
             root['properties'][obj_name] = {}
             root['properties'][obj_name]['patternProperties'] = {}
-            root['properties'][obj_name]['patternProperties']['.*'] = obj_data
+            root['properties'][obj_name]['group'] = current_group_name
+
+            name_pattern_properties = '.*'
             if 'name' in obj_data:
-                root['properties'][obj_name]['name'] = obj_data.pop('name')
+                name_data = obj_data.pop('name')
+                root['properties'][obj_name]['name'] = name_data
+                required_name = name_data.get('is_required', False)
+                if required_name:
+                    name_pattern_properties = R'^.*\S.*$'
+                    root['properties'][obj_name]['additionalProperties'] = False
+
+            root['properties'][obj_name]['patternProperties'][name_pattern_properties] = obj_data
 
             root['properties'][obj_name]['legacy_idd'] = obj_data.pop('legacy_idd')
             root['properties'][obj_name]['type'] = 'object'
@@ -137,6 +147,10 @@ def parse_idd(data):
             if 'memo' in obj_data:
                 root['properties'][obj_name]['memo'] = obj_data.pop('memo')
             if 'min_fields' in obj_data:
+                num_fields_with_name = len(obj_data['properties']) + 1
+                if int(obj_data['min_fields']) > num_fields_with_name:
+                    if 'extensions' not in obj_data['properties']:
+                        raise RuntimeError("Object with min-fields > num_fields. Object name = " + obj_name)
                 root['properties'][obj_name]['min_fields'] = obj_data.pop('min_fields')
             if 'extensible_size' in obj_data:
                 root['properties'][obj_name]['extensible_size'] = obj_data.pop('extensible_size')
@@ -254,6 +268,9 @@ def parse_obj(data):
                 continue
 
             if token != TOKEN_FIELD:
+                eat_comment(data)
+                if comma_or_semicolon == TOKEN_SEMICOLON:
+                    return root
                 raise RuntimeError("expected /field after , or ;")
             next_token(data)
             field_name = parse_line(data)
@@ -355,13 +372,14 @@ def parse_field(data, token):
                     root['data_type'] = 'external_list'
                 else:
                     raise RuntimeError("Two external-lists?")
-
             elif match_string(data, REAL_STR) or match_string(data, INTEGER_STR):
                 if 'type' not in root or 'type' != 'number':
                     root['type'] = 'number'
-
             elif match_string(data, NODE_STR):
                 root['type'] = 'string'
+            else:
+                bad_type = parse_line(data)
+                raise RuntimeError("Invalid \\type: \"%s\"" % bad_type)
 
         elif token == TOKEN_OBJ_LIST:
             next_token(data)
@@ -465,11 +483,7 @@ def parse_field(data, token):
             next_token(data)
             root['retaincase'] = True
 
-        elif token == TOKEN_GROUP:
-            next_token(data)
-            eat_comment(data)
-
-        elif token == TOKEN_A or token == TOKEN_N or token == TOKEN_END or token == TOKEN_STRING:
+        elif token in [TOKEN_A, TOKEN_N, TOKEN_END, TOKEN_STRING, TOKEN_GROUP]:
             has_default = 'default' in root
             if is_autocalculatable:
                 create_any_of(root, TOKEN_AUTOCALCULATABLE, has_default)

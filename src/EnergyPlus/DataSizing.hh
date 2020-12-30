@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -51,13 +51,16 @@
 // ObjexxFCL Headers
 #include <ObjexxFCL/Array1D.hh>
 #include <ObjexxFCL/Array2D.hh>
-#include <ObjexxFCL/gio_Fmt.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <EnergyPlus.hh>
+#include <EnergyPlus/Data/BaseData.hh>
+#include <EnergyPlus/DataGlobals.hh>
+#include <EnergyPlus/EnergyPlus.hh>
 
 namespace EnergyPlus {
+
+// Forward declarations
+struct EnergyPlusData;
 
 namespace DataSizing {
 
@@ -92,7 +95,7 @@ namespace DataSizing {
     extern int const CondenserLoop;
     extern int const SteamLoop;
 
-    // paramters for sizing
+    // parameters for sizing
     extern int const NonCoincident;
     extern int const Coincident;
 
@@ -130,7 +133,7 @@ namespace DataSizing {
     extern Real64 const AutoSize;
 
     // parameter for (time-of-peak) sizing format
-    extern gio::Fmt PeakHrMinFmt;
+    static constexpr auto PeakHrMinFmt("{:02}:{:02}:00");
 
     // Zone Outdoor Air Method
     extern int const ZOAM_FlowPerPerson; // set the outdoor air flow rate based on number of people in the zone
@@ -181,6 +184,13 @@ namespace DataSizing {
     extern int const GlobalHeatingSizingFactorMode;
     extern int const GlobalCoolingSizingFactorMode;
     extern int const LoopComponentSizingFactorMode;
+
+    enum class zoneFanPlacement
+    {
+        zoneFanPlaceNotSet,
+        zoneBlowThru,
+        zoneDrawThru
+    };
 
     // DERIVED TYPE DEFINITIONS:
 
@@ -233,6 +243,7 @@ namespace DataSizing {
     extern bool ZoneEqUnitVent;                       // TRUE if a unit ventilator is being simulated
     extern bool ZoneEqVentedSlab;                     // TRUE if a ventilated slab is being simulated
     extern bool ZoneEqDXCoil;                         // TRUE if a ZoneHVAC DX coil is being simulated
+    extern bool ZoneEqUnitarySys;                     // TRUE if a zone UnitarySystem is being simulated
     extern bool ZoneCoolingOnlyFan;                   // TRUE if a ZoneHVAC DX cooling coil is only coil in parent
     extern bool ZoneHeatingOnlyFan;                   // TRUE if zone unit only does heating and contains a fam (such as Unit Heater)
     extern bool SysSizingRunDone;                     // True if a system sizing run is successfully completed.
@@ -244,6 +255,13 @@ namespace DataSizing {
     extern bool DataScalableCapSizingON;              // boolean determines scalable zone capacity sizing is specified
     extern bool DataSysScalableFlowSizingON;          // boolean determines scalable system flow sizing is specified
     extern bool DataSysScalableCapSizingON;           // boolean determines scalable system capacity sizing is specified
+    extern Real64 DataCoilSizingAirInTemp;            // saves sizing data for use in coil object reporting
+    extern Real64 DataCoilSizingAirInHumRat;          // saves sizing data for use in coil object reporting
+    extern Real64 DataCoilSizingAirOutTemp;           // saves sizing data for use in coil object reporting
+    extern Real64 DataCoilSizingAirOutHumRat;         // saves sizing data for use in coil object reporting
+    extern Real64 DataCoilSizingFanCoolLoad;          // saves sizing data for use in coil object reporting
+    extern Real64 DataCoilSizingCapFT;                // saves sizing data for use in coil object reporting
+    extern bool DataDesAccountForFanHeat;             // include fan heat when true
     extern Real64 DataDesInletWaterTemp;              // coil inlet water temperture used for warning messages
     extern Real64 DataDesInletAirHumRat;              // coil inlet air humidity ratio used for warning messages
     extern Real64 DataDesInletAirTemp;                // coil inlet air temperature used for warning messages
@@ -269,6 +287,7 @@ namespace DataSizing {
     extern Real64 DataConstantUsedForSizing;          // base value used for sizing inputs that are ratios of other inputs
     extern Real64 DataFractionUsedForSizing;          // fractional value of base value used for sizing inputs that are ratios of other inputs
     extern Real64 DataNonZoneNonAirloopValue;         // used when equipment is not located in a zone or airloop
+    extern Real64 DataSizingFraction;                 // used when ratios of sizing is required
     extern int DataZoneUsedForSizing;                 // pointer to control zone for air loop equipment
     extern int DataZoneNumber;                        // a pointer to a zone served by zoneHVAC equipment
     extern int NumZoneHVACSizing;                     // Number of design specification zone HVAC sizing objects
@@ -302,6 +321,11 @@ namespace DataSizing {
     extern Real64 DataWaterCoilSizCoolDeltaT;         // used for sizing cooling coil water design flow rate
     extern Real64 DataWaterCoilSizHeatDeltaT;         // used for sizing heating coil water design flow rate
     extern bool DataNomCapInpMeth;                    // True if heating coil is sized by CoilPerfInpMeth == NomCap
+    extern int DataFanEnumType;                       // Fan type used during sizing
+    extern int DataFanIndex;                          // Fan index used during sizing
+    extern zoneFanPlacement DataFanPlacement;         // identifies location of fan wrt coil
+    extern int DataDXSpeedNum;                        // identifies multispeed DX max speed number
+
     // Types
 
     struct ZoneSizingInputData
@@ -319,8 +343,8 @@ namespace DataSizing {
         Real64 HeatDesTemp;              // zone design heating supply air temperature [C]
         Real64 CoolDesTempDiff;          // zone design cooling supply air temperature difference [deltaC]
         Real64 HeatDesTempDiff;          // zone design heating supply air temperature difference [deltaC]
-        Real64 CoolDesHumRat;            // zone design cooling supply air humidity ratio [kg-H2O/kg-air]
-        Real64 HeatDesHumRat;            // zone design heating supply air humidity ratio [kg-H2O/kg-air]
+        Real64 CoolDesHumRat;            // zone design cooling supply air humidity ratio [kgWater/kgDryAir]
+        Real64 HeatDesHumRat;            // zone design heating supply air humidity ratio [kgWater/kgDryAir]
         std::string DesignSpecOAObjName; // name of the design specification outdoor air object
         int OADesMethod;                 // choice of how to calculate minimum outside air;
         //  1 = m3/s per person; 2 = m3/s per zone; 3 = m3/s per zone area;
@@ -390,8 +414,8 @@ namespace DataSizing {
         Real64 HeatDesTemp;        // zone design heating supply air temperature [C]
         Real64 CoolDesTempDiff;    // zone design cooling supply air temperature difference [deltaC]
         Real64 HeatDesTempDiff;    // zone design heating supply air temperature difference [deltaC]
-        Real64 CoolDesHumRat;      // zone design cooling supply air humidity ratio [kg-H2O/kg-air]
-        Real64 HeatDesHumRat;      // zone design heating supply air humidity ratio [kg-H2O/kg-air]
+        Real64 CoolDesHumRat;      // zone design cooling supply air humidity ratio [kgWater/kgDryAir]
+        Real64 HeatDesHumRat;      // zone design heating supply air humidity ratio [kgWater/kgDryAir]
         int ZoneDesignSpecOAIndex; // index to DesignSpecification:OutdoorAir object
         int OADesMethod;           // choice of how to calculate minimum outside air;
         //  1 = m3/s per person; 2 = m3/s per zone; 3 = m3/s per zone area;
@@ -496,7 +520,7 @@ namespace DataSizing {
         int TimeStepNumAtHeatMax;     // time step number (in day) at Heating peak
         int TimeStepNumAtCoolMax;     // time step number (in day) at cooling peak
         int HeatDDNum;                // design day index of design day causing heating peak
-        int CoolDDNum;                // design day index of design day causing heating peak
+        int CoolDDNum;                // design day index of design day causing cooling peak
         std::string cHeatDDDate;      // date of design day causing heating peak
         std::string cCoolDDDate;      // date of design day causing cooling peak
         Real64 MinOA;                 // design minimum outside air in m3/s
@@ -550,7 +574,7 @@ namespace DataSizing {
         Real64 DOASLatAdd;      // current latent heat addition rate from DOAS supply air [W]
         Real64 DOASSupMassFlow; // current mass flow rate of DOAS supply air [kg/s]
         Real64 DOASSupTemp;     // current DOAS supply air temperature [C]
-        Real64 DOASSupHumRat;   // current DOAS supply air humidity ratio [kg H2O / kg dry air]
+        Real64 DOASSupHumRat;   // current DOAS supply air humidity ratio [kgWater/kgDryAir]
         Real64 DOASTotCoolLoad; // current total cooling load imposed by DOAS supply air [W]
         Array1D<Real64> DOASHeatLoadSeq;    // daily sequence of zone DOAS heating load (zone time step) [W]
         Array1D<Real64> DOASCoolLoadSeq;    // daily sequence of zone DOAS cooling load (zone time step) [W]
@@ -558,7 +582,7 @@ namespace DataSizing {
         Array1D<Real64> DOASLatAddSeq;      // daily sequence of zone DOAS latent heat addition rate (zone time step) [W]
         Array1D<Real64> DOASSupMassFlowSeq; // daily sequence of zone DOAS supply mass flow rate (zone time step) [Kg/s]
         Array1D<Real64> DOASSupTempSeq;     // daily sequence of zone DOAS supply temperature (zone time step) [C]
-        Array1D<Real64> DOASSupHumRatSeq;   // daily sequence of zone DOAS supply humidity ratio (zone time step) [kg H2O / kg dry air]
+        Array1D<Real64> DOASSupHumRatSeq;   // daily sequence of zone DOAS supply humidity ratio (zone time step) [kgWater/kgDryAir]
         Array1D<Real64> DOASTotCoolLoadSeq; // daily sequence of zone DOAS total cooling load (zone time step) [W]
 
         // Default Constructor
@@ -595,6 +619,8 @@ namespace DataSizing {
         );
         void scaleZoneHeating(Real64 const ratio // Scaling ratio
         );
+        void zeroMemberData();
+        void allocateMemberArrays(int const numOfTimeStepInDay);
     };
 
     struct TermUnitSizingData
@@ -639,46 +665,58 @@ namespace DataSizing {
     struct ZoneEqSizingData // data saved from zone eq component sizing and passed to subcomponents
     {
         // Members
-        Real64 AirVolFlow;           // design air vol flow rate for zone equipment unit [m3/s]
-        Real64 MaxHWVolFlow;         // design Hot Water vol flow for zone equipment unit [m3/s]
-        Real64 MaxCWVolFlow;         // design Cold Water vol flow for zone equipment unit [m3/s]
-        Real64 OAVolFlow;            // design outside air flow for zone equipment unit [m3/s]
-        Real64 DesCoolingLoad;       // design cooling load used for zone equipment [W]
-        Real64 DesHeatingLoad;       // design heating load used for zone equipment [W]
-        Real64 CoolingAirVolFlow;    // design cooling air vol flow rate for equipment[m3/s]
-        Real64 HeatingAirVolFlow;    // design heating air vol flow rate for equipment[m3/s]
-        Real64 SystemAirVolFlow;     // design heating air vol flow rate for equipment[m3/s]
-        bool AirFlow;                // TRUE if AirloopHVAC system air flow rate is calcualted
-        bool CoolingAirFlow;         // TRUE if AirloopHVAC system cooling air flow rate is calcualted
-        bool HeatingAirFlow;         // TRUE if AirloopHVAC system heating air flow rate is calcualted
-        bool SystemAirFlow;          // TRUE if AirloopHVAC system heating air flow rate is calcualted
-        bool Capacity;               // TRUE if AirloopHVAC system capacity is calculated
-        bool CoolingCapacity;        // TRUE if AirloopHVAC system cooling capacity is calculated
-        bool HeatingCapacity;        // TRUE if AirloopHVAC system heating capacity is calculated
-        bool SystemCapacity;         // TRUE if AirloopHVAC system heating capacity is calculated
-        bool DesignSizeFromParent;   // TRUE if design size is set by parent object - normally false, set to true for special cases e.g. ERV
-        Array1D_int SizingMethod;    // supply air flow rate sizing method (SupplyAirFlowRate, FlowPerFloorArea, FractionOfAutosizedCoolingAirflow and
-                                     // FractionOfAutosizedHeatingAirflow)
-        Array1D_int CapSizingMethod; // capacity sizing methods (HeatingDesignCapacity, CoolingDesignCapacity, CapacityPerFloorArea,
-                                     // FractionOfAutosizedCoolingCapacity and FractionOfAutosizedHeatingCapacity )
+        Real64 AirVolFlow;            // design air vol flow rate for zone equipment unit [m3/s]
+        Real64 MaxHWVolFlow;          // design Hot Water vol flow for zone equipment unit [m3/s]
+        Real64 MaxCWVolFlow;          // design Cold Water vol flow for zone equipment unit [m3/s]
+        Real64 OAVolFlow;             // design outside air flow for zone equipment unit [m3/s]
+        Real64 ATMixerVolFlow;        // design ventilation air flow rate from air terminal mixer (central DOAS) [m3/s]
+        Real64 ATMixerCoolPriDryBulb; // design ventilation drybulb temperature from air terminal mixer during cooling (central DOAS) [C]
+        Real64 ATMixerCoolPriHumRat;  // design ventilation humidity ratio from air terminal mixer during cooling (central DOAS) [kgWater/kgDryAir]
+        Real64 ATMixerHeatPriDryBulb; // design ventilation drybulb temperature from air terminal mixer during heating (central DOAS) [C]
+        Real64 ATMixerHeatPriHumRat;  // design ventilation humidity ratio from air terminal mixer during heating (central DOAS) [kgWater/kgDryAir]
+        Real64 DesCoolingLoad;        // design cooling load used for zone equipment [W]
+        Real64 DesHeatingLoad;        // design heating load used for zone equipment [W]
+        Real64 CoolingAirVolFlow;     // design cooling air vol flow rate for equipment[m3/s]
+        Real64 HeatingAirVolFlow;     // design heating air vol flow rate for equipment[m3/s]
+        Real64 SystemAirVolFlow;      // design heating air vol flow rate for equipment[m3/s]
+        bool AirFlow;                 // TRUE if AirloopHVAC system air flow rate is calculated
+        bool CoolingAirFlow;          // TRUE if AirloopHVAC system cooling air flow rate is calculated
+        bool HeatingAirFlow;          // TRUE if AirloopHVAC system heating air flow rate is calculated
+        bool SystemAirFlow;           // TRUE if AirloopHVAC system heating air flow rate is calculated
+        bool Capacity;                // TRUE if AirloopHVAC system capacity is calculated
+        bool CoolingCapacity;         // TRUE if AirloopHVAC system cooling capacity is calculated
+        bool HeatingCapacity;         // TRUE if AirloopHVAC system heating capacity is calculated
+        bool SystemCapacity;          // TRUE if AirloopHVAC system heating capacity is calculated
+        bool DesignSizeFromParent;    // TRUE if design size is set by parent object - normally false, set to true for special cases e.g. ERV
+        int HVACSizingIndex;          // index to DesignSpecification:ZoneHVAC:Sizing
+        Array1D_int SizingMethod;     // supply air flow rate sizing method (SupplyAirFlowRate, FlowPerFloorArea, FractionOfAutosizedCoolingAirflow and
+                                      // FractionOfAutosizedHeatingAirflow)
+        Array1D_int CapSizingMethod;  // capacity sizing methods (HeatingDesignCapacity, CoolingDesignCapacity, CapacityPerFloorArea,
+                                      // FractionOfAutosizedCoolingCapacity and FractionOfAutosizedHeatingCapacity )
 
         // Default Constructor
         ZoneEqSizingData()
             : AirVolFlow(0.0), MaxHWVolFlow(0.0), MaxCWVolFlow(0.0), OAVolFlow(0.0),
-              DesCoolingLoad(0.0),        // design cooling load used for zone equipment [W]
-              DesHeatingLoad(0.0),        // design heating load used for zone equipment [W]
-              CoolingAirVolFlow(0.0),     // design cooling air vol flow rate for equipment[m3/s]
-              HeatingAirVolFlow(0.0),     // design heating air vol flow rate for equipment[m3/s]
-              SystemAirVolFlow(0.0),      // design heating air vol flow rate for equipment[m3/s]
-              AirFlow(false),             // TRUE if AirloopHVAC system air flow rate is calcualted
-              CoolingAirFlow(false),      // TRUE if AirloopHVAC system cooling air flow rate is calcualted
-              HeatingAirFlow(false),      // TRUE if AirloopHVAC system heating air flow rate is calcualted
-              SystemAirFlow(false),       // TRUE if AirloopHVAC system heating air flow rate is calcualted
-              Capacity(false),            // TRUE if AirloopHVAC system capacity is calculated
-              CoolingCapacity(false),     // TRUE if AirloopHVAC system cooling capacity is calculated
-              HeatingCapacity(false),     // TRUE if AirloopHVAC system heating capacity is calculated
-              SystemCapacity(false),      // TRUE if AirloopHVAC system heating capacity is calculated
-              DesignSizeFromParent(false) // TRUE if design size is set by parent object - normally false, set to true for special cases e.g. ERV
+              ATMixerVolFlow(0.0),         // design ventilation air flow rate from air terminal mixer (central DOAS) [m3/s]
+              ATMixerCoolPriDryBulb(0.0),  // design air terminal mixer cooling outlet temperature [C]
+              ATMixerCoolPriHumRat(0.0),   // design air terminal mixer cooling outlet humidity ratio [kgWater/kgDryAir]
+              ATMixerHeatPriDryBulb(0.0),  // design air terminal mixer heating outlet temperature [C]
+              ATMixerHeatPriHumRat(0.0),   // design air terminal mixer heating outlet humidity ratio [kgWater/kgDryAir]
+              DesCoolingLoad(0.0),         // design cooling load used for zone equipment [W]
+              DesHeatingLoad(0.0),         // design heating load used for zone equipment [W]
+              CoolingAirVolFlow(0.0),      // design cooling air vol flow rate for equipment[m3/s]
+              HeatingAirVolFlow(0.0),      // design heating air vol flow rate for equipment[m3/s]
+              SystemAirVolFlow(0.0),       // design heating air vol flow rate for equipment[m3/s]
+              AirFlow(false),              // TRUE if AirloopHVAC system air flow rate is calculated
+              CoolingAirFlow(false),       // TRUE if AirloopHVAC system cooling air flow rate is calculated
+              HeatingAirFlow(false),       // TRUE if AirloopHVAC system heating air flow rate is calculated
+              SystemAirFlow(false),        // TRUE if AirloopHVAC system heating air flow rate is calculated
+              Capacity(false),             // TRUE if AirloopHVAC system capacity is calculated
+              CoolingCapacity(false),      // TRUE if AirloopHVAC system cooling capacity is calculated
+              HeatingCapacity(false),      // TRUE if AirloopHVAC system heating capacity is calculated
+              SystemCapacity(false),       // TRUE if AirloopHVAC system heating capacity is calculated
+              DesignSizeFromParent(false), // TRUE if design size is set by parent object - normally false, set to true for special cases e.g. ERV
+              HVACSizingIndex(0)           // index to DesignSpecification:ZoneHVAC:Sizing
         {
         }
     };
@@ -713,7 +751,7 @@ namespace DataSizing {
         }
     };
 
-    // Data Structure for air terminal sizing, referenced by ZoneHVAC:AirDistributionUnit and AirTerminal:SingleDuct:Uncontrolled
+    // Data Structure for air terminal sizing, referenced by ZoneHVAC:AirDistributionUnit
     struct AirTerminalSizingSpecData
     {
         // Members
@@ -1098,7 +1136,7 @@ namespace DataSizing {
         // Default Constructor
         OARequirementsData()
             : OAFlowMethod(0), OAFlowPerPerson(0.0), OAFlowPerArea(0.0), OAFlowPerZone(0.0), OAFlowACH(0.0),
-              OAFlowFracSchPtr(DataGlobals::ScheduleAlwaysOn), OAPropCtlMinRateSchPtr(DataGlobals::ScheduleAlwaysOn), CO2MaxMinLimitErrorCount(0),
+              OAFlowFracSchPtr(DataGlobalConstants::ScheduleAlwaysOn), OAPropCtlMinRateSchPtr(DataGlobalConstants::ScheduleAlwaysOn), CO2MaxMinLimitErrorCount(0),
               CO2MaxMinLimitErrorIndex(0), CO2GainErrorCount(0), CO2GainErrorIndex(0)
         {
         }
@@ -1166,6 +1204,8 @@ namespace DataSizing {
     extern Array1D<Real64> PzSumBySys;      // sum of design people for system, Pz_sum
     extern Array1D<Real64> PsBySys;         // sum of peak concurrent people by system, Ps
     extern Array1D<Real64> DBySys;          // Population Diversity by system
+    extern Array1D<Real64> SumRpxPzBySys;   // Sum of per person OA times number of people by system, No D yet
+    extern Array1D<Real64> SumRaxAzBySys;   // sum of per area OA time zone area by system, does not get altered by D
     extern Array1D<std::string> PeakPsOccurrenceDateTimeStringBySys;    // string describing date and time when Ps peak occurs
     extern Array1D<std::string> PeakPsOccurrenceEnvironmentStringBySys; // string describing Environment when Ps peak occurs
 
@@ -1198,7 +1238,29 @@ namespace DataSizing {
     // Needed for unit tests, should not be normally called.
     void clear_state();
 
+    // Resets Data globals so that prevoiusly set variables are not used in other equipment models
+    void resetHVACSizingGlobals(int const curZoneEqNum,
+                                int const curSysNum,
+                                bool &firstPassFlag     // Can be set to false during the routine
+    );
+
+    void GetCoilDesFlowT(EnergyPlusData &state,
+                         int SysNum,            // central air system index
+                         Real64 CpAir,          // specific heat to be used in calculations [J/kgC]
+                         Real64& DesFlow,       // returned design mass flow [kg/s]
+                         Real64& DesExitTemp,   // returned design coil exit temperature [kg/s]
+                         Real64& DesExitHumRat  // returned design coil exit humidity ratio [kg/kg]
+    );
+
 } // namespace DataSizing
+
+struct SizingData : BaseGlobalStruct {
+
+    void clear_state() override
+    {
+
+    }
+};
 
 } // namespace EnergyPlus
 

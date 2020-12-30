@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -51,33 +51,34 @@
 #include <gtest/gtest.h>
 
 #include "Fixtures/EnergyPlusFixture.hh"
-#include <AirTerminalUnit.hh>
-#include <BranchInputManager.hh>
-#include <DataDefineEquip.hh>
-#include <DataHVACGlobals.hh>
-#include <DataHeatBalance.hh>
-#include <DataLoopNode.hh>
-#include <DataZoneEnergyDemands.hh>
-#include <DataZoneEquipment.hh>
-#include <ElectricPowerServiceManager.hh>
-#include <GeneralRoutines.hh>
-#include <HVACFourPipeBeam.hh>
-#include <HeatBalanceManager.hh>
-#include <NodeInputManager.hh>
-#include <OutputProcessor.hh>
-#include <OutputReportPredefined.hh>
-#include <Plant/PlantManager.hh>
-#include <PlantUtilities.hh>
-#include <SimulationManager.hh>
-#include <SizingManager.hh>
-#include <WeatherManager.hh>
+#include <EnergyPlus/AirTerminalUnit.hh>
+#include <EnergyPlus/BranchInputManager.hh>
+#include <EnergyPlus/DataDefineEquip.hh>
+#include <EnergyPlus/DataHVACGlobals.hh>
+#include <EnergyPlus/DataHeatBalance.hh>
+#include <EnergyPlus/DataLoopNode.hh>
+#include <EnergyPlus/DataZoneEnergyDemands.hh>
+#include <EnergyPlus/DataZoneEquipment.hh>
+#include <EnergyPlus/ElectricPowerServiceManager.hh>
+#include <EnergyPlus/GeneralRoutines.hh>
+#include <EnergyPlus/HVACFourPipeBeam.hh>
+#include <EnergyPlus/HeatBalanceManager.hh>
+#include <EnergyPlus/IOFiles.hh>
+#include <EnergyPlus/NodeInputManager.hh>
+#include <EnergyPlus/OutputProcessor.hh>
+#include <EnergyPlus/OutputReportPredefined.hh>
+#include <EnergyPlus/Plant/PlantManager.hh>
+#include <EnergyPlus/PlantUtilities.hh>
+#include <EnergyPlus/SimulationManager.hh>
+#include <EnergyPlus/SizingManager.hh>
+#include <EnergyPlus/WeatherManager.hh>
+#include <EnergyPlus/Data/EnergyPlusData.hh>
 
 namespace EnergyPlus {
 
 TEST_F(EnergyPlusFixture, Beam_FactoryAllAutosize)
 {
     std::string const idf_objects = delimited_string({
-        "Version,8.4;",
         "AirTerminal:SingleDuct:ConstantVolume:FourPipeBeam,",
         "    Perimeter_top_ZN_4 4pipe Beam, !- Name",
         "    , !- Primary Air Availability Schedule Name",
@@ -114,59 +115,106 @@ TEST_F(EnergyPlusFixture, Beam_FactoryAllAutosize)
         "    1.5, !- max x",
         "    0.0 , !- min y",
         "    1.5; ! max y",
-        "  Table:OneIndependentVariable,",
-        "    CoolCapModFuncOfSAFlow, !- Name",
-        "    quadratic,!- Curve Type",
-        "    EvaluateCurveToLimits,!- Interpolation Method",
-        "    0.714,!- min x",
-        "    1.2857,!- max x",
-        "    0.8234,!- min y",
-        "    1.1256,!- max y",
-        "    dimensionless, !-",
-        "    dimensionless, !- ",
-        "    , !- normalization ref",
-        "    0.714286, 0.823403,",
-        "    1.0,      1.0,",
-        "    1.2857,   1.1256;",
-        "  Table:OneIndependentVariable,",
-        "    CapModFuncOfWaterFlow, !- Name",
-        "    quadratic,!- Curve Type",
-        "    EvaluateCurveToLimits,!- Interpolation Method",
-        "    0.0,!- min x",
-        "    1.333333,!- max x",
-        "    0.0,!- min y",
-        "    1.04,!- max y",
-        "    dimensionless, !-",
-        "    dimensionless, !- ",
-        "     , !- normalization ref",
-        "    0.0,      0.0,",
-        "    0.05,     0.001,",
-        "    0.33333,  0.71,",
-        "    0.5,      0.85,",
-        "    0.666667, 0.92,",
-        "    0.833333, 0.97,",
-        "    1.0,      1.0,",
-        "    1.333333, 1.04;",
-        "  Table:OneIndependentVariable,",
-        "    HeatCapModFuncOfSAFlow, !- Name",
-        "    quadratic,!- Curve Type",
-        "    EvaluateCurveToLimits,!- Interpolation Method",
-        "    0.714,!- min x",
-        "    1.2857,!- max x",
-        "    0.8554,!- min y",
-        "    1.0778,!- max y",
-        "    dimensionless, !-",
-        "    dimensionless, !- ",
-        "    , !- normalization ref",
-        "    0.714286, 0.8554,",
-        "    1.0,      1.0,",
-        "    1.2857,   1.0778; ",
+
+        "Table:IndependentVariable,",
+        "  SAFlow,                    !- Name",
+        "  Cubic,                     !- Interpolation Method",
+        "  Constant,                  !- Extrapolation Method",
+        "  0.714,                     !- Minimum Value",
+        "  1.2857,                    !- Maximum Value",
+        "  ,                          !- Normalization Reference Value",
+        "  Dimensionless,             !- Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.714286,                  !- Value 1",
+        "  1.0,",
+        "  1.2857;",
+
+        "Table:IndependentVariableList,",
+        "  SAFlow_Variables,          !- Name",
+        "  SAFlow;                    !- Independent Variable 1 Name",
+
+        "Table:Lookup,",
+        "  CoolCapModFuncOfSAFlow,    !- Name",
+        "  SAFlow_Variables,          !- Independent Variable List Name",
+        "  ,                          !- Normalization Method",
+        "  ,                          !- Normalization Divisor",
+        "  0.8234,                    !- Minimum Output",
+        "  1.1256,                    !- Maximum Output",
+        "  Dimensionless,             !- Output Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.823403,                  !- Output Value 1",
+        "  1.0,",
+        "  1.1256;",
+
+        "Table:Lookup,",
+        "  HeatCapModFuncOfSAFlow,    !- Name",
+        "  SAFlow_Variables,          !- Independent Variable List Name",
+        "  ,                          !- Normalization Method",
+        "  ,                          !- Normalization Divisor",
+        "  0.8554,                    !- Minimum Output",
+        "  1.0778,                    !- Maximum Output",
+        "  Dimensionless,             !- Output Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.8554,                    !- Output Value 1",
+        "  1.0,",
+        "  1.0778;",
+
+        "Table:IndependentVariable,",
+        "  WaterFlow,                 !- Name",
+        "  Cubic,                     !- Interpolation Method",
+        "  Constant,                  !- Extrapolation Method",
+        "  0.0,                       !- Minimum Value",
+        "  1.333333,                  !- Maximum Value",
+        "  ,                          !- Normalization Reference Value",
+        "  Dimensionless,             !- Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.0,                       !- Value 1,",
+        "  0.05,",
+        "  0.33333,",
+        "  0.5,",
+        "  0.666667,",
+        "  0.833333,",
+        "  1.0,",
+        "  1.333333;",
+
+        "Table:IndependentVariableList,",
+        "  WaterFlow_Variables,       !- Name",
+        "  WaterFlow;                 !- Independent Variable 1 Name",
+
+        "Table:Lookup,",
+        "  CapModFuncOfWaterFlow,     !- Name",
+        "  WaterFlow_Variables,       !- Independent Variable List Name",
+        "  ,                          !- Normalization Method",
+        "  ,                          !- Normalization Divisor",
+        "  0.0,                       !- Minimum Output",
+        "  1.04,                      !- Maximum Output",
+        "  Dimensionless,             !- Output Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.0,                       !- Output Value 1",
+        "  0.001,",
+        "  0.71,",
+        "  0.85,",
+        "  0.92,",
+        "  0.97,",
+        "  1.0,",
+        "  1.04;"
+
     });
 
     ASSERT_TRUE(process_idf(idf_objects));
-    DataGlobals::NumOfZones = 1;
+    state->dataGlobal->NumOfZones = 1;
 
-    DataHeatBalance::Zone.allocate(DataGlobals::NumOfZones);
+    DataHeatBalance::Zone.allocate(state->dataGlobal->NumOfZones);
 
     DataZoneEquipment::ZoneEquipConfig.allocate(1);
     DataZoneEquipment::ZoneEquipConfig(1).NumInletNodes = 1;
@@ -177,7 +225,7 @@ TEST_F(EnergyPlusFixture, Beam_FactoryAllAutosize)
 
     DataZoneEquipment::ZoneEquipConfig(1).InletNode(1) = 3;
     bool ErrorsFound = false;
-    DataZoneEquipment::ZoneEquipConfig(1).ZoneNode = NodeInputManager::GetOnlySingleNode("Zone 1 Node",
+    DataZoneEquipment::ZoneEquipConfig(1).ZoneNode = NodeInputManager::GetOnlySingleNode(*state, "Zone 1 Node",
                                                                                          ErrorsFound,
                                                                                          "Zone",
                                                                                          "BeamTest",
@@ -187,14 +235,13 @@ TEST_F(EnergyPlusFixture, Beam_FactoryAllAutosize)
                                                                                          DataLoopNode::ObjectIsNotParent,
                                                                                          "Test zone node");
 
-    DataDefineEquip::NumAirDistUnits = 1;
-    DataDefineEquip::AirDistUnit.allocate(1);
-    DataDefineEquip::AirDistUnit(1).EquipName(1) =
+    state->dataDefineEquipment->NumAirDistUnits = 1;
+    state->dataDefineEquipment->AirDistUnit.allocate(1);
+    state->dataDefineEquipment->AirDistUnit(1).EquipName(1) =
         "PERIMETER_TOP_ZN_4 4PIPE BEAM"; // needs to be uppercased, or item will not be found at line 2488 in IP
-    DataDefineEquip::AirDistUnit(1).OutletNodeNum = 3;
+    state->dataDefineEquipment->AirDistUnit(1).OutletNodeNum = 3;
 
-    DataDefineEquip::AirDistUnit(1).airTerminalPtr = FourPipeBeam::HVACFourPipeBeam::fourPipeBeamFactory(
-        DataDefineEquip::SingleDuctConstVolFourPipeBeam, DataDefineEquip::AirDistUnit(1).EquipName(1));
+    state->dataDefineEquipment->AirDistUnit(1).airTerminalPtr = FourPipeBeam::HVACFourPipeBeam::fourPipeBeamFactory(*state, state->dataDefineEquipment->AirDistUnit(1).EquipName(1));
 
     // EXPECT_EQ( DataDefineEquip::AirDistUnit( 1 ).airTerminalPtr->name, "PERIMETER_TOP_ZN_4 4PIPE BEAM");
 
@@ -228,15 +275,16 @@ TEST_F(EnergyPlusFixture, Beam_sizeandSimulateOneZone)
         "    annual,                        !- Name",
         "    1,                       !- Begin Month",
         "    1,                       !- Begin Day of Month",
+        "    ,                        !- Begin Year",
         "    12,                      !- End Month",
         "    31,                      !- End Day of Month",
+        "    ,                        !- End Year",
         "    Sunday,                  !- Day of Week for Start Day",
         "    No,                      !- Use Weather File Holidays and Special Days",
         "    No,                      !- Use Weather File Daylight Saving Period",
         "    No,                      !- Apply Weekend Holiday Rule",
         "    Yes,                     !- Use Weather File Rain Indicators",
-        "    Yes,                     !- Use Weather File Snow Indicators",
-        "    1.0000;                  !- Number of Times Runperiod to be Repeated",
+        "    Yes;                     !- Use Weather File Snow Indicators",
 
         "    ScheduleTypeLimits,",
         "    On/Off,                  !- Name",
@@ -400,8 +448,9 @@ TEST_F(EnergyPlusFixture, Beam_sizeandSimulateOneZone)
         "    25;                      !- Maximum HVAC Iterations",
 
         "  ShadowCalculation,",
-        "    AverageOverDaysInFrequency,  !- Calculation Method",
-        "    7,                       !- Calculation Frequency",
+        "    PolygonClipping,         !- Shading Calculation Method",
+        "    Periodic,                !- Shading Calculation Update Frequency Method",
+        "    7,                       !- Shading Calculation Update Frequency",
         "    15000;                   !- Maximum Figures in Shadow Overlap Calculations",
 
         "  Timestep,6;",
@@ -412,7 +461,7 @@ TEST_F(EnergyPlusFixture, Beam_sizeandSimulateOneZone)
         "    -6.00,                   !- Time Zone {hr}",
         "    190;                     !- Elevation {m}",
 
-        "! CHICAGO_IL_USA Annual Heating 99.6%, MaxDB=-20.6�C",
+        "! CHICAGO_IL_USA Annual Heating 99.6%, MaxDB=-20.6degC",
 
         "  SizingPeriod:DesignDay,",
         "    CHICAGO Ann Htg 99.6% Condns DB,  !- Name",
@@ -442,7 +491,7 @@ TEST_F(EnergyPlusFixture, Beam_sizeandSimulateOneZone)
         "    ,                        !- ASHRAE Clear Sky Optical Depth for Diffuse Irradiance (taud) {dimensionless}",
         "    0.00;                    !- Sky Clearness",
 
-        "! CHICAGO_IL_USA Annual Cooling (WB=>MDB) .4%, MDB=31.2�C WB=25.5�C",
+        "! CHICAGO_IL_USA Annual Cooling (WB=>MDB) .4%, MDB=31.2degC WB=25.5degC",
 
         "  SizingPeriod:DesignDay,",
         "    CHICAGO Ann Clg .4% Condns WB=>MDB,  !- Name",
@@ -1571,82 +1620,125 @@ TEST_F(EnergyPlusFixture, Beam_sizeandSimulateOneZone)
         "    0.0 , !- min y",
         "    1.5; ! max y",
 
-        "  Table:OneIndependentVariable,",
-        "    CoolCapModFuncOfSAFlow, !- Name",
-        "    quadratic,!- Curve Type",
-        "    EvaluateCurveToLimits,!- Interpolation Method",
-        "    0.714,!- min x",
-        "    1.2857,!- max x",
-        "    0.8234,!- min y",
-        "    1.1256,!- max y",
-        "    dimensionless, !-",
-        "    dimensionless, !- ",
-        "    , !- normalization ref",
-        "    0.714286, 0.823403,",
-        "    1.0,      1.0,",
-        "    1.2857,   1.1256;",
+        "Table:IndependentVariable,",
+        "  SAFlow,                    !- Name",
+        "  Cubic,                     !- Interpolation Method",
+        "  Constant,                  !- Extrapolation Method",
+        "  0.714,                     !- Minimum Value",
+        "  1.2857,                    !- Maximum Value",
+        "  ,                          !- Normalization Reference Value",
+        "  Dimensionless,             !- Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.714286,                  !- Value 1",
+        "  1.0,",
+        "  1.2857;",
 
-        "  Table:OneIndependentVariable,",
-        "    CapModFuncOfWaterFlow, !- Name",
-        "    quadratic,!- Curve ",
-        "    EvaluateCurveToLimits,!- Interpolation Method",
-        "    0.0,!- min x",
-        "    1.333333,!- max x",
-        "    0.0,!- min y",
-        "    1.04,!- max y",
-        "    dimensionless, !-",
-        "    dimensionless, !- ",
-        "     , !- normalization ref",
-        "    0.0,      0.0,",
-        "    0.05,     0.001,",
-        "    0.33333,  0.71,",
-        "    0.5,      0.85,",
-        "    0.666667, 0.92,",
-        "    0.833333, 0.97,",
-        "    1.0,      1.0,",
-        "    1.333333, 1.04;",
+        "Table:IndependentVariableList,",
+        "  SAFlow_Variables,          !- Name",
+        "  SAFlow;                    !- Independent Variable 1 Name",
 
-        "  Table:OneIndependentVariable,",
-        "    HeatCapModFuncOfSAFlow, !- Name",
-        "    quadratic,!- Curve Type",
-        "    EvaluateCurveToLimits,!- Interpolation Method",
-        "    0.714,!- min x",
-        "    1.2857,!- max x",
-        "    0.8554,!- min y",
-        "    1.0778,!- max y",
-        "    dimensionless, !-",
-        "    dimensionless, !- ",
-        "   , !- normalization ref",
-        "    0.714286, 0.8554,",
-        "    1.0,      1.0,",
-        "    1.2857,   1.0778; ",
+        "Table:Lookup,",
+        "  CoolCapModFuncOfSAFlow,    !- Name",
+        "  SAFlow_Variables,          !- Independent Variable List Name",
+        "  ,                          !- Normalization Method",
+        "  ,                          !- Normalization Divisor",
+        "  0.8234,                    !- Minimum Output",
+        "  1.1256,                    !- Maximum Output",
+        "  Dimensionless,             !- Output Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.823403,                  !- Output Value 1",
+        "  1.0,",
+        "  1.1256;",
+
+        "Table:Lookup,",
+        "  HeatCapModFuncOfSAFlow,    !- Name",
+        "  SAFlow_Variables,          !- Independent Variable List Name",
+        "  ,                          !- Normalization Method",
+        "  ,                          !- Normalization Divisor",
+        "  0.8554,                    !- Minimum Output",
+        "  1.0778,                    !- Maximum Output",
+        "  Dimensionless,             !- Output Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.8554,                    !- Output Value 1",
+        "  1.0,",
+        "  1.0778;",
+
+        "Table:IndependentVariable,",
+        "  WaterFlow,                 !- Name",
+        "  Cubic,                     !- Interpolation Method",
+        "  Constant,                  !- Extrapolation Method",
+        "  0.0,                       !- Minimum Value",
+        "  1.333333,                  !- Maximum Value",
+        "  ,                          !- Normalization Reference Value",
+        "  Dimensionless,             !- Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.0,                       !- Value 1,",
+        "  0.05,",
+        "  0.33333,",
+        "  0.5,",
+        "  0.666667,",
+        "  0.833333,",
+        "  1.0,",
+        "  1.333333;",
+
+        "Table:IndependentVariableList,",
+        "  WaterFlow_Variables,       !- Name",
+        "  WaterFlow;                 !- Independent Variable 1 Name",
+
+        "Table:Lookup,",
+        "  CapModFuncOfWaterFlow,     !- Name",
+        "  WaterFlow_Variables,       !- Independent Variable List Name",
+        "  ,                          !- Normalization Method",
+        "  ,                          !- Normalization Divisor",
+        "  0.0,                       !- Minimum Output",
+        "  1.04,                      !- Maximum Output",
+        "  Dimensionless,             !- Output Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.0,                       !- Output Value 1",
+        "  0.001,",
+        "  0.71,",
+        "  0.85,",
+        "  0.92,",
+        "  0.97,",
+        "  1.0,",
+        "  1.04;"
     });
 
     ASSERT_TRUE(process_idf(idf_objects));
-    SimulationManager::PostIPProcessing();
+    SimulationManager::PostIPProcessing(*state);
 
     bool ErrorsFound = false;
 
-    DataGlobals::BeginSimFlag = true;
-    SimulationManager::GetProjectData();
+    state->dataGlobal->BeginSimFlag = true;
+    SimulationManager::GetProjectData(*state);
 
-    OutputReportPredefined::SetPredefinedTables();
-    HeatBalanceManager::SetPreConstructionInputParameters(); // establish array bounds for constructions early
-    OutputProcessor::TimeValue.allocate(2);
-    OutputProcessor::SetupTimePointers("Zone", DataGlobals::TimeStepZone); // Set up Time pointer for HB/Zone Simulation
-    OutputProcessor::SetupTimePointers("HVAC", DataHVACGlobals::TimeStepSys);
-    PlantManager::CheckIfAnyPlant();
+    OutputReportPredefined::SetPredefinedTables(*state);
+    HeatBalanceManager::SetPreConstructionInputParameters(*state); // establish array bounds for constructions early
+    // OutputProcessor::TimeValue.allocate(2);
+    OutputProcessor::SetupTimePointers(*state, "Zone", state->dataGlobal->TimeStepZone); // Set up Time pointer for HB/Zone Simulation
+    OutputProcessor::SetupTimePointers(*state, "HVAC", DataHVACGlobals::TimeStepSys);
+    PlantManager::CheckIfAnyPlant(*state);
     createFacilityElectricPowerServiceObject();
-    BranchInputManager::ManageBranchInput(); // just gets input and returns.
-    DataGlobals::DoingSizing = true;
-    SizingManager::ManageSizing();
-    DataGlobals::DoingSizing = false;
-    DataGlobals::KickOffSimulation = true;
+    BranchInputManager::ManageBranchInput(*state); // just gets input and returns.
+    state->dataGlobal->DoingSizing = true;
+    SizingManager::ManageSizing(*state);
+    state->dataGlobal->DoingSizing = false;
+    state->dataGlobal->KickOffSimulation = true;
 
-    WeatherManager::ResetEnvironmentCounter();
-    TestAirPathIntegrity(ErrorsFound); // Needed to initialize return node connections to airloops and inlet nodes
-    SimulationManager::SetupSimulation(ErrorsFound);
-    DataGlobals::KickOffSimulation = false;
+    WeatherManager::ResetEnvironmentCounter(*state);
+    TestAirPathIntegrity(*state, ErrorsFound); // Needed to initialize return node connections to airloops and inlet nodes
+    SimulationManager::SetupSimulation(*state, ErrorsFound);
+    state->dataGlobal->KickOffSimulation = false;
 
     DataHVACGlobals::SimZoneEquipmentFlag = true;
     DataHVACGlobals::SimNonZoneEquipmentFlag = false;
@@ -1675,15 +1767,15 @@ TEST_F(EnergyPlusFixture, Beam_sizeandSimulateOneZone)
     // DataLoopNode::Node( 38 ).Temp = 45.0; // hot water inlet node
 
     Real64 NonAirSysOutput = 0.0;
-    DataDefineEquip::AirDistUnit(1).airTerminalPtr->simulate(FirstHVACIteration, NonAirSysOutput);
+    state->dataDefineEquipment->AirDistUnit(1).airTerminalPtr->simulate(*state, FirstHVACIteration, NonAirSysOutput);
 
-    EXPECT_NEAR(DataLoopNode::Node(1).MassFlowRate, 0.3521952339035046, 0.00001);
-    EXPECT_NEAR(DataLoopNode::Node(15).Temp, 19.191523455437512, 0.00001);
-    EXPECT_NEAR(DataLoopNode::Node(15).MassFlowRate, 0.046199561631265804, 0.00001);
+    EXPECT_NEAR(DataLoopNode::Node(1).MassFlowRate, 0.36165246721684446, 0.00001);
+    EXPECT_NEAR(DataLoopNode::Node(15).Temp, 17.835648923740127, 0.00001);
+    EXPECT_NEAR(DataLoopNode::Node(15).MassFlowRate, 0.053404403026239548, 0.00001);
     EXPECT_DOUBLE_EQ(DataLoopNode::Node(39).Temp, 45.0);
     EXPECT_DOUBLE_EQ(DataLoopNode::Node(39).MassFlowRate, 0.0);
 
-    EXPECT_NEAR(NonAirSysOutput, -1004.0437766383318, 0.0001);
+    EXPECT_NEAR(NonAirSysOutput, -857.50347269476481, 0.01);
 
     // next run with a sensible heating load of 5000 W and cold supply air
     DataZoneEnergyDemands::ZoneSysEnergyDemand(1).RemainingOutputRequired = 5000.0;
@@ -1691,14 +1783,14 @@ TEST_F(EnergyPlusFixture, Beam_sizeandSimulateOneZone)
     DataZoneEnergyDemands::ZoneSysEnergyDemand(1).RemainingOutputReqToCoolSP = 6000.0;
 
     DataLoopNode::Node(40).Temp = 21.0; // zone node
-    DataDefineEquip::AirDistUnit(1).airTerminalPtr->simulate(FirstHVACIteration, NonAirSysOutput);
+    state->dataDefineEquipment->AirDistUnit(1).airTerminalPtr->simulate(*state, FirstHVACIteration, NonAirSysOutput);
 
     EXPECT_DOUBLE_EQ(DataLoopNode::Node(15).Temp, 14.0);
     EXPECT_DOUBLE_EQ(DataLoopNode::Node(15).MassFlowRate, 0.0);
-    EXPECT_NEAR(DataLoopNode::Node(39).Temp, 34.895727719471829, 0.00001);
-    EXPECT_NEAR(DataLoopNode::Node(39).MassFlowRate, 0.18997902875440670, 0.00001);
+    EXPECT_NEAR(DataLoopNode::Node(39).Temp, 31.815031821344689, 0.00001);
+    EXPECT_NEAR(DataLoopNode::Node(39).MassFlowRate, 0.14660727634539222, 0.00001);
 
-    EXPECT_NEAR(NonAirSysOutput, 8023.9273066417645, 0.0001);
+    EXPECT_NEAR(NonAirSysOutput, 8079.991302700485, 0.01);
 
     // next run with cooling load and neutral supply air
     DataZoneEnergyDemands::ZoneSysEnergyDemand(1).RemainingOutputRequired = -5000.0;
@@ -1713,10 +1805,10 @@ TEST_F(EnergyPlusFixture, Beam_sizeandSimulateOneZone)
     DataLoopNode::Node(38).Temp = 45.0;    // hot water inlet node
 
     NonAirSysOutput = 0.0;
-    DataDefineEquip::AirDistUnit(1).airTerminalPtr->simulate(FirstHVACIteration, NonAirSysOutput);
+    state->dataDefineEquipment->AirDistUnit(1).airTerminalPtr->simulate(*state, FirstHVACIteration, NonAirSysOutput);
 
-    EXPECT_NEAR(DataLoopNode::Node(15).Temp, 18.027306264618733, 0.00001);
-    EXPECT_NEAR(DataLoopNode::Node(15).MassFlowRate, 0.25614844309380103, 0.00001);
+    EXPECT_NEAR(DataLoopNode::Node(15).Temp, 18.549803918626715, 0.00001);
+    EXPECT_NEAR(DataLoopNode::Node(15).MassFlowRate, 0.22613768427540518, 0.00001);
     EXPECT_DOUBLE_EQ(DataLoopNode::Node(39).Temp, 45.0);
     EXPECT_DOUBLE_EQ(DataLoopNode::Node(39).MassFlowRate, 0.0);
     // EXPECT_NEAR( DataLoopNode::Node( 15 ).Temp, 18.027306264618733, 0.00001 );
@@ -1724,7 +1816,7 @@ TEST_F(EnergyPlusFixture, Beam_sizeandSimulateOneZone)
     // EXPECT_DOUBLE_EQ( DataLoopNode::Node( 39 ).Temp, 45.0 );
     // EXPECT_DOUBLE_EQ( DataLoopNode::Node( 39 ).MassFlowRate, 0.0 );
 
-    EXPECT_NEAR(NonAirSysOutput, -4318.4346465170929, 0.0001);
+    EXPECT_NEAR(NonAirSysOutput, -4307.106339390215, 0.01);
 
     // next run with heating load and neutral supply air
     DataZoneEnergyDemands::ZoneSysEnergyDemand(1).RemainingOutputRequired = 5000.0;
@@ -1734,18 +1826,18 @@ TEST_F(EnergyPlusFixture, Beam_sizeandSimulateOneZone)
     DataLoopNode::Node(40).Temp = 21.0; // zone node
 
     NonAirSysOutput = 0.0;
-    DataDefineEquip::AirDistUnit(1).airTerminalPtr->simulate(FirstHVACIteration, NonAirSysOutput);
+    state->dataDefineEquipment->AirDistUnit(1).airTerminalPtr->simulate(*state, FirstHVACIteration, NonAirSysOutput);
 
     EXPECT_DOUBLE_EQ(DataLoopNode::Node(15).Temp, 14.0);
     EXPECT_DOUBLE_EQ(DataLoopNode::Node(15).MassFlowRate, 0.0);
-    EXPECT_NEAR(DataLoopNode::Node(39).Temp, 33.646641648256931, 0.00001);
-    EXPECT_NEAR(DataLoopNode::Node(39).MassFlowRate, 0.098729299097229120, 0.00001);
+    EXPECT_NEAR(DataLoopNode::Node(39).Temp, 32.784497823408309, 0.00001);
+    EXPECT_NEAR(DataLoopNode::Node(39).MassFlowRate, 0.091412175315718339, 0.00001);
     // EXPECT_DOUBLE_EQ( DataLoopNode::Node( 15 ).Temp, 14.0 );
     // EXPECT_DOUBLE_EQ( DataLoopNode::Node( 15 ).MassFlowRate, 0.0 );
     // EXPECT_NEAR( DataLoopNode::Node( 39 ).Temp, 33.836239364981424, 0.00001 );
     // EXPECT_NEAR( DataLoopNode::Node( 39 ).MassFlowRate, 0.10040605035467959, 0.00001 );
 
-    EXPECT_NEAR(NonAirSysOutput, 4685.4000901131676, 0.0001);
+    EXPECT_NEAR(NonAirSysOutput, 4667.5787189210605, 0.01);
 }
 
 TEST_F(EnergyPlusFixture, Beam_fatalWhenSysSizingOff)
@@ -1930,8 +2022,9 @@ TEST_F(EnergyPlusFixture, Beam_fatalWhenSysSizingOff)
         "    25;                      !- Maximum HVAC Iterations",
 
         "  ShadowCalculation,",
-        "    AverageOverDaysInFrequency,  !- Calculation Method",
-        "    7,                       !- Calculation Frequency",
+        "    PolygonClipping,         !- Shading Calculation Method",
+        "    Periodic,                !- Shading Calculation Update Frequency Method",
+        "    7,                       !- Shading Calculation Update Frequency",
         "    15000;                   !- Maximum Figures in Shadow Overlap Calculations",
 
         "  Timestep,6;",
@@ -3101,81 +3194,124 @@ TEST_F(EnergyPlusFixture, Beam_fatalWhenSysSizingOff)
         "    0.0 , !- min y",
         "    1.5; ! max y",
 
-        "  Table:OneIndependentVariable,",
-        "    CoolCapModFuncOfSAFlow, !- Name",
-        "    quadratic,!- Curve Type",
-        "    EvaluateCurveToLimits,!- Interpolation Method",
-        "    0.714,!- min x",
-        "    1.2857,!- max x",
-        "    0.8234,!- min y",
-        "    1.1256,!- max y",
-        "    dimensionless, !-",
-        "    dimensionless, !- ",
-        "    , !- normalization ref",
-        "    0.714286, 0.823403,",
-        "    1.0,      1.0,",
-        "    1.2857,   1.1256;",
+        "Table:IndependentVariable,",
+        "  SAFlow,                    !- Name",
+        "  Cubic,                     !- Interpolation Method",
+        "  Constant,                  !- Extrapolation Method",
+        "  0.714,                     !- Minimum Value",
+        "  1.2857,                    !- Maximum Value",
+        "  ,                          !- Normalization Reference Value",
+        "  Dimensionless,             !- Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.714286,                  !- Value 1",
+        "  1.0,",
+        "  1.2857;",
 
-        "  Table:OneIndependentVariable,",
-        "    CapModFuncOfWaterFlow, !- Name",
-        "    quadratic,!- Curve ",
-        "    EvaluateCurveToLimits,!- Interpolation Method",
-        "    0.0,!- min x",
-        "    1.333333,!- max x",
-        "    0.0,!- min y",
-        "    1.04,!- max y",
-        "    dimensionless, !-",
-        "    dimensionless, !- ",
-        "     , !- normalization ref",
-        "    0.0,      0.0,",
-        "    0.05,     0.001,",
-        "    0.33333,  0.71,",
-        "    0.5,      0.85,",
-        "    0.666667, 0.92,",
-        "    0.833333, 0.97,",
-        "    1.0,      1.0,",
-        "    1.333333, 1.04;",
+        "Table:IndependentVariableList,",
+        "  SAFlow_Variables,          !- Name",
+        "  SAFlow;                    !- Independent Variable 1 Name",
 
-        "  Table:OneIndependentVariable,",
-        "    HeatCapModFuncOfSAFlow, !- Name",
-        "    quadratic,!- Curve Type",
-        "    EvaluateCurveToLimits,!- Interpolation Method",
-        "    0.714,!- min x",
-        "    1.2857,!- max x",
-        "    0.8554,!- min y",
-        "    1.0778,!- max y",
-        "    dimensionless, !-",
-        "    dimensionless, !- ",
-        "   , !- normalization ref",
-        "    0.714286, 0.8554,",
-        "    1.0,      1.0,",
-        "    1.2857,   1.0778; ",
+        "Table:Lookup,",
+        "  CoolCapModFuncOfSAFlow,    !- Name",
+        "  SAFlow_Variables,          !- Independent Variable List Name",
+        "  ,                          !- Normalization Method",
+        "  ,                          !- Normalization Divisor",
+        "  0.8234,                    !- Minimum Output",
+        "  1.1256,                    !- Maximum Output",
+        "  Dimensionless,             !- Output Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.823403,                  !- Output Value 1",
+        "  1.0,",
+        "  1.1256;",
+
+        "Table:Lookup,",
+        "  HeatCapModFuncOfSAFlow,    !- Name",
+        "  SAFlow_Variables,          !- Independent Variable List Name",
+        "  ,                          !- Normalization Method",
+        "  ,                          !- Normalization Divisor",
+        "  0.8554,                    !- Minimum Output",
+        "  1.0778,                    !- Maximum Output",
+        "  Dimensionless,             !- Output Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.8554,                    !- Output Value 1",
+        "  1.0,",
+        "  1.0778;",
+
+        "Table:IndependentVariable,",
+        "  WaterFlow,                 !- Name",
+        "  Cubic,                     !- Interpolation Method",
+        "  Constant,                  !- Extrapolation Method",
+        "  0.0,                       !- Minimum Value",
+        "  1.333333,                  !- Maximum Value",
+        "  ,                          !- Normalization Reference Value",
+        "  Dimensionless,             !- Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.0,                       !- Value 1,",
+        "  0.05,",
+        "  0.33333,",
+        "  0.5,",
+        "  0.666667,",
+        "  0.833333,",
+        "  1.0,",
+        "  1.333333;",
+
+        "Table:IndependentVariableList,",
+        "  WaterFlow_Variables,       !- Name",
+        "  WaterFlow;                 !- Independent Variable 1 Name",
+
+        "Table:Lookup,",
+        "  CapModFuncOfWaterFlow,     !- Name",
+        "  WaterFlow_Variables,       !- Independent Variable List Name",
+        "  ,                          !- Normalization Method",
+        "  ,                          !- Normalization Divisor",
+        "  0.0,                       !- Minimum Output",
+        "  1.04,                      !- Maximum Output",
+        "  Dimensionless,             !- Output Unit Type",
+        "  ,                          !- External File Name",
+        "  ,                          !- External File Column Number",
+        "  ,                          !- External File Starting Row Number",
+        "  0.0,                       !- Output Value 1",
+        "  0.001,",
+        "  0.71,",
+        "  0.85,",
+        "  0.92,",
+        "  0.97,",
+        "  1.0,",
+        "  1.04;"
     });
 
     ASSERT_TRUE(process_idf(idf_objects));
-    SimulationManager::PostIPProcessing();
+    SimulationManager::PostIPProcessing(*state);
 
     bool ErrorsFound = false;
 
-    DataGlobals::BeginSimFlag = true;
-    SimulationManager::GetProjectData();
+    state->dataGlobal->BeginSimFlag = true;
+    SimulationManager::GetProjectData(*state);
 
-    OutputReportPredefined::SetPredefinedTables();
-    HeatBalanceManager::SetPreConstructionInputParameters(); // establish array bounds for constructions early
-    OutputProcessor::TimeValue.allocate(2);
-    OutputProcessor::SetupTimePointers("Zone", DataGlobals::TimeStepZone); // Set up Time pointer for HB/Zone Simulation
-    OutputProcessor::SetupTimePointers("HVAC", DataHVACGlobals::TimeStepSys);
-    PlantManager::CheckIfAnyPlant();
+    OutputReportPredefined::SetPredefinedTables(*state);
+    HeatBalanceManager::SetPreConstructionInputParameters(*state); // establish array bounds for constructions early
+    // OutputProcessor::TimeValue.allocate(2);
+    OutputProcessor::SetupTimePointers(*state, "Zone", state->dataGlobal->TimeStepZone); // Set up Time pointer for HB/Zone Simulation
+    OutputProcessor::SetupTimePointers(*state, "HVAC", DataHVACGlobals::TimeStepSys);
+    PlantManager::CheckIfAnyPlant(*state);
     createFacilityElectricPowerServiceObject();
-    BranchInputManager::ManageBranchInput(); // just gets input and returns.
-    DataGlobals::DoingSizing = true;
-    SizingManager::ManageSizing();
-    DataGlobals::DoingSizing = false;
-    DataGlobals::KickOffSimulation = true;
+    BranchInputManager::ManageBranchInput(*state); // just gets input and returns.
+    state->dataGlobal->DoingSizing = true;
+    SizingManager::ManageSizing(*state);
+    state->dataGlobal->DoingSizing = false;
+    state->dataGlobal->KickOffSimulation = true;
 
-    WeatherManager::ResetEnvironmentCounter();
+    WeatherManager::ResetEnvironmentCounter(*state);
 
-    ASSERT_ANY_THROW(SimulationManager::SetupSimulation(ErrorsFound));
+    ASSERT_ANY_THROW(SimulationManager::SetupSimulation(*state, ErrorsFound));
 }
 
 } // namespace EnergyPlus

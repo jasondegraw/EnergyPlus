@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -49,6 +49,7 @@
 #include <gtest/gtest.h>
 
 // EnergyPlus Headers
+#include <EnergyPlus/Data/EnergyPlusData.hh>
 #include <EnergyPlus/DataGlobals.hh>
 #include <EnergyPlus/DataHVACGlobals.hh>
 #include <EnergyPlus/DataHeatBalance.hh>
@@ -58,6 +59,7 @@
 #include <EnergyPlus/General.hh>
 #include <EnergyPlus/GlobalNames.hh>
 #include <EnergyPlus/HeatBalanceManager.hh>
+#include <EnergyPlus/IOFiles.hh>
 #include <EnergyPlus/Psychrometrics.hh>
 #include <EnergyPlus/ScheduleManager.hh>
 #include <EnergyPlus/SimAirServingZones.hh>
@@ -65,7 +67,6 @@
 #include <EnergyPlus/SizingManager.hh>
 #include <EnergyPlus/UtilityRoutines.hh>
 #include <EnergyPlus/ZoneAirLoopEquipmentManager.hh>
-#include <General.hh>
 
 #include "Fixtures/EnergyPlusFixture.hh"
 
@@ -73,7 +74,6 @@ using namespace ObjexxFCL;
 using namespace EnergyPlus;
 using namespace EnergyPlus::DataHVACGlobals;
 using namespace EnergyPlus::DataLoopNode;
-using namespace EnergyPlus::DataGlobals;
 using namespace EnergyPlus::GlobalNames;
 using namespace EnergyPlus::DataHeatBalance;
 using namespace EnergyPlus::DataSizing;
@@ -104,7 +104,7 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestVentEffLimit)
     SysCoolingEv = 1.0 + Xs - ZoneOAFrac;
     CtrlZoneNum = 1;
     TermUnitFinalZoneSizing(CtrlZoneNum).ZoneVentilationEff = 0.7;
-    LimitZoneVentEff(Xs, VozClg, CtrlZoneNum, SysCoolingEv);
+    LimitZoneVentEff(*state, Xs, VozClg, CtrlZoneNum, SysCoolingEv);
     EXPECT_DOUBLE_EQ(0.7, SysCoolingEv);
     EXPECT_NEAR(0.5516, TermUnitFinalZoneSizing(CtrlZoneNum).ZpzClgByZone, 0.0001);
     EXPECT_NEAR(0.1132, TermUnitFinalZoneSizing(CtrlZoneNum).DesCoolVolFlowMin, 0.0001);
@@ -113,7 +113,7 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestVentEffLimit)
     SysCoolingEv = 1.0 + Xs - ZoneOAFrac;
     CtrlZoneNum = 2;
     TermUnitFinalZoneSizing(CtrlZoneNum).ZoneVentilationEff = 0.7;
-    LimitZoneVentEff(Xs, VozClg, CtrlZoneNum, SysCoolingEv);
+    LimitZoneVentEff(*state, Xs, VozClg, CtrlZoneNum, SysCoolingEv);
     EXPECT_NEAR(0.7622, SysCoolingEv, .0001);
 
     TermUnitFinalZoneSizing.deallocate();
@@ -129,7 +129,6 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing1)
     InitializePsychRoutines();
 
     std::string const idf_objects = delimited_string({
-        "	Version,8.4;",
         "	Zone,",
         "	SPACE3-1, !- Name",
         "	0, !- Direction of Relative North { deg }",
@@ -241,16 +240,16 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing1)
     TermUnitFinalZoneSizing.allocate(1);
     CalcFinalZoneSizing.allocate(1);
     TermUnitSizing.allocate(1);
-    GetZoneData(ErrorsFound);
+    GetZoneData(*state, ErrorsFound);
     EXPECT_EQ("SPACE3-1", Zone(1).Name);
-    GetOARequirements();      // get the OA requirements object
-    GetZoneAirDistribution(); // get zone air distribution objects
-    GetZoneSizingInput();
-    GetZoneEquipmentData1();
-    ProcessScheduleInput();
+    GetOARequirements(*state);      // get the OA requirements object
+    GetZoneAirDistribution(*state); // get zone air distribution objects
+    GetZoneSizingInput(*state);
+    GetZoneEquipmentData1(*state);
+    ProcessScheduleInput(*state);
     ScheduleInputProcessed = true;
-    GetZoneAirLoopEquipment();
-    GetSysInput();
+    GetZoneAirLoopEquipment(*state);
+    GetSysInput(*state);
     ZoneSizingRunDone = true;
     CurZoneEqNum = 1;
     CurTermUnitSizingNum = 1;
@@ -284,11 +283,11 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing1)
     EXPECT_DOUBLE_EQ(FinalZoneSizing(CurZoneEqNum).DesHeatMaxAirFlowPerArea, 0.0);
     EXPECT_DOUBLE_EQ(FinalZoneSizing(CurZoneEqNum).DesHeatMaxAirFlow2, 0.0);
     EXPECT_NEAR(FinalZoneSizing(CurZoneEqNum).DesHeatVolFlowMax, 0.084324, 0.000001);
-    Sys(1).ZoneFloorArea = Zone(1).FloorArea;
-    UpdateTermUnitFinalZoneSizing(); // Fills the TermUnitFinalZoneSizing array
-    SizeSys(1);
-    EXPECT_DOUBLE_EQ(Sys(CurZoneEqNum).ZoneMinAirFrac, 0.22);
-    EXPECT_NEAR(Sys(CurZoneEqNum).MaxAirVolFlowRateDuringReheat, 0.084324, 0.000001);
+    state->dataSingleDuct->sd_airterminal(1).ZoneFloorArea = Zone(1).FloorArea;
+    UpdateTermUnitFinalZoneSizing(*state); // Fills the TermUnitFinalZoneSizing array
+    state->dataSingleDuct->sd_airterminal(1).SizeSys(*state);
+    EXPECT_DOUBLE_EQ(state->dataSingleDuct->sd_airterminal(CurZoneEqNum).ZoneMinAirFracDes, 0.22);
+    EXPECT_NEAR(state->dataSingleDuct->sd_airterminal(CurZoneEqNum).MaxAirVolFlowRateDuringReheat, 0.084324, 0.000001);
 
     Node.deallocate();
     ZoneEquipConfig.deallocate();
@@ -297,7 +296,7 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing1)
     TermUnitFinalZoneSizing.deallocate();
     CalcFinalZoneSizing.deallocate();
     TermUnitSizing.deallocate();
-    Sys.deallocate();
+    state->dataSingleDuct->sd_airterminal.deallocate();
 }
 
 TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing2)
@@ -310,7 +309,6 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing2)
     InitializePsychRoutines();
 
     std::string const idf_objects = delimited_string({
-        "	Version,8.4;",
         "	Zone,",
         "	SPACE3-1, !- Name",
         "	0, !- Direction of Relative North { deg }",
@@ -422,16 +420,16 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing2)
     NumAirTerminalSizingSpec = 1;
     CalcFinalZoneSizing.allocate(1);
     TermUnitSizing.allocate(1);
-    GetZoneData(ErrorsFound);
+    GetZoneData(*state, ErrorsFound);
     EXPECT_EQ("SPACE3-1", Zone(1).Name);
-    GetOARequirements();      // get the OA requirements object
-    GetZoneAirDistribution(); // get zone air distribution objects
-    GetZoneSizingInput();
-    GetZoneEquipmentData1();
-    ProcessScheduleInput();
+    GetOARequirements(*state);      // get the OA requirements object
+    GetZoneAirDistribution(*state); // get zone air distribution objects
+    GetZoneSizingInput(*state);
+    GetZoneEquipmentData1(*state);
+    ProcessScheduleInput(*state);
     ScheduleInputProcessed = true;
-    GetZoneAirLoopEquipment();
-    GetSysInput();
+    GetZoneAirLoopEquipment(*state);
+    GetSysInput(*state);
     ZoneSizingRunDone = true;
     CurZoneEqNum = 1;
     CurTermUnitSizingNum = 1;
@@ -465,11 +463,11 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing2)
     EXPECT_DOUBLE_EQ(FinalZoneSizing(CurZoneEqNum).DesHeatMaxAirFlowPerArea, .002032);
     EXPECT_NEAR(FinalZoneSizing(CurZoneEqNum).DesHeatMaxAirFlow2, 0.196047, 0.000001);
     // EXPECT_NEAR( FinalZoneSizing( CurZoneEqNum ).DesHeatVolFlowMax, 0.084324, 0.000001 );
-    Sys(1).ZoneFloorArea = Zone(1).FloorArea;
-    UpdateTermUnitFinalZoneSizing(); // Fills the TermUnitFinalZoneSizing array
-    SizeSys(1);
-    EXPECT_NEAR(Sys(CurZoneEqNum).ZoneMinAirFrac, 0.348739, 0.000001);
-    EXPECT_NEAR(Sys(CurZoneEqNum).MaxAirVolFlowRateDuringReheat, 0.196047, 0.000001);
+    state->dataSingleDuct->sd_airterminal(1).ZoneFloorArea = Zone(1).FloorArea;
+    UpdateTermUnitFinalZoneSizing(*state); // Fills the TermUnitFinalZoneSizing array
+    state->dataSingleDuct->sd_airterminal(1).SizeSys(*state);
+    EXPECT_NEAR(state->dataSingleDuct->sd_airterminal(CurZoneEqNum).ZoneMinAirFracDes, 0.348739, 0.000001);
+    EXPECT_NEAR(state->dataSingleDuct->sd_airterminal(CurZoneEqNum).MaxAirVolFlowRateDuringReheat, 0.196047, 0.000001);
 
     Node.deallocate();
     ZoneEquipConfig.deallocate();
@@ -478,7 +476,7 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing2)
     TermUnitFinalZoneSizing.deallocate();
     CalcFinalZoneSizing.deallocate();
     TermUnitSizing.deallocate();
-    Sys.deallocate();
+    state->dataSingleDuct->sd_airterminal.deallocate();
 }
 
 TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing3)
@@ -491,7 +489,6 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing3)
     InitializePsychRoutines();
 
     std::string const idf_objects = delimited_string({
-        "	Version,8.4;",
         "	Zone,",
         "	SPACE3-1, !- Name",
         "	0, !- Direction of Relative North { deg }",
@@ -602,16 +599,16 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing3)
     TermUnitFinalZoneSizing.allocate(1);
     CalcFinalZoneSizing.allocate(1);
     TermUnitSizing.allocate(1);
-    GetZoneData(ErrorsFound);
+    GetZoneData(*state, ErrorsFound);
     EXPECT_EQ("SPACE3-1", Zone(1).Name);
-    GetOARequirements();      // get the OA requirements object
-    GetZoneAirDistribution(); // get zone air distribution objects
-    GetZoneSizingInput();
-    GetZoneEquipmentData1();
-    ProcessScheduleInput();
+    GetOARequirements(*state);      // get the OA requirements object
+    GetZoneAirDistribution(*state); // get zone air distribution objects
+    GetZoneSizingInput(*state);
+    GetZoneEquipmentData1(*state);
+    ProcessScheduleInput(*state);
     ScheduleInputProcessed = true;
-    GetZoneAirLoopEquipment();
-    GetSysInput();
+    GetZoneAirLoopEquipment(*state);
+    GetSysInput(*state);
     ZoneSizingRunDone = true;
     CurZoneEqNum = 1;
     CurTermUnitSizingNum = 1;
@@ -647,10 +644,10 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing3)
     EXPECT_DOUBLE_EQ(FinalZoneSizing(CurZoneEqNum).DesHeatMaxAirFlowPerArea, 0.0);
     EXPECT_DOUBLE_EQ(FinalZoneSizing(CurZoneEqNum).DesHeatMaxAirFlow2, 0.0);
     EXPECT_DOUBLE_EQ(FinalZoneSizing(CurZoneEqNum).DesHeatVolFlowMax, 0.11);
-    Sys(1).ZoneFloorArea = Zone(1).FloorArea;
-    SizeSys(1);
-    EXPECT_DOUBLE_EQ(Sys(CurZoneEqNum).ZoneMinAirFrac, 0.22);
-    EXPECT_NEAR(Sys(CurZoneEqNum).MaxAirVolFlowRateDuringReheat, 0.092756, 0.000001);
+    state->dataSingleDuct->sd_airterminal(1).ZoneFloorArea = Zone(1).FloorArea;
+    state->dataSingleDuct->sd_airterminal(1).SizeSys(*state);
+    EXPECT_DOUBLE_EQ(state->dataSingleDuct->sd_airterminal(CurZoneEqNum).ZoneMinAirFracDes, 0.22);
+    EXPECT_NEAR(state->dataSingleDuct->sd_airterminal(CurZoneEqNum).MaxAirVolFlowRateDuringReheat, 0.092756, 0.000001);
 
     Node.deallocate();
     ZoneEquipConfig.deallocate();
@@ -659,7 +656,7 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing3)
     TermUnitFinalZoneSizing.deallocate();
     CalcFinalZoneSizing.deallocate();
     TermUnitSizing.deallocate();
-    Sys.deallocate();
+    state->dataSingleDuct->sd_airterminal.deallocate();
 }
 
 TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing4)
@@ -673,7 +670,6 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing4)
     InitializePsychRoutines();
 
     std::string const idf_objects = delimited_string({
-        "	Version,8.4;",
         "	Zone,",
         "	SPACE3-1, !- Name",
         "	0, !- Direction of Relative North { deg }",
@@ -784,23 +780,23 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing4)
     TermUnitFinalZoneSizing.allocate(1);
     CalcFinalZoneSizing.allocate(1);
     TermUnitSizing.allocate(1);
-    GetZoneData(ErrorsFound);
+    GetZoneData(*state, ErrorsFound);
     EXPECT_EQ("SPACE3-1", Zone(1).Name);
-    // GetOARequirements(); // get the OA requirements object
-    // GetZoneAirDistribution(); // get zone air distribution objects
-    // GetZoneSizingInput();
-    GetZoneEquipmentData1();
-    ProcessScheduleInput();
+    // GetOARequirements(*state); // get the OA requirements object
+    // GetZoneAirDistribution(*state); // get zone air distribution objects
+    // GetZoneSizingInput(*state);
+    GetZoneEquipmentData1(*state);
+    ProcessScheduleInput(*state);
     ScheduleInputProcessed = true;
-    GetZoneAirLoopEquipment();
-    GetSysInput();
+    GetZoneAirLoopEquipment(*state);
+    GetSysInput(*state);
     ZoneSizingRunDone = false;
     CurZoneEqNum = 1;
     Zone(1).FloorArea = 96.48;
-    Sys(1).ZoneFloorArea = Zone(1).FloorArea;
-    SizeSys(1);
-    EXPECT_NEAR(Sys(CurZoneEqNum).ZoneMinAirFrac, 0.348739, 0.000001);
-    EXPECT_NEAR(Sys(CurZoneEqNum).MaxAirVolFlowRateDuringReheat, 0.196047, 0.000001);
+    state->dataSingleDuct->sd_airterminal(1).ZoneFloorArea = Zone(1).FloorArea;
+    state->dataSingleDuct->sd_airterminal(1).SizeSys(*state);
+    EXPECT_NEAR(state->dataSingleDuct->sd_airterminal(CurZoneEqNum).ZoneMinAirFracDes, 0.348739, 0.000001);
+    EXPECT_NEAR(state->dataSingleDuct->sd_airterminal(CurZoneEqNum).MaxAirVolFlowRateDuringReheat, 0.196047, 0.000001);
 
     Node.deallocate();
     ZoneEquipConfig.deallocate();
@@ -809,7 +805,7 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing4)
     TermUnitFinalZoneSizing.deallocate();
     CalcFinalZoneSizing.deallocate();
     TermUnitSizing.deallocate();
-    Sys.deallocate();
+    state->dataSingleDuct->sd_airterminal.deallocate();
 }
 
 TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing5)
@@ -823,7 +819,6 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing5)
     InitializePsychRoutines();
 
     std::string const idf_objects = delimited_string({
-        "	Version,8.4;",
         "	Zone,",
         "	SPACE3-1, !- Name",
         "	0, !- Direction of Relative North { deg }",
@@ -935,16 +930,16 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing5)
     TermUnitFinalZoneSizing.allocate(1);
     CalcFinalZoneSizing.allocate(1);
     TermUnitSizing.allocate(1);
-    GetZoneData(ErrorsFound);
+    GetZoneData(*state, ErrorsFound);
     EXPECT_EQ("SPACE3-1", Zone(1).Name);
-    GetOARequirements();      // get the OA requirements object
-    GetZoneAirDistribution(); // get zone air distribution objects
-    GetZoneSizingInput();
-    GetZoneEquipmentData1();
-    ProcessScheduleInput();
+    GetOARequirements(*state);      // get the OA requirements object
+    GetZoneAirDistribution(*state); // get zone air distribution objects
+    GetZoneSizingInput(*state);
+    GetZoneEquipmentData1(*state);
+    ProcessScheduleInput(*state);
     ScheduleInputProcessed = true;
-    GetZoneAirLoopEquipment();
-    GetSysInput();
+    GetZoneAirLoopEquipment(*state);
+    GetSysInput(*state);
     ZoneSizingRunDone = true;
     CurZoneEqNum = 1;
     CurTermUnitSizingNum = 1;
@@ -978,11 +973,11 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing5)
     EXPECT_DOUBLE_EQ(FinalZoneSizing(CurZoneEqNum).DesHeatMaxAirFlowPerArea, 0.0);
     EXPECT_DOUBLE_EQ(FinalZoneSizing(CurZoneEqNum).DesHeatMaxAirFlow2, 0.0);
     EXPECT_DOUBLE_EQ(FinalZoneSizing(CurZoneEqNum).DesHeatVolFlowMax, 0.08);
-    Sys(1).ZoneFloorArea = Zone(1).FloorArea;
-    UpdateTermUnitFinalZoneSizing(); // Fills the TermUnitFinalZoneSizing array
-    SizeSys(1);
-    EXPECT_DOUBLE_EQ(Sys(CurZoneEqNum).ZoneMinAirFrac, 0.07351776 / 0.21081);
-    EXPECT_DOUBLE_EQ(Sys(CurZoneEqNum).MaxAirVolFlowRateDuringReheat, 0.08);
+    state->dataSingleDuct->sd_airterminal(1).ZoneFloorArea = Zone(1).FloorArea;
+    UpdateTermUnitFinalZoneSizing(*state); // Fills the TermUnitFinalZoneSizing array
+    state->dataSingleDuct->sd_airterminal(1).SizeSys(*state);
+    EXPECT_DOUBLE_EQ(state->dataSingleDuct->sd_airterminal(CurZoneEqNum).ZoneMinAirFracDes, 0.07351776 / 0.21081);
+    EXPECT_DOUBLE_EQ(state->dataSingleDuct->sd_airterminal(CurZoneEqNum).MaxAirVolFlowRateDuringReheat, 0.08);
 
     Node.deallocate();
     ZoneEquipConfig.deallocate();
@@ -991,7 +986,7 @@ TEST_F(EnergyPlusFixture, VAVDefMinMaxFlowTestSizing5)
     TermUnitFinalZoneSizing.deallocate();
     CalcFinalZoneSizing.deallocate();
     TermUnitSizing.deallocate();
-    Sys.deallocate();
+    state->dataSingleDuct->sd_airterminal.deallocate();
 }
 
 } // namespace EnergyPlus

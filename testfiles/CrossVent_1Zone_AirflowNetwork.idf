@@ -59,13 +59,13 @@
 ! Environmental Emissions:        None
 ! Utility Tariffs:                None
 
-  Version,9.0;
+  Version,9.4;
 
   Building,
     Teste,                   !- Name
     45,                      !- North Axis {deg}
     City,                    !- Terrain
-    0.04,                    !- Loads Convergence Tolerance Value
+    0.04,                    !- Loads Convergence Tolerance Value {W}
     0.4,                     !- Temperature Convergence Tolerance Value {deltaC}
     FullExteriorWithReflections,  !- Solar Distribution
     25,                      !- Maximum Number of Warmup Days
@@ -80,43 +80,48 @@
   HeatBalanceAlgorithm,ConductionTransferFunction;
 
   ShadowCalculation,
-    AverageOverDaysInFrequency,  !- Calculation Method
-    20;                      !- Calculation Frequency
+    PolygonClipping,         !- Shading Calculation Method
+    Periodic,                !- Shading Calculation Update Frequency Method
+    20;                      !- Shading Calculation Update Frequency
 
   SimulationControl,
     No,                      !- Do Zone Sizing Calculation
     No,                      !- Do System Sizing Calculation
     No,                      !- Do Plant Sizing Calculation
     No,                      !- Run Simulation for Sizing Periods
-    Yes;                     !- Run Simulation for Weather File Run Periods
+    Yes,                     !- Run Simulation for Weather File Run Periods
+    No,                      !- Do HVAC Sizing Simulation for Sizing Periods
+    1;                       !- Maximum Number of HVAC Sizing Simulation Passes
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     8,                       !- Begin Month
     15,                      !- Begin Day of Month
+    ,                        !- Begin Year
     8,                       !- End Month
     17,                      !- End Day of Month
+    ,                        !- End Year
     ,                        !- Day of Week for Start Day
     ,                        !- Use Weather File Holidays and Special Days
     ,                        !- Use Weather File Daylight Saving Period
     ,                        !- Apply Weekend Holiday Rule
     ,                        !- Use Weather File Rain Indicators
-    ,                        !- Use Weather File Snow Indicators
-    1;                       !- Number of Times Runperiod to be Repeated
+    ;                        !- Use Weather File Snow Indicators
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 2,            !- Name
     1,                       !- Begin Month
     15,                      !- Begin Day of Month
+    ,                        !- Begin Year
     1,                       !- End Month
     17,                      !- End Day of Month
+    ,                        !- End Year
     ,                        !- Day of Week for Start Day
     ,                        !- Use Weather File Holidays and Special Days
     ,                        !- Use Weather File Daylight Saving Period
     ,                        !- Apply Weekend Holiday Rule
     ,                        !- Use Weather File Rain Indicators
-    ,                        !- Use Weather File Snow Indicators
-    1;                       !- Number of Times Runperiod to be Repeated
+    ;                        !- Use Weather File Snow Indicators
 
   Site:Location,
     SAN_FRANCISCO_CA_USA_WMO_724940,  !- Name
@@ -741,7 +746,7 @@
   GlobalGeometryRules,
     UpperLeftCorner,         !- Starting Vertex Position
     ClockWise,               !- Vertex Entry Direction
-    relative;                !- Coordinate System
+    Relative;                !- Coordinate System
 
   BuildingSurface:Detailed,
     ZONAW,                   !- Name
@@ -846,7 +851,6 @@
     ZONAW,                   !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -862,7 +866,6 @@
     ZONAE,                   !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.5,                     !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices

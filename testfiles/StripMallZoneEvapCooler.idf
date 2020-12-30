@@ -49,20 +49,22 @@
 ! ***GENERAL SIMULATION PARAMETERS***
 ! Number of Zones: 10
 
-  Version,9.0;
+  Version,9.4;
 
   SimulationControl,
     YES,                     !- Do Zone Sizing Calculation
     No,                      !- Do System Sizing Calculation
     No,                      !- Do Plant Sizing Calculation
     YES,                     !- Run Simulation for Sizing Periods
-    No;                      !- Run Simulation for Weather File Run Periods
+    No,                      !- Run Simulation for Weather File Run Periods
+    No,                      !- Do HVAC Sizing Simulation for Sizing Periods
+    1;                       !- Maximum Number of HVAC Sizing Simulation Passes
 
   Building,
     Strip Mall,              !- Name
     0.0000,                  !- North Axis {deg}
     City,                    !- Terrain
-    0.0400,                  !- Loads Convergence Tolerance Value
+    0.0400,                  !- Loads Convergence Tolerance Value {W}
     0.2000,                  !- Temperature Convergence Tolerance Value {deltaC}
     FullInteriorAndExterior, !- Solar Distribution
     25,                      !- Maximum Number of Warmup Days
@@ -72,15 +74,16 @@
     Annual,                  !- Name
     1,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     12,                      !- End Month
     31,                      !- End Day of Month
+    ,                        !- End Year
     Monday,                  !- Day of Week for Start Day
     No,                      !- Use Weather File Holidays and Special Days
     No,                      !- Use Weather File Daylight Saving Period
     No,                      !- Apply Weekend Holiday Rule
     Yes,                     !- Use Weather File Rain Indicators
-    Yes,                     !- Use Weather File Snow Indicators
-    1.0000;                  !- Number of Times Runperiod to be Repeated
+    Yes;                     !- Use Weather File Snow Indicators
 
 ! ***HOLIDAYS & DAYLIGHT SAVINGS***
 
@@ -216,8 +219,9 @@
     25;                      !- Maximum HVAC Iterations
 
   ShadowCalculation,
-    AverageOverDaysInFrequency,  !- Calculation Method
-    7,                       !- Calculation Frequency
+    PolygonClipping,         !- Shading Calculation Method
+    Periodic,                !- Shading Calculation Update Frequency Method
+    7,                       !- Shading Calculation Update Frequency
     15000;                   !- Maximum Figures in Shadow Overlap Calculations
 
   Timestep,6;
@@ -1664,7 +1668,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1680,7 +1683,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1696,7 +1698,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1712,7 +1713,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1728,7 +1728,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1744,7 +1743,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1760,7 +1758,6 @@
     LGstore1_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1776,7 +1773,6 @@
     LGstore1_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1792,7 +1788,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1808,7 +1803,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1824,7 +1818,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1840,7 +1833,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1856,7 +1848,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1872,7 +1863,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1888,7 +1878,6 @@
     LGstore2_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1904,7 +1893,6 @@
     LGstore2_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1920,7 +1908,6 @@
     SMstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1936,7 +1923,6 @@
     SMstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1952,7 +1938,6 @@
     SMstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1968,7 +1953,6 @@
     SMstore1_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1984,7 +1968,6 @@
     SMstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2000,7 +1983,6 @@
     SMstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2016,7 +1998,6 @@
     SMstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2032,7 +2013,6 @@
     SMstore2_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2048,7 +2028,6 @@
     SMstore3_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2064,7 +2043,6 @@
     SMstore3_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2080,7 +2058,6 @@
     SMstore3_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2096,7 +2073,6 @@
     SMstore3_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2112,7 +2088,6 @@
     SMstore4_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2128,7 +2103,6 @@
     SMstore4_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2144,7 +2118,6 @@
     SMstore4_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2160,7 +2133,6 @@
     SMstore4_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2176,7 +2148,6 @@
     SMstore5_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2192,7 +2163,6 @@
     SMstore5_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2208,7 +2178,6 @@
     SMstore5_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2224,7 +2193,6 @@
     SMstore5_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2240,7 +2208,6 @@
     SMstore6_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2256,7 +2223,6 @@
     SMstore6_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2272,7 +2238,6 @@
     SMstore6_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2288,7 +2253,6 @@
     SMstore6_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2304,7 +2268,6 @@
     SMstore7_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2320,7 +2283,6 @@
     SMstore7_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2336,7 +2298,6 @@
     SMstore7_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2352,7 +2313,6 @@
     SMstore7_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2368,7 +2328,6 @@
     SMstore8_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2384,7 +2343,6 @@
     SMstore8_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2400,7 +2358,6 @@
     SMstore8_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2416,7 +2373,6 @@
     SMstore8_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3095,61 +3051,61 @@
   InternalMass,
     LGstore1 Internal Mass,  !- Name
     InteriorFurnishings,     !- Construction Name
-    LGstore1,                !- Zone Name
+    LGstore1,                !- Zone or ZoneList Name
     696.7728;                !- Surface Area {m2}
 
   InternalMass,
     LGstore2 Internal Mass,  !- Name
     InteriorFurnishings,     !- Construction Name
-    LGstore2,                !- Zone Name
+    LGstore2,                !- Zone or ZoneList Name
     696.7728;                !- Surface Area {m2}
 
   InternalMass,
     SMstore1 Internal Mass,  !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore1,                !- Zone Name
+    SMstore1,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   InternalMass,
     SMstore2 Internal Mass,  !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore2,                !- Zone Name
+    SMstore2,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   InternalMass,
     SMstore3 Internal Mass,  !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore3,                !- Zone Name
+    SMstore3,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   InternalMass,
     SMstore4 Internal Mass,  !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore4,                !- Zone Name
+    SMstore4,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   InternalMass,
     SMstore5 Internal Mass,  !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore5,                !- Zone Name
+    SMstore5,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   InternalMass,
     SMstore6 Internal Mass,  !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore6,                !- Zone Name
+    SMstore6,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   InternalMass,
     SMstore7 Internal Mass,  !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore7,                !- Zone Name
+    SMstore7,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   InternalMass,
     SMstore8 Internal Mass,  !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore8,                !- Zone Name
+    SMstore8,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
 ! ***INTERNAL GAINS SCHEDULES***
@@ -3325,10 +3281,14 @@
     LGstore1 Zone Evap Unit, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
     2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ,                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
     ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
     LGstore1 Zone Baseboard, !- Zone Equipment 2 Name
     2,                       !- Zone Equipment 2 Cooling Sequence
-    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 2 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 2 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 2 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:EquipmentList,
     LGstore2 Equipment,      !- Name
@@ -3337,10 +3297,14 @@
     LGstore2 Zone Evap Unit, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
     2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ,                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
     ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
     LGstore2 Zone Baseboard, !- Zone Equipment 2 Name
     2,                       !- Zone Equipment 2 Cooling Sequence
-    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 2 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 2 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 2 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:EquipmentList,
     SMstore1 Equipment,      !- Name
@@ -3349,10 +3313,14 @@
     SMstore1 Zone Evap Unit, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
     2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ,                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
     ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
     SMstore1 Zone Baseboard, !- Zone Equipment 2 Name
     2,                       !- Zone Equipment 2 Cooling Sequence
-    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 2 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 2 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 2 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:EquipmentList,
     SMstore2 Equipment,      !- Name
@@ -3361,10 +3329,14 @@
     SMstore2 Zone Evap Unit, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
     2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ,                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
     ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
     SMstore2 Zone Baseboard, !- Zone Equipment 2 Name
     2,                       !- Zone Equipment 2 Cooling Sequence
-    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 2 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 2 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 2 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:EquipmentList,
     SMstore3 Equipment,      !- Name
@@ -3373,10 +3345,14 @@
     SMstore3 Zone Evap Unit, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
     2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ,                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
     ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
     SMstore3 Zone Baseboard, !- Zone Equipment 2 Name
     2,                       !- Zone Equipment 2 Cooling Sequence
-    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 2 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 2 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 2 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:EquipmentList,
     SMstore4 Equipment,      !- Name
@@ -3385,10 +3361,14 @@
     SMstore4 Zone Evap Unit, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
     2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ,                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
     ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
     SMstore4 Zone Baseboard, !- Zone Equipment 2 Name
     2,                       !- Zone Equipment 2 Cooling Sequence
-    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 2 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 2 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 2 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:EquipmentList,
     SMstore5 Equipment,      !- Name
@@ -3397,10 +3377,14 @@
     SMstore5 Zone Evap Unit, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
     2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ,                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
     ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
     SMstore5 Zone Baseboard, !- Zone Equipment 2 Name
     2,                       !- Zone Equipment 2 Cooling Sequence
-    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 2 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 2 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 2 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:EquipmentList,
     SMstore6 Equipment,      !- Name
@@ -3409,10 +3393,14 @@
     SMstore6 Zone Evap Unit, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
     2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ,                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
     ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
     SMstore6 Zone Baseboard, !- Zone Equipment 2 Name
     2,                       !- Zone Equipment 2 Cooling Sequence
-    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 2 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 2 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 2 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:EquipmentList,
     SMstore7 Equipment,      !- Name
@@ -3421,10 +3409,14 @@
     SMstore7 Zone Evap Unit, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
     2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ,                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
     ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
     SMstore7 Zone Baseboard, !- Zone Equipment 2 Name
     2,                       !- Zone Equipment 2 Cooling Sequence
-    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 2 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 2 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 2 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:EquipmentList,
     SMstore8 Equipment,      !- Name
@@ -3433,10 +3425,14 @@
     SMstore8 Zone Evap Unit, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
     2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ,                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
     ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
     SMstore8 Zone Baseboard, !- Zone Equipment 2 Name
     2,                       !- Zone Equipment 2 Cooling Sequence
-    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 2 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 2 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 2 Sequential Heating Fraction Schedule Name
 
 ! ***SIZING & CONTROLS***
 
@@ -3462,7 +3458,12 @@
     ,                        !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA LGstore1,        !- Name
@@ -3493,7 +3494,12 @@
     ,                        !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA LGstore2,        !- Name
@@ -3524,7 +3530,12 @@
     ,                        !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore1,        !- Name
@@ -3555,7 +3566,12 @@
     ,                        !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore2,        !- Name
@@ -3586,7 +3602,12 @@
     ,                        !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore3,        !- Name
@@ -3617,7 +3638,12 @@
     ,                        !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore4,        !- Name
@@ -3648,7 +3674,12 @@
     ,                        !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore5,        !- Name
@@ -3679,7 +3710,12 @@
     ,                        !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore6,        !- Name
@@ -3710,7 +3746,12 @@
     ,                        !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore7,        !- Name
@@ -3741,7 +3782,12 @@
     ,                        !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore8,        !- Name
@@ -5130,6 +5176,9 @@
   Output:SQLite,
     Simple;                  !- Option Type
 
+  Output:JSON,
+    TimeSeries;              !- Option Type
+
   EnvironmentalImpactFactors,
     0.663,                   !- District Heating Efficiency
     4.18,                    !- District Cooling COP {W/W}
@@ -5192,15 +5241,15 @@
 
   Output:Variable,*,Evaporative Cooler Wet Bulb Effectiveness,hourly;
 
-  Output:Variable,*,Evaporative Cooler Electric Energy,hourly;
+  Output:Variable,*,Evaporative Cooler Electricity Energy,hourly;
 
-  Output:Variable,*,Evaporative Cooler Electric Power,hourly;
+  Output:Variable,*,Evaporative Cooler Electricity Rate,hourly;
 
   Output:Variable,*,Evaporative Cooler Water Volume,hourly;
 
   Output:Variable,*,Evaporative Cooler Mains Water Volume,hourly;
 
-  Output:Variable,*,Fan Electric Power,hourly;
+  Output:Variable,*,Fan Electricity Rate,hourly;
 
   Output:Variable,*,Fan Rise in Air Temperature,hourly;
 
@@ -5226,7 +5275,7 @@
 
   Output:Variable,*,Zone Air Temperature,hourly;
 
-  Output:Variable,*,Baseboard Electric Power,hourly;
+  Output:Variable,*,Baseboard Electricity Rate,hourly;
 
   Output:Diagnostics,
     DisplayUnusedSchedules;  !- Key 1

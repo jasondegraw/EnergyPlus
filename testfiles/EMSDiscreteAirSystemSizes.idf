@@ -67,7 +67,7 @@
 ! ExtWallConstruction=Steel-Framed
 ! End SimMetaData
 
-  Version,9.0;
+  Version,9.4;
 
   Timestep,6;
 
@@ -76,21 +76,24 @@
     Yes,                     !- Do System Sizing Calculation
     Yes,                     !- Do Plant Sizing Calculation
     Yes,                     !- Run Simulation for Sizing Periods
-    No;                      !- Run Simulation for Weather File Run Periods
+    No,                      !- Run Simulation for Weather File Run Periods
+    No,                      !- Do HVAC Sizing Simulation for Sizing Periods
+    1;                       !- Maximum Number of HVAC Sizing Simulation Passes
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     1,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     12,                      !- End Month
     31,                      !- End Day of Month
+    ,                        !- End Year
     Sunday,                  !- Day of Week for Start Day
     No,                      !- Use Weather File Holidays and Special Days
     No,                      !- Use Weather File Daylight Saving Period
     No,                      !- Apply Weekend Holiday Rule
     Yes,                     !- Use Weather File Rain Indicators
-    Yes,                     !- Use Weather File Snow Indicators
-    1.0000;                  !- Number of Times Runperiod to be Repeated
+    Yes;                     !- Use Weather File Snow Indicators
 
   SurfaceConvectionAlgorithm:Inside,TARP;
 
@@ -108,8 +111,9 @@
     20;                      !- Maximum HVAC Iterations
 
   ShadowCalculation,
-    AverageOverDaysInFrequency,  !- Calculation Method
-    7,                       !- Calculation Frequency
+    PolygonClipping,         !- Shading Calculation Method
+    Periodic,                !- Shading Calculation Update Frequency Method
+    7,                       !- Shading Calculation Update Frequency
     15000;                   !- Maximum Figures in Shadow Overlap Calculations
 
   GlobalGeometryRules,
@@ -122,7 +126,7 @@
     Benchmark Strip Mall New V 1.1_3.1,  !- Name
     0.0000,                  !- North Axis {deg}
     City,                    !- Terrain
-    0.0400,                  !- Loads Convergence Tolerance Value
+    0.0400,                  !- Loads Convergence Tolerance Value {W}
     0.2000,                  !- Temperature Convergence Tolerance Value {deltaC}
     FullInteriorAndExterior, !- Solar Distribution
     25,                      !- Maximum Number of Warmup Days
@@ -1204,7 +1208,6 @@
     LGstore1_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1220,7 +1223,6 @@
     LGstore1_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1268,7 +1270,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1284,7 +1285,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1300,7 +1300,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1316,7 +1315,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1332,7 +1330,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1348,7 +1345,6 @@
     LGstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1360,7 +1356,7 @@
   InternalMass,
     LGstore1_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    LGstore1,                !- Zone Name
+    LGstore1,                !- Zone or ZoneList Name
     696.7728;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -1511,7 +1507,12 @@
     0.0,                     !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA LGstore1,        !- Name
@@ -1547,16 +1548,30 @@
   ZoneHVAC:EquipmentList,
     LGstore1 Equipment,      !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    LGstore1 Direct Air,     !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    LGstore1 Direct Air ADU, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     LGstore1 Direct Air,     !- Name
     ALWAYS_ON,               !- Availability Schedule Name
-    LGstore1 Direct Air Inlet Node Name,  !- Zone Supply Air Node Name
-    AUTOSIZE;                !- Maximum Air Flow Rate {m3/s}
+    LGstore1 Direct Air Inlet Node Name ATInlet,  !- Air Inlet Node Name
+    LGstore1 Direct Air Inlet Node Name,  !- Air Outlet Node Name
+    AUTOSIZE,                !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    LGstore1 Direct Air ADU, !- Name
+    LGstore1 Direct Air Inlet Node Name,  !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    LGstore1 Direct Air,     !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   SetpointManager:SingleZone:Reheat,
     SupAirTemp MngrLGstore1, !- Name
@@ -1622,7 +1637,6 @@
     SMstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1638,7 +1652,6 @@
     SMstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1654,7 +1667,6 @@
     SMstore1_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1718,7 +1730,6 @@
     SMstore1_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -1746,7 +1757,7 @@
   InternalMass,
     SMstore1_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore1,                !- Zone Name
+    SMstore1,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -1897,7 +1908,12 @@
     0.0,                     !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore1,        !- Name
@@ -1933,16 +1949,30 @@
   ZoneHVAC:EquipmentList,
     SMstore1 Equipment,      !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    SMstore1 Direct Air,     !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    SMstore1 Direct Air ADU, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     SMstore1 Direct Air,     !- Name
     ALWAYS_ON,               !- Availability Schedule Name
-    SMstore1 Direct Air Inlet Node Name,  !- Zone Supply Air Node Name
-    AUTOSIZE;                !- Maximum Air Flow Rate {m3/s}
+    SMstore1 Direct Air Inlet Node Name ATInlet,  !- Air Inlet Node Name
+    SMstore1 Direct Air Inlet Node Name,  !- Air Outlet Node Name
+    AUTOSIZE,                !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    SMstore1 Direct Air ADU, !- Name
+    SMstore1 Direct Air Inlet Node Name,  !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    SMstore1 Direct Air,     !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   SetpointManager:SingleZone:Reheat,
     SupAirTemp MngrSMstore1, !- Name
@@ -2008,7 +2038,6 @@
     SMstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2024,7 +2053,6 @@
     SMstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2040,7 +2068,6 @@
     SMstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2104,7 +2131,6 @@
     SMstore2_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2132,7 +2158,7 @@
   InternalMass,
     SMstore2_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore2,                !- Zone Name
+    SMstore2,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -2283,7 +2309,12 @@
     0.0,                     !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore2,        !- Name
@@ -2319,16 +2350,30 @@
   ZoneHVAC:EquipmentList,
     SMstore2 Equipment,      !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    SMstore2 Direct Air,     !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    SMstore2 Direct Air ADU, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     SMstore2 Direct Air,     !- Name
     ALWAYS_ON,               !- Availability Schedule Name
-    SMstore2 Direct Air Inlet Node Name,  !- Zone Supply Air Node Name
-    AUTOSIZE;                !- Maximum Air Flow Rate {m3/s}
+    SMstore2 Direct Air Inlet Node Name ATInlet,  !- Air Inlet Node Name
+    SMstore2 Direct Air Inlet Node Name,  !- Air Outlet Node Name
+    AUTOSIZE,                !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    SMstore2 Direct Air ADU, !- Name
+    SMstore2 Direct Air Inlet Node Name,  !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    SMstore2 Direct Air,     !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   SetpointManager:SingleZone:Reheat,
     SupAirTemp MngrSMstore2, !- Name
@@ -2394,7 +2439,6 @@
     SMstore3_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2410,7 +2454,6 @@
     SMstore3_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2426,7 +2469,6 @@
     SMstore3_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2490,7 +2532,6 @@
     SMstore3_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2518,7 +2559,7 @@
   InternalMass,
     SMstore3_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore3,                !- Zone Name
+    SMstore3,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -2669,7 +2710,12 @@
     0.0,                     !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore3,        !- Name
@@ -2705,16 +2751,30 @@
   ZoneHVAC:EquipmentList,
     SMstore3 Equipment,      !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    SMstore3 Direct Air,     !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    SMstore3 Direct Air ADU, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     SMstore3 Direct Air,     !- Name
     ALWAYS_ON,               !- Availability Schedule Name
-    SMstore3 Direct Air Inlet Node Name,  !- Zone Supply Air Node Name
-    AUTOSIZE;                !- Maximum Air Flow Rate {m3/s}
+    SMstore3 Direct Air Inlet Node Name ATInlet,  !- Air Inlet Node Name
+    SMstore3 Direct Air Inlet Node Name,  !- Air Outlet Node Name
+    AUTOSIZE,                !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    SMstore3 Direct Air ADU, !- Name
+    SMstore3 Direct Air Inlet Node Name,  !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    SMstore3 Direct Air,     !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   SetpointManager:SingleZone:Reheat,
     SupAirTemp MngrSMstore3, !- Name
@@ -2780,7 +2840,6 @@
     SMstore4_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2796,7 +2855,6 @@
     SMstore4_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2812,7 +2870,6 @@
     SMstore4_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2876,7 +2933,6 @@
     SMstore4_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -2904,7 +2960,7 @@
   InternalMass,
     SMstore4_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore4,                !- Zone Name
+    SMstore4,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -3055,7 +3111,12 @@
     0.0,                     !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore4,        !- Name
@@ -3091,16 +3152,30 @@
   ZoneHVAC:EquipmentList,
     SMstore4 Equipment,      !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    SMstore4 Direct Air,     !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    SMstore4 Direct Air ADU, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     SMstore4 Direct Air,     !- Name
     ALWAYS_ON,               !- Availability Schedule Name
-    SMstore4 Direct Air Inlet Node Name,  !- Zone Supply Air Node Name
-    AUTOSIZE;                !- Maximum Air Flow Rate {m3/s}
+    SMstore4 Direct Air Inlet Node Name ATInlet,  !- Air Inlet Node Name
+    SMstore4 Direct Air Inlet Node Name,  !- Air Outlet Node Name
+    AUTOSIZE,                !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    SMstore4 Direct Air ADU, !- Name
+    SMstore4 Direct Air Inlet Node Name,  !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    SMstore4 Direct Air,     !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   SetpointManager:SingleZone:Reheat,
     SupAirTemp MngrSMstore4, !- Name
@@ -3198,7 +3273,6 @@
     LGstore2_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3214,7 +3288,6 @@
     LGstore2_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3262,7 +3335,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3278,7 +3350,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3294,7 +3365,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3310,7 +3380,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3326,7 +3395,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3342,7 +3410,6 @@
     LGstore2_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3354,7 +3421,7 @@
   InternalMass,
     LGstore2_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    LGstore2,                !- Zone Name
+    LGstore2,                !- Zone or ZoneList Name
     696.7728;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -3505,7 +3572,12 @@
     0.0,                     !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA LGstore2,        !- Name
@@ -3541,16 +3613,30 @@
   ZoneHVAC:EquipmentList,
     LGstore2 Equipment,      !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    LGstore2 Direct Air,     !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    LGstore2 Direct Air ADU, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     LGstore2 Direct Air,     !- Name
     ALWAYS_ON,               !- Availability Schedule Name
-    LGstore2 Direct Air Inlet Node Name,  !- Zone Supply Air Node Name
-    AUTOSIZE;                !- Maximum Air Flow Rate {m3/s}
+    LGstore2 Direct Air Inlet Node Name ATInlet,  !- Air Inlet Node Name
+    LGstore2 Direct Air Inlet Node Name,  !- Air Outlet Node Name
+    AUTOSIZE,                !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    LGstore2 Direct Air ADU, !- Name
+    LGstore2 Direct Air Inlet Node Name,  !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    LGstore2 Direct Air,     !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   SetpointManager:SingleZone:Reheat,
     SupAirTemp MngrLGstore2, !- Name
@@ -3616,7 +3702,6 @@
     SMstore5_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3632,7 +3717,6 @@
     SMstore5_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3648,7 +3732,6 @@
     SMstore5_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3712,7 +3795,6 @@
     SMstore5_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -3740,7 +3822,7 @@
   InternalMass,
     SMstore5_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore5,                !- Zone Name
+    SMstore5,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -3891,7 +3973,12 @@
     0.0,                     !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore5,        !- Name
@@ -3927,16 +4014,30 @@
   ZoneHVAC:EquipmentList,
     SMstore5 Equipment,      !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    SMstore5 Direct Air,     !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    SMstore5 Direct Air ADU, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     SMstore5 Direct Air,     !- Name
     ALWAYS_ON,               !- Availability Schedule Name
-    SMstore5 Direct Air Inlet Node Name,  !- Zone Supply Air Node Name
-    AUTOSIZE;                !- Maximum Air Flow Rate {m3/s}
+    SMstore5 Direct Air Inlet Node Name ATInlet,  !- Air Inlet Node Name
+    SMstore5 Direct Air Inlet Node Name,  !- Air Outlet Node Name
+    AUTOSIZE,                !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    SMstore5 Direct Air ADU, !- Name
+    SMstore5 Direct Air Inlet Node Name,  !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    SMstore5 Direct Air,     !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   SetpointManager:SingleZone:Reheat,
     SupAirTemp MngrSMstore5, !- Name
@@ -4002,7 +4103,6 @@
     SMstore6_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4018,7 +4118,6 @@
     SMstore6_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4034,7 +4133,6 @@
     SMstore6_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4098,7 +4196,6 @@
     SMstore6_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4126,7 +4223,7 @@
   InternalMass,
     SMstore6_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore6,                !- Zone Name
+    SMstore6,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -4277,7 +4374,12 @@
     0.0,                     !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore6,        !- Name
@@ -4313,16 +4415,30 @@
   ZoneHVAC:EquipmentList,
     SMstore6 Equipment,      !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    SMstore6 Direct Air,     !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    SMstore6 Direct Air ADU, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     SMstore6 Direct Air,     !- Name
     ALWAYS_ON,               !- Availability Schedule Name
-    SMstore6 Direct Air Inlet Node Name,  !- Zone Supply Air Node Name
-    AUTOSIZE;                !- Maximum Air Flow Rate {m3/s}
+    SMstore6 Direct Air Inlet Node Name ATInlet,  !- Air Inlet Node Name
+    SMstore6 Direct Air Inlet Node Name,  !- Air Outlet Node Name
+    AUTOSIZE,                !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    SMstore6 Direct Air ADU, !- Name
+    SMstore6 Direct Air Inlet Node Name,  !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    SMstore6 Direct Air,     !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   SetpointManager:SingleZone:Reheat,
     SupAirTemp MngrSMstore6, !- Name
@@ -4388,7 +4504,6 @@
     SMstore7_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4404,7 +4519,6 @@
     SMstore7_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4420,7 +4534,6 @@
     SMstore7_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4484,7 +4597,6 @@
     SMstore7_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4512,7 +4624,7 @@
   InternalMass,
     SMstore7_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore7,                !- Zone Name
+    SMstore7,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -4663,7 +4775,12 @@
     0.0,                     !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore7,        !- Name
@@ -4699,16 +4816,30 @@
   ZoneHVAC:EquipmentList,
     SMstore7 Equipment,      !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    SMstore7 Direct Air,     !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    SMstore7 Direct Air ADU, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     SMstore7 Direct Air,     !- Name
     ALWAYS_ON,               !- Availability Schedule Name
-    SMstore7 Direct Air Inlet Node Name,  !- Zone Supply Air Node Name
-    AUTOSIZE;                !- Maximum Air Flow Rate {m3/s}
+    SMstore7 Direct Air Inlet Node Name ATInlet,  !- Air Inlet Node Name
+    SMstore7 Direct Air Inlet Node Name,  !- Air Outlet Node Name
+    AUTOSIZE,                !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    SMstore7 Direct Air ADU, !- Name
+    SMstore7 Direct Air Inlet Node Name,  !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    SMstore7 Direct Air,     !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   SetpointManager:SingleZone:Reheat,
     SupAirTemp MngrSMstore7, !- Name
@@ -4774,7 +4905,6 @@
     SMstore8_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4790,7 +4920,6 @@
     SMstore8_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4806,7 +4935,6 @@
     SMstore8_Wall_1,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4870,7 +4998,6 @@
     SMstore8_Wall_3,         !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1.0000,                  !- Multiplier
     4,                       !- Number of Vertices
@@ -4898,7 +5025,7 @@
   InternalMass,
     SMstore8_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    SMstore8,                !- Zone Name
+    SMstore8,                !- Zone or ZoneList Name
     348.3864;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -5049,7 +5176,12 @@
     0.0,                     !- Heating Design Air Flow Rate {m3/s}
     ,                        !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
     ,                        !- Heating Maximum Air Flow {m3/s}
-    ;                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Heating Maximum Air Flow Fraction
+    ,                        !- Design Specification Zone Air Distribution Object Name
+    No,                      !- Account for Dedicated Outdoor Air System
+    NeutralSupplyAir,        !- Dedicated Outdoor Air System Control Strategy
+    autosize,                !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+    autosize;                !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
   DesignSpecification:OutdoorAir,
     SZ DSOA SMstore8,        !- Name
@@ -5085,16 +5217,30 @@
   ZoneHVAC:EquipmentList,
     SMstore8 Equipment,      !- Name
     SequentialLoad,          !- Load Distribution Scheme
-    AirTerminal:SingleDuct:Uncontrolled,  !- Zone Equipment 1 Object Type
-    SMstore8 Direct Air,     !- Zone Equipment 1 Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    SMstore8 Direct Air ADU, !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
-  AirTerminal:SingleDuct:Uncontrolled,
+  AirTerminal:SingleDuct:ConstantVolume:NoReheat,
     SMstore8 Direct Air,     !- Name
     ALWAYS_ON,               !- Availability Schedule Name
-    SMstore8 Direct Air Inlet Node Name,  !- Zone Supply Air Node Name
-    AUTOSIZE;                !- Maximum Air Flow Rate {m3/s}
+    SMstore8 Direct Air Inlet Node Name ATInlet,  !- Air Inlet Node Name
+    SMstore8 Direct Air Inlet Node Name,  !- Air Outlet Node Name
+    AUTOSIZE,                !- Maximum Air Flow Rate {m3/s}
+    ,                        !- Design Specification Outdoor Air Object Name
+    ;                        !- Per Person Ventilation Rate Mode
+
+  ZoneHVAC:AirDistributionUnit,
+    SMstore8 Direct Air ADU, !- Name
+    SMstore8 Direct Air Inlet Node Name,  !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:ConstantVolume:NoReheat,  !- Air Terminal Object Type
+    SMstore8 Direct Air,     !- Air Terminal Name
+    ,                        !- Nominal Upstream Leakage Fraction
+    ,                        !- Constant Downstream Leakage Fraction
+    ;                        !- Design Specification Air Terminal Sizing Object Name
 
   SetpointManager:SingleZone:Reheat,
     SupAirTemp MngrSMstore8, !- Name
@@ -5378,7 +5524,7 @@
   AirLoopHVAC:ZoneSplitter,
     PSZ-AC_1:1 Supply Air Splitter,  !- Name
     PSZ-AC_1:1 Zone Equipment Inlet Node,  !- Inlet Node Name
-    LGstore1 Direct Air Inlet Node Name;  !- Outlet 1 Node Name
+    LGstore1 Direct Air Inlet Node Name ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ReturnPath,
     PSZ-AC_1:1 Return Air Path,  !- Name
@@ -5663,7 +5809,7 @@
   AirLoopHVAC:ZoneSplitter,
     PSZ-AC_2:2 Supply Air Splitter,  !- Name
     PSZ-AC_2:2 Zone Equipment Inlet Node,  !- Inlet Node Name
-    SMstore1 Direct Air Inlet Node Name;  !- Outlet 1 Node Name
+    SMstore1 Direct Air Inlet Node Name ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ReturnPath,
     PSZ-AC_2:2 Return Air Path,  !- Name
@@ -5948,7 +6094,7 @@
   AirLoopHVAC:ZoneSplitter,
     PSZ-AC_3:3 Supply Air Splitter,  !- Name
     PSZ-AC_3:3 Zone Equipment Inlet Node,  !- Inlet Node Name
-    SMstore2 Direct Air Inlet Node Name;  !- Outlet 1 Node Name
+    SMstore2 Direct Air Inlet Node Name ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ReturnPath,
     PSZ-AC_3:3 Return Air Path,  !- Name
@@ -6233,7 +6379,7 @@
   AirLoopHVAC:ZoneSplitter,
     PSZ-AC_4:4 Supply Air Splitter,  !- Name
     PSZ-AC_4:4 Zone Equipment Inlet Node,  !- Inlet Node Name
-    SMstore3 Direct Air Inlet Node Name;  !- Outlet 1 Node Name
+    SMstore3 Direct Air Inlet Node Name ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ReturnPath,
     PSZ-AC_4:4 Return Air Path,  !- Name
@@ -6518,7 +6664,7 @@
   AirLoopHVAC:ZoneSplitter,
     PSZ-AC_5:5 Supply Air Splitter,  !- Name
     PSZ-AC_5:5 Zone Equipment Inlet Node,  !- Inlet Node Name
-    SMstore4 Direct Air Inlet Node Name;  !- Outlet 1 Node Name
+    SMstore4 Direct Air Inlet Node Name ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ReturnPath,
     PSZ-AC_5:5 Return Air Path,  !- Name
@@ -6803,7 +6949,7 @@
   AirLoopHVAC:ZoneSplitter,
     PSZ-AC_6:6 Supply Air Splitter,  !- Name
     PSZ-AC_6:6 Zone Equipment Inlet Node,  !- Inlet Node Name
-    LGstore2 Direct Air Inlet Node Name;  !- Outlet 1 Node Name
+    LGstore2 Direct Air Inlet Node Name ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ReturnPath,
     PSZ-AC_6:6 Return Air Path,  !- Name
@@ -7088,7 +7234,7 @@
   AirLoopHVAC:ZoneSplitter,
     PSZ-AC_7:7 Supply Air Splitter,  !- Name
     PSZ-AC_7:7 Zone Equipment Inlet Node,  !- Inlet Node Name
-    SMstore5 Direct Air Inlet Node Name;  !- Outlet 1 Node Name
+    SMstore5 Direct Air Inlet Node Name ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ReturnPath,
     PSZ-AC_7:7 Return Air Path,  !- Name
@@ -7373,7 +7519,7 @@
   AirLoopHVAC:ZoneSplitter,
     PSZ-AC_8:8 Supply Air Splitter,  !- Name
     PSZ-AC_8:8 Zone Equipment Inlet Node,  !- Inlet Node Name
-    SMstore6 Direct Air Inlet Node Name;  !- Outlet 1 Node Name
+    SMstore6 Direct Air Inlet Node Name ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ReturnPath,
     PSZ-AC_8:8 Return Air Path,  !- Name
@@ -7658,7 +7804,7 @@
   AirLoopHVAC:ZoneSplitter,
     PSZ-AC_9:9 Supply Air Splitter,  !- Name
     PSZ-AC_9:9 Zone Equipment Inlet Node,  !- Inlet Node Name
-    SMstore7 Direct Air Inlet Node Name;  !- Outlet 1 Node Name
+    SMstore7 Direct Air Inlet Node Name ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ReturnPath,
     PSZ-AC_9:9 Return Air Path,  !- Name
@@ -7943,7 +8089,7 @@
   AirLoopHVAC:ZoneSplitter,
     PSZ-AC_10:10 Supply Air Splitter,  !- Name
     PSZ-AC_10:10 Zone Equipment Inlet Node,  !- Inlet Node Name
-    SMstore8 Direct Air Inlet Node Name;  !- Outlet 1 Node Name
+    SMstore8 Direct Air Inlet Node Name ATInlet;  !- Outlet 1 Node Name
 
   AirLoopHVAC:ReturnPath,
     PSZ-AC_10:10 Return Air Path,  !- Name
@@ -8240,7 +8386,7 @@
 
   UtilityCost:Tariff,
     IN_EIAMonthlyRateGas,    !- Name
-    Gas:Facility,            !- Output Meter Name
+    NaturalGas:Facility,     !- Output Meter Name
     MCF,                     !- Conversion Factor Choice
     ,                        !- Energy Conversion Factor
     ,                        !- Demand Conversion Factor
@@ -8334,7 +8480,7 @@
     !
 
   FuelFactors,
-    FuelOil#1,               !- Existing Fuel Resource Name
+    FuelOilNo1,              !- Existing Fuel Resource Name
     m3,                      !- Units of Measure
     38.656E+09,              !- Energy per Unit Factor
     1.158,                   !- Source Energy Factor {J/J}
@@ -8520,7 +8666,7 @@
     3,                       !- Digits After Decimal
     Electricity:HVAC,        !- Variable or Meter 1 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 1
-    Heating:Gas,             !- Variable or Meter 2 Name
+    Heating:NaturalGas,      !- Variable or Meter 2 Name
     SumOrAverage;            !- Aggregation Type for Variable or Meter 2
 
   Output:Table:Monthly,
@@ -8652,13 +8798,13 @@
   Output:Table:Monthly,
     Building Loads - Electric,  !- Name
     2,                       !- Digits After Decimal
-    Zone Lights Electric Energy,  !- Variable or Meter 1 Name
+    Zone Lights Electricity Energy,  !- Variable or Meter 1 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 1
-    Zone Lights Electric Energy,  !- Variable or Meter 2 Name
+    Zone Lights Electricity Energy,  !- Variable or Meter 2 Name
     Maximum,                 !- Aggregation Type for Variable or Meter 2
-    Zone Electric Equipment Electric Energy,  !- Variable or Meter 3 Name
+    Zone Electric Equipment Electricity Energy,  !- Variable or Meter 3 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 3
-    Zone Electric Equipment Electric Energy,  !- Variable or Meter 4 Name
+    Zone Electric Equipment Electricity Energy,  !- Variable or Meter 4 Name
     Maximum;                 !- Aggregation Type for Variable or Meter 4
 
   Output:Table:Monthly,
@@ -8682,9 +8828,9 @@
     SumOrAverage,            !- Aggregation Type for Variable or Meter 1
     Electricity:Building,    !- Variable or Meter 2 Name
     Maximum,                 !- Aggregation Type for Variable or Meter 2
-    Gas:Building,            !- Variable or Meter 3 Name
+    NaturalGas:Building,     !- Variable or Meter 3 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 3
-    Gas:Building,            !- Variable or Meter 4 Name
+    NaturalGas:Building,     !- Variable or Meter 4 Name
     Maximum;                 !- Aggregation Type for Variable or Meter 4
 
   Output:Table:Monthly,
@@ -8722,17 +8868,17 @@
   Output:Table:Monthly,
     Building Energy Performance - Natural Gas,  !- Name
     2,                       !- Digits After Decimal
-    InteriorEquipment:Gas,   !- Variable or Meter 1 Name
+    InteriorEquipment:NaturalGas,  !- Variable or Meter 1 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 1
-    ExteriorEquipment:Gas,   !- Variable or Meter 2 Name
+    ExteriorEquipment:NaturalGas,  !- Variable or Meter 2 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 2
-    Heating:Gas,             !- Variable or Meter 3 Name
+    Heating:NaturalGas,      !- Variable or Meter 3 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 3
-    Cooling:Gas,             !- Variable or Meter 4 Name
+    Cooling:NaturalGas,      !- Variable or Meter 4 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 4
-    WaterSystems:Gas,        !- Variable or Meter 5 Name
+    WaterSystems:NaturalGas, !- Variable or Meter 5 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 5
-    Cogeneration:Gas,        !- Variable or Meter 6 Name
+    Cogeneration:NaturalGas, !- Variable or Meter 6 Name
     SumOrAverage;            !- Aggregation Type for Variable or Meter 6
 
   Output:Table:Monthly,
@@ -8763,7 +8909,7 @@
 
   Output:Meter,Electricity:HVAC,hourly;
 
-  Output:Meter,Gas:Facility,hourly;
+  Output:Meter,NaturalGas:Facility,hourly;
 
   Output:Variable,*,Zone Mean Air Temperature,hourly;
 

@@ -66,7 +66,7 @@
 ! ExtWallConstruction=Mass
 ! End SimMetaData
 
-  Version,9.0;
+  Version,9.4;
 
 !
 !- Run Controls sections
@@ -107,15 +107,19 @@
     20;                      !- Maximum HVAC Iterations
 
   ShadowCalculation,
-    AverageOverDaysInFrequency,  !- Calculation Method
-    21;                      !- Calculation Frequency
+    PolygonClipping,         !- Shading Calculation Method
+    Periodic,                !- Shading Calculation Update Frequency Method
+    21,                      !- Shading Calculation Update Frequency
+    15000;                   !- Maximum Figures in Shadow Overlap Calculations
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     1,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     12,                      !- End Month
     31,                      !- End Day of Month
+    ,                        !- End Year
     Tuesday,                 !- Day of Week for Start Day
     No,                      !- Use Weather File Holidays and Special Days
     No,                      !- Use Weather File Daylight Saving Period
@@ -124,8 +128,8 @@
     Yes;                     !- Use Weather File Snow Indicators
 
   GlobalGeometryRules,
-    ULC,                     !- Starting Vertex Position
-    CCW,                     !- Vertex Entry Direction
+    UpperLeftCorner,         !- Starting Vertex Position
+    CounterClockWise,        !- Vertex Entry Direction
     Relative;                !- Coordinate System
 
 ! US National Holidays
@@ -213,7 +217,7 @@
     13.08,                   !- Annual Average Outdoor Air Temperature {C}
     8.00;                    !- Maximum Difference In Monthly Average Outdoor Air Temperatures {deltaC}
 
-! SAN_FRANCISCO_CA_USA Annual Heating 99.6%, MaxDB=3.2°C
+! SAN_FRANCISCO_CA_USA Annual Heating 99.6%, MaxDB=3.2Â°C
 
   SizingPeriod:DesignDay,
     SAN_FRANCISCO Ann Htg 99.6% Condns DB,  !- Name
@@ -243,7 +247,7 @@
     ,                        !- ASHRAE Clear Sky Optical Depth for Diffuse Irradiance (taud) {dimensionless}
     0.00;                    !- Sky Clearness
 
-! SAN_FRANCISCO_CA_USA Annual Cooling (DB=>MWB) .4%, MaxDB=28.3°C MWB=17.2°C
+! SAN_FRANCISCO_CA_USA Annual Cooling (DB=>MWB) .4%, MaxDB=28.3Â°C MWB=17.2Â°C
 
   SizingPeriod:DesignDay,
     SAN_FRANCISCO Ann Clg .4% Condns DB=>MWB,  !- Name
@@ -1716,7 +1720,7 @@
   InternalMass,
     Basement_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    Basement,                !- Zone Name
+    Basement,                !- Zone or ZoneList Name
     7126.2120;               !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -1920,7 +1924,7 @@
   InternalMass,
     Core_bottom_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Core_bottom,             !- Zone Name
+    Core_bottom,             !- Zone or ZoneList Name
     5064.6526;               !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -1972,7 +1976,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Core_bottom,      !- Name
@@ -2110,7 +2114,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Core_bottom VAV Box,     !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Core_bottom VAV Box,     !- Name
@@ -2324,7 +2330,7 @@
   InternalMass,
     Core_mid_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    Core_mid,                !- Zone Name
+    Core_mid,                !- Zone or ZoneList Name
     5064.6526;               !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -2376,7 +2382,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Core_mid,         !- Name
@@ -2514,7 +2520,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Core_mid VAV Box,        !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Core_mid VAV Box,        !- Name
@@ -2728,7 +2736,7 @@
   InternalMass,
     Core_top_InternalMass_1, !- Name
     InteriorFurnishings,     !- Construction Name
-    Core_top,                !- Zone Name
+    Core_top,                !- Zone or ZoneList Name
     5064.6526;               !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -2780,7 +2788,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Core_top,         !- Name
@@ -2918,7 +2926,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Core_top VAV Box,        !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Core_top VAV Box,        !- Name
@@ -3132,7 +3142,7 @@
   InternalMass,
     Perimeter_bot_ZN_3_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_bot_ZN_3,      !- Zone Name
+    Perimeter_bot_ZN_3,      !- Zone or ZoneList Name
     626.8258;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -3184,7 +3194,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_bot_ZN_3,  !- Name
@@ -3322,7 +3332,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_bot_ZN_3 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_bot_ZN_3 VAV Box,  !- Name
@@ -3481,7 +3493,7 @@
   InternalMass,
     Perimeter_bot_ZN_2_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_bot_ZN_2,      !- Zone Name
+    Perimeter_bot_ZN_2,      !- Zone or ZoneList Name
     403.9504;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -3533,7 +3545,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_bot_ZN_2,  !- Name
@@ -3671,7 +3683,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_bot_ZN_2 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_bot_ZN_2 VAV Box,  !- Name
@@ -3830,7 +3844,7 @@
   InternalMass,
     Perimeter_bot_ZN_1_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_bot_ZN_1,      !- Zone Name
+    Perimeter_bot_ZN_1,      !- Zone or ZoneList Name
     626.8354;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -3882,7 +3896,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_bot_ZN_1,  !- Name
@@ -4020,7 +4034,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_bot_ZN_1 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_bot_ZN_1 VAV Box,  !- Name
@@ -4179,7 +4195,7 @@
   InternalMass,
     Perimeter_bot_ZN_4_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_bot_ZN_4,      !- Zone Name
+    Perimeter_bot_ZN_4,      !- Zone or ZoneList Name
     403.9478;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -4231,7 +4247,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_bot_ZN_4,  !- Name
@@ -4369,7 +4385,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_bot_ZN_4 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_bot_ZN_4 VAV Box,  !- Name
@@ -4528,7 +4546,7 @@
   InternalMass,
     Perimeter_mid_ZN_3_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_mid_ZN_3,      !- Zone Name
+    Perimeter_mid_ZN_3,      !- Zone or ZoneList Name
     626.8258;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -4580,7 +4598,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_mid_ZN_3,  !- Name
@@ -4718,7 +4736,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_mid_ZN_3 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_mid_ZN_3 VAV Box,  !- Name
@@ -4877,7 +4897,7 @@
   InternalMass,
     Perimeter_mid_ZN_2_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_mid_ZN_2,      !- Zone Name
+    Perimeter_mid_ZN_2,      !- Zone or ZoneList Name
     403.9504;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -4929,7 +4949,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_mid_ZN_2,  !- Name
@@ -5067,7 +5087,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_mid_ZN_2 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_mid_ZN_2 VAV Box,  !- Name
@@ -5226,7 +5248,7 @@
   InternalMass,
     Perimeter_mid_ZN_1_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_mid_ZN_1,      !- Zone Name
+    Perimeter_mid_ZN_1,      !- Zone or ZoneList Name
     626.8354;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -5278,7 +5300,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_mid_ZN_1,  !- Name
@@ -5416,7 +5438,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_mid_ZN_1 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_mid_ZN_1 VAV Box,  !- Name
@@ -5575,7 +5599,7 @@
   InternalMass,
     Perimeter_mid_ZN_4_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_mid_ZN_4,      !- Zone Name
+    Perimeter_mid_ZN_4,      !- Zone or ZoneList Name
     403.9478;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -5627,7 +5651,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_mid_ZN_4,  !- Name
@@ -5765,7 +5789,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_mid_ZN_4 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_mid_ZN_4 VAV Box,  !- Name
@@ -5924,7 +5950,7 @@
   InternalMass,
     Perimeter_top_ZN_3_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_top_ZN_3,      !- Zone Name
+    Perimeter_top_ZN_3,      !- Zone or ZoneList Name
     626.8258;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -5976,7 +6002,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_top_ZN_3,  !- Name
@@ -6114,7 +6140,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_top_ZN_3 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_top_ZN_3 VAV Box,  !- Name
@@ -6273,7 +6301,7 @@
   InternalMass,
     Perimeter_top_ZN_2_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_top_ZN_2,      !- Zone Name
+    Perimeter_top_ZN_2,      !- Zone or ZoneList Name
     403.9504;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -6325,7 +6353,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_top_ZN_2,  !- Name
@@ -6463,7 +6491,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_top_ZN_2 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_top_ZN_2 VAV Box,  !- Name
@@ -6622,7 +6652,7 @@
   InternalMass,
     Perimeter_top_ZN_1_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_top_ZN_1,      !- Zone Name
+    Perimeter_top_ZN_1,      !- Zone or ZoneList Name
     626.8354;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -6674,7 +6704,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_top_ZN_1,  !- Name
@@ -6812,7 +6842,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_top_ZN_1 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_top_ZN_1 VAV Box,  !- Name
@@ -6971,7 +7003,7 @@
   InternalMass,
     Perimeter_top_ZN_4_InternalMass_1,  !- Name
     InteriorFurnishings,     !- Construction Name
-    Perimeter_top_ZN_4,      !- Zone Name
+    Perimeter_top_ZN_4,      !- Zone or ZoneList Name
     403.9478;                !- Surface Area {m2}
 
   ZoneInfiltration:DesignFlowRate,
@@ -7023,7 +7055,7 @@
     ,                        !- Clothing Insulation Calculation Method Schedule Name
     CLOTHING_SCH,            !- Clothing Insulation Schedule Name
     AIR_VELO_SCH,            !- Air Velocity Schedule Name
-    ;                      !- Thermal Comfort Model 1 Type
+    ;                        !- Thermal Comfort Model 1 Type
 
   ComponentCost:LineItem,
     People:Perimeter_top_ZN_4,  !- Name
@@ -7161,7 +7193,9 @@
     ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
     Perimeter_top_ZN_4 VAV Box,  !- Zone Equipment 1 Name
     1,                       !- Zone Equipment 1 Cooling Sequence
-    1;                       !- Zone Equipment 1 Heating or No-Load Sequence
+    1,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ,                        !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                        !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
 
   ZoneHVAC:AirDistributionUnit,
     Perimeter_top_ZN_4 VAV Box,  !- Name
@@ -8611,9 +8645,9 @@
     AUTOSIZE,                !- Design Air Flow Rate {m3/s}
     AUTOSIZE,                !- Design Fan Power {W}
     AUTOSIZE,                !- Design U-Factor Times Area Value {W/K}
-    autocalculate,           !- Free Convection Air Flow Rate {m3/s}
-    ,                        !- Free Convection Air Flow Rate Sizing Factor
-    autocalculate,           !- Free Convection U-Factor Times Area Value {W/K}
+    autocalculate,           !- Free Convection Regime Air Flow Rate {m3/s}
+    ,                        !- Free Convection Regime Air Flow Rate Sizing Factor
+    autocalculate,           !- Free Convection Regime U-Factor Times Area Value {W/K}
     ,                        !- Free Convection U-Factor Times Area Value Sizing Factor
     ,                        !- Performance Input Method
     ,                        !- Heat Rejection Capacity and Nominal Capacity Sizing Ratio
@@ -9052,7 +9086,7 @@
 
   UtilityCost:Tariff,
     CA_EIAMonthlyRateGas,    !- Name
-    Gas:Facility,            !- Output Meter Name
+    NaturalGas:Facility,            !- Output Meter Name
     MCF,                     !- Conversion Factor Choice
     ,                        !- Energy Conversion Factor
     ,                        !- Demand Conversion Factor
@@ -9145,7 +9179,7 @@
     !
 
   FuelFactors,
-    FuelOil#1,               !- Existing Fuel Resource Name
+    FuelOilNo1,                !- Existing Fuel Resource Name
     m3,                      !- Units of Measure
     38.656E+09,              !- Energy per Unit Factor
     1.158,                   !- Source Energy Factor {J/J}
@@ -9241,9 +9275,9 @@
     SumOrAverage,            !- Aggregation Type for Variable or Meter 1
     Electricity:Facility,    !- Variable or Meter 2 Name
     Maximum,                 !- Aggregation Type for Variable or Meter 2
-    Gas:Facility,            !- Variable or Meter 3 Name
+    NaturalGas:Facility,            !- Variable or Meter 3 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 3
-    Gas:Facility,            !- Variable or Meter 4 Name
+    NaturalGas:Facility,            !- Variable or Meter 4 Name
     Maximum;                 !- Aggregation Type for Variable or Meter 4
 
   Output:Table:Monthly,
@@ -9279,17 +9313,17 @@
   Output:Table:Monthly,
     End-Use Energy Consumption - Natural Gas,  !- Name
     ,                        !- Digits After Decimal
-    InteriorEquipment:Gas,   !- Variable or Meter 1 Name
+    InteriorEquipment:NaturalGas,   !- Variable or Meter 1 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 1
-    ExteriorEquipment:Gas,   !- Variable or Meter 2 Name
+    ExteriorEquipment:NaturalGas,   !- Variable or Meter 2 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 2
-    Heating:Gas,             !- Variable or Meter 3 Name
+    Heating:NaturalGas,             !- Variable or Meter 3 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 3
-    Cooling:Gas,             !- Variable or Meter 4 Name
+    Cooling:NaturalGas,             !- Variable or Meter 4 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 4
-    WaterSystems:Gas,        !- Variable or Meter 5 Name
+    WaterSystems:NaturalGas,        !- Variable or Meter 5 Name
     SumOrAverage,            !- Aggregation Type for Variable or Meter 5
-    Cogeneration:Gas,        !- Variable or Meter 6 Name
+    Cogeneration:NaturalGas,        !- Variable or Meter 6 Name
     SumOrAverage;            !- Aggregation Type for Variable or Meter 6
 
   Output:Table:Monthly,
@@ -9391,7 +9425,6 @@
     Perimeter_bot_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9407,7 +9440,6 @@
     Perimeter_bot_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9423,7 +9455,6 @@
     Perimeter_bot_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9439,7 +9470,6 @@
     Perimeter_bot_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9455,7 +9485,6 @@
     Perimeter_bot_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9471,7 +9500,6 @@
     Perimeter_bot_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9487,7 +9515,6 @@
     Perimeter_bot_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9503,7 +9530,6 @@
     Perimeter_bot_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9519,7 +9545,6 @@
     Perimeter_bot_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9535,7 +9560,6 @@
     Perimeter_bot_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9553,7 +9577,6 @@
     Perimeter_mid_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9569,7 +9592,6 @@
     Perimeter_mid_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9585,7 +9607,6 @@
     Perimeter_mid_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9601,7 +9622,6 @@
     Perimeter_mid_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9617,7 +9637,6 @@
     Perimeter_mid_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9633,7 +9652,6 @@
     Perimeter_mid_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9649,7 +9667,6 @@
     Perimeter_mid_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9665,7 +9682,6 @@
     Perimeter_mid_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9681,7 +9697,6 @@
     Perimeter_mid_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9697,7 +9712,6 @@
     Perimeter_mid_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9715,7 +9729,6 @@
     Perimeter_top_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9731,7 +9744,6 @@
     Perimeter_top_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9747,7 +9759,6 @@
     Perimeter_top_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9763,7 +9774,6 @@
     Perimeter_top_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9779,7 +9789,6 @@
     Perimeter_top_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9795,7 +9804,6 @@
     Perimeter_top_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9811,7 +9819,6 @@
     Perimeter_top_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9827,7 +9834,6 @@
     Perimeter_top_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9843,7 +9849,6 @@
     Perimeter_top_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9859,7 +9864,6 @@
     Perimeter_top_ZN_3_Wall_North,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9877,7 +9881,6 @@
     Perimeter_bot_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9893,7 +9896,6 @@
     Perimeter_bot_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9909,7 +9911,6 @@
     Perimeter_bot_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9925,7 +9926,6 @@
     Perimeter_bot_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9941,7 +9941,6 @@
     Perimeter_bot_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9957,7 +9956,6 @@
     Perimeter_bot_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9973,7 +9971,6 @@
     Perimeter_bot_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -9989,7 +9986,6 @@
     Perimeter_bot_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10005,7 +10001,6 @@
     Perimeter_bot_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10021,7 +10016,6 @@
     Perimeter_bot_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10039,7 +10033,6 @@
     Perimeter_mid_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10055,7 +10048,6 @@
     Perimeter_mid_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10071,7 +10063,6 @@
     Perimeter_mid_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10087,7 +10078,6 @@
     Perimeter_mid_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10103,7 +10093,6 @@
     Perimeter_mid_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10119,7 +10108,6 @@
     Perimeter_mid_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10135,7 +10123,6 @@
     Perimeter_mid_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10151,7 +10138,6 @@
     Perimeter_mid_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10167,7 +10153,6 @@
     Perimeter_mid_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10183,7 +10168,6 @@
     Perimeter_mid_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10201,7 +10185,6 @@
     Perimeter_top_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10217,7 +10200,6 @@
     Perimeter_top_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10233,7 +10215,6 @@
     Perimeter_top_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10249,7 +10230,6 @@
     Perimeter_top_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10265,7 +10245,6 @@
     Perimeter_top_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10281,7 +10260,6 @@
     Perimeter_top_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10297,7 +10275,6 @@
     Perimeter_top_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10313,7 +10290,6 @@
     Perimeter_top_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10329,7 +10305,6 @@
     Perimeter_top_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10345,7 +10320,6 @@
     Perimeter_top_ZN_2_Wall_East,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10363,7 +10337,6 @@
     Perimeter_bot_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10379,7 +10352,6 @@
     Perimeter_bot_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10395,7 +10367,6 @@
     Perimeter_bot_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10411,7 +10382,6 @@
     Perimeter_bot_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10427,7 +10397,6 @@
     Perimeter_bot_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10443,7 +10412,6 @@
     Perimeter_bot_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10459,7 +10427,6 @@
     Perimeter_bot_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10475,7 +10442,6 @@
     Perimeter_bot_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10491,7 +10457,6 @@
     Perimeter_bot_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10507,7 +10472,6 @@
     Perimeter_bot_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10525,7 +10489,6 @@
     Perimeter_mid_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10541,7 +10504,6 @@
     Perimeter_mid_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10557,7 +10519,6 @@
     Perimeter_mid_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10573,7 +10534,6 @@
     Perimeter_mid_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10589,7 +10549,6 @@
     Perimeter_mid_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10605,7 +10564,6 @@
     Perimeter_mid_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10621,7 +10579,6 @@
     Perimeter_mid_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10637,7 +10594,6 @@
     Perimeter_mid_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10653,7 +10609,6 @@
     Perimeter_mid_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10669,7 +10624,6 @@
     Perimeter_mid_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10687,7 +10641,6 @@
     Perimeter_top_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10703,7 +10656,6 @@
     Perimeter_top_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10719,7 +10671,6 @@
     Perimeter_top_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10735,7 +10686,6 @@
     Perimeter_top_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10751,7 +10701,6 @@
     Perimeter_top_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10767,7 +10716,6 @@
     Perimeter_top_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10783,7 +10731,6 @@
     Perimeter_top_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10799,7 +10746,6 @@
     Perimeter_top_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10815,7 +10761,6 @@
     Perimeter_top_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10831,7 +10776,6 @@
     Perimeter_top_ZN_1_Wall_South,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10849,7 +10793,6 @@
     Perimeter_bot_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10865,7 +10808,6 @@
     Perimeter_bot_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10881,7 +10823,6 @@
     Perimeter_bot_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10897,7 +10838,6 @@
     Perimeter_bot_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10913,7 +10853,6 @@
     Perimeter_bot_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10929,7 +10868,6 @@
     Perimeter_bot_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10945,7 +10883,6 @@
     Perimeter_bot_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10961,7 +10898,6 @@
     Perimeter_bot_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10977,7 +10913,6 @@
     Perimeter_bot_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -10993,7 +10928,6 @@
     Perimeter_bot_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11011,7 +10945,6 @@
     Perimeter_mid_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11027,7 +10960,6 @@
     Perimeter_mid_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11043,7 +10975,6 @@
     Perimeter_mid_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11059,7 +10990,6 @@
     Perimeter_mid_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11075,7 +11005,6 @@
     Perimeter_mid_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11091,7 +11020,6 @@
     Perimeter_mid_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11107,7 +11035,6 @@
     Perimeter_mid_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11123,7 +11050,6 @@
     Perimeter_mid_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11139,7 +11065,6 @@
     Perimeter_mid_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11155,7 +11080,6 @@
     Perimeter_mid_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11173,7 +11097,6 @@
     Perimeter_top_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11189,7 +11112,6 @@
     Perimeter_top_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11205,7 +11127,6 @@
     Perimeter_top_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11221,7 +11142,6 @@
     Perimeter_top_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11237,7 +11157,6 @@
     Perimeter_top_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11253,7 +11172,6 @@
     Perimeter_top_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11269,7 +11187,6 @@
     Perimeter_top_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11285,7 +11202,6 @@
     Perimeter_top_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11301,7 +11217,6 @@
     Perimeter_top_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -11317,7 +11232,6 @@
     Perimeter_top_ZN_4_Wall_West,  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     AutoCalculate,           !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices

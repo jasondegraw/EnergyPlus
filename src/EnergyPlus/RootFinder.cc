@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2018, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2020, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -50,14 +50,12 @@
 
 // ObjexxFCL Headers
 #include <ObjexxFCL/Fmath.hh>
-#include <ObjexxFCL/gio.hh>
 
 // EnergyPlus Headers
-#include <DataGlobals.hh>
-#include <DataPrecisionGlobals.hh>
-#include <General.hh>
-#include <RootFinder.hh>
-#include <UtilityRoutines.hh>
+#include <EnergyPlus/DataPrecisionGlobals.hh>
+#include <EnergyPlus/General.hh>
+#include <EnergyPlus/RootFinder.hh>
+#include <EnergyPlus/UtilityRoutines.hh>
 
 namespace EnergyPlus {
 
@@ -175,10 +173,7 @@ namespace RootFinder {
     // USE STATEMENTS:
     // Use statements for data only modules
     // Using/Aliasing
-    using namespace DataPrecisionGlobals;
     using namespace DataRootFinder;
-    using namespace DataGlobals;
-    using General::TrimSigDigits;
 
     // Data
     // MODULE PARAMETER DEFINITIONS
@@ -199,7 +194,7 @@ namespace RootFinder {
 
     // Functions
 
-    void SetupRootFinder(RootFinderDataType &RootFinderData, // Data used by root finding algorithm
+    void SetupRootFinder(EnergyPlusData &state, RootFinderDataType &RootFinderData, // Data used by root finding algorithm
                          int const SlopeType,                // Either iSlopeIncreasing or iSlopeDecreasing
                          int const MethodType,               // Any of the iMethod<name> code but iMethodNone
                          Real64 const TolX,                  // Relative tolerance for X variables
@@ -245,45 +240,45 @@ namespace RootFinder {
 
         // Load assumed action for underlying function F(X)
         if (SlopeType != iSlopeIncreasing && SlopeType != iSlopeDecreasing) {
-            ShowSevereError("SetupRootFinder: Invalid function slope specification. Valid choices are:");
-            ShowContinueError("SetupRootFinder: iSlopeIncreasing=" + TrimSigDigits(iSlopeIncreasing));
-            ShowContinueError("SetupRootFinder: iSlopeDecreasing=" + TrimSigDigits(iSlopeDecreasing));
-            ShowFatalError("SetupRootFinder: Preceding error causes program termination.");
+            ShowSevereError(state, "SetupRootFinder: Invalid function slope specification. Valid choices are:");
+            ShowContinueError(state, format("SetupRootFinder: iSlopeIncreasing={}", iSlopeIncreasing));
+            ShowContinueError(state, format("SetupRootFinder: iSlopeDecreasing={}", iSlopeDecreasing));
+            ShowFatalError(state, "SetupRootFinder: Preceding error causes program termination.");
         }
         RootFinderData.Controls.SlopeType = SlopeType;
 
         // Load solution method
         if (MethodType != iMethodBisection && MethodType != iMethodFalsePosition && MethodType != iMethodSecant && MethodType != iMethodBrent) {
 
-            ShowSevereError("SetupRootFinder: Invalid solution method specification. Valid choices are:");
-            ShowContinueError("SetupRootFinder: iMethodBisection=" + TrimSigDigits(iMethodBisection));
-            ShowContinueError("SetupRootFinder: iMethodFalsePosition=" + TrimSigDigits(iMethodFalsePosition));
-            ShowContinueError("SetupRootFinder: iMethodSecant=" + TrimSigDigits(iMethodSecant));
-            ShowContinueError("SetupRootFinder: iMethodBrent=" + TrimSigDigits(iMethodBrent));
-            ShowFatalError("SetupRootFinder: Preceding error causes program termination.");
+            ShowSevereError(state, "SetupRootFinder: Invalid solution method specification. Valid choices are:");
+            ShowContinueError(state, format("SetupRootFinder: iMethodBisection={}", iMethodBisection));
+            ShowContinueError(state, format("SetupRootFinder: iMethodFalsePosition={}", iMethodFalsePosition));
+            ShowContinueError(state, format("SetupRootFinder: iMethodSecant={}", iMethodSecant));
+            ShowContinueError(state, format("SetupRootFinder: iMethodBrent={}", iMethodBrent));
+            ShowFatalError(state, "SetupRootFinder: Preceding error causes program termination.");
         }
         RootFinderData.Controls.MethodType = MethodType;
 
         // Load relative tolerance parameter for X variables
         if (TolX < 0.0) {
-            ShowFatalError("SetupRootFinder: Invalid tolerance specification for X variables. TolX >= 0");
+            ShowFatalError(state, "SetupRootFinder: Invalid tolerance specification for X variables. TolX >= 0");
         }
         RootFinderData.Controls.TolX = TolX;
 
         // Load absolute tolerance parameter for X variables
         if (ATolX < 0.0) {
-            ShowFatalError("SetupRootFinder: Invalid absolute tolerance specification for X variables. ATolX >= 0");
+            ShowFatalError(state, "SetupRootFinder: Invalid absolute tolerance specification for X variables. ATolX >= 0");
         }
         RootFinderData.Controls.ATolX = ATolX;
 
         // Load absolute tolerance parameter for Y variables
         if (ATolY < 0.0) {
-            ShowFatalError("SetupRootFinder: Invalid absolute tolerance specification for Y variables. ATolY >= 0");
+            ShowFatalError(state, "SetupRootFinder: Invalid absolute tolerance specification for Y variables. ATolY >= 0");
         }
         RootFinderData.Controls.ATolY = ATolY;
 
         // Reset internal data for root finder with fictive min and max values
-        ResetRootFinder(RootFinderData, constant_zero, constant_zero);
+        ResetRootFinder(RootFinderData, DataPrecisionGlobals::constant_zero, DataPrecisionGlobals::constant_zero);
     }
 
     void ResetRootFinder(RootFinderDataType &RootFinderData, // Data used by root finding algorithm
@@ -372,7 +367,7 @@ namespace RootFinder {
         RootFinderData.ConvergenceRate = -1.0;
     }
 
-    void InitializeRootFinder(RootFinderDataType &RootFinderData, // Data used by root finding algorithm
+    void InitializeRootFinder(EnergyPlusData &state, RootFinderDataType &RootFinderData, // Data used by root finding algorithm
                               Real64 const XMin,                  // Minimum X value allowed
                               Real64 const XMax                   // Maximum X value allowed
     )
@@ -419,8 +414,8 @@ namespace RootFinder {
             if (XMax == 0.0) {
                 XMinReset = XMax;
             } else {
-                ShowFatalError("InitializeRootFinder: Invalid min/max bounds XMin=" + TrimSigDigits(XMin, 6) +
-                               " must be smaller than XMax=" + TrimSigDigits(XMax, 6));
+                ShowFatalError(state,
+                               format("InitializeRootFinder: Invalid min/max bounds XMin={:.6T} must be smaller than XMax={:.6T}", XMin, XMax));
             }
         }
 
@@ -436,10 +431,10 @@ namespace RootFinder {
         RootFinderData.XCandidate = min(RootFinderData.MaxPoint.X, max(SavedXCandidate, RootFinderData.MinPoint.X));
     }
 
-    void IterateRootFinder(RootFinderDataType &RootFinderData, // Data used by root finding algorithm
+    void IterateRootFinder(EnergyPlusData &state, RootFinderDataType &RootFinderData, // Data used by root finding algorithm
                            Real64 const X,                     // X value of current iterate
                            Real64 const Y,                     // Y value of current iterate
-                           Optional_bool IsDoneFlag            // If TRUE indicates that the iteration should be stopped
+                           bool &IsDoneFlag                    // If TRUE indicates that the iteration should be stopped
     )
     {
 
@@ -561,7 +556,7 @@ namespace RootFinder {
             }
 
             if (RootFinderData.MinPoint.DefinedFlag) {
-                if (CheckMinConstraint(RootFinderData)) {
+                if (CheckMinConstraint(state, RootFinderData)) {
                     RootFinderData.StatusFlag = iStatusOKMin;
                     RootFinderData.XCandidate = RootFinderData.MinPoint.X;
 
@@ -581,7 +576,7 @@ namespace RootFinder {
             }
 
             // Check slope condition between min and max points
-            if (!CheckSlope(RootFinderData)) {
+            if (!CheckSlope(state, RootFinderData)) {
                 RootFinderData.StatusFlag = iStatusErrorSlope;
 
                 // Fatal error: No need to continue iterating
@@ -597,7 +592,7 @@ namespace RootFinder {
         // Check min constraint before max constraint to mimic original implementation
         // in ManagerControllers()
         if (RootFinderData.MinPoint.DefinedFlag) {
-            if (CheckMinConstraint(RootFinderData)) {
+            if (CheckMinConstraint(state, RootFinderData)) {
                 RootFinderData.StatusFlag = iStatusOKMin;
                 RootFinderData.XCandidate = RootFinderData.MinPoint.X;
 
@@ -612,7 +607,7 @@ namespace RootFinder {
         // TODO: Force to evaluate min point before exiting with max constrained solution
         //       in order to be able to detect singularity and bad slope conditions.
         if (RootFinderData.MaxPoint.DefinedFlag) {
-            if (CheckMaxConstraint(RootFinderData)) {
+            if (CheckMaxConstraint(state, RootFinderData)) {
 
                 RootFinderData.StatusFlag = iStatusOKMax;
                 RootFinderData.XCandidate = RootFinderData.MaxPoint.X;
@@ -634,7 +629,7 @@ namespace RootFinder {
             RootFinderData.XCandidate = X;
 
             // Update root finder internal data with current iterate (X,Y)
-            UpdateRootFinder(RootFinderData, X, Y);
+            UpdateRootFinder(state, RootFinderData, X, Y);
 
             // Solution found: No need to continue iterating
             IsDoneFlag = true;
@@ -643,21 +638,10 @@ namespace RootFinder {
 
         // Check last as this was not done in the original implementation
         // Essentially we stop the iteration if:
-        // - the increment beween successive iterates is smaller than the user-specified
-        //   tolerance for the X variables.
         // - the distance between the lower and upper bounds is smaller than the user-specified
         //   tolerance for the X variables. (USING brackets from previous iteration)
-        // BUG: Relaxed check to avoid detecting round-off in case 2 successive iterates are the same!
-        // IF ( CheckIncrementRoundOff( RootFinderData, X ) ) THEN
-        //  RootFinderData%StatusFlag = iStatusOKRoundOff
-        //  RETURN
-        // END IF
         if (CheckBracketRoundOff(RootFinderData)) {
             RootFinderData.StatusFlag = iStatusOKRoundOff;
-            RootFinderData.XCandidate = X;
-
-            // Update root finder internal data with current iterate (X,Y)
-            UpdateRootFinder(RootFinderData, X, Y);
 
             // Solution found: No need to continue iterating
             IsDoneFlag = true;
@@ -684,19 +668,19 @@ namespace RootFinder {
         }
 
         // Update root finder internal data with current iterate (X,Y)
-        UpdateRootFinder(RootFinderData, X, Y);
+        UpdateRootFinder(state, RootFinderData, X, Y);
 
         // Compute new root candidate and store value in in RootFinderData%XCandidate
         // - First attempt to bracket root within lower and upper points
         // - Then use whatever requested solution method in SetupRootFinder() to
         //   compute the next candidate.
-        AdvanceRootFinder(RootFinderData);
+        AdvanceRootFinder(state, RootFinderData);
 
         // Indicates that we should continue iterating with new candidate
         IsDoneFlag = false;
     }
 
-    int CheckInternalConsistency(RootFinderDataType const &RootFinderData) // Data used by root finding algorithm
+    int CheckInternalConsistency(EnergyPlusData &state, RootFinderDataType const &RootFinderData) // Data used by root finding algorithm
     {
         // FUNCTION INFORMATION:
         //       AUTHOR         Dimitri Curtil (LBNL)
@@ -771,10 +755,10 @@ namespace RootFinder {
 
                 } else {
                     // Should never happen
-                    ShowSevereError("CheckInternalConsistency: Invalid function slope specification. Valid choices are:");
-                    ShowContinueError("CheckInternalConsistency: iSlopeIncreasing=" + TrimSigDigits(iSlopeIncreasing));
-                    ShowContinueError("CheckInternalConsistency: iSlopeDecreasing=" + TrimSigDigits(iSlopeDecreasing));
-                    ShowFatalError("CheckInternalConsistency: Preceding error causes program termination.");
+                    ShowSevereError(state, "CheckInternalConsistency: Invalid function slope specification. Valid choices are:");
+                    ShowContinueError(state, format("CheckInternalConsistency: iSlopeIncreasing={}", iSlopeIncreasing));
+                    ShowContinueError(state, format("CheckInternalConsistency: iSlopeDecreasing={}", iSlopeDecreasing));
+                    ShowFatalError(state, "CheckInternalConsistency: Preceding error causes program termination.");
                 }
             }
 
@@ -806,10 +790,10 @@ namespace RootFinder {
 
                 } else {
                     // Should never happen
-                    ShowSevereError("CheckInternalConsistency: Invalid function slope specification. Valid choices are:");
-                    ShowContinueError("CheckInternalConsistency: iSlopeIncreasing=" + TrimSigDigits(iSlopeIncreasing));
-                    ShowContinueError("CheckInternalConsistency: iSlopeDecreasing=" + TrimSigDigits(iSlopeDecreasing));
-                    ShowFatalError("CheckInternalConsistency: Preceding error causes program termination.");
+                    ShowSevereError(state, "CheckInternalConsistency: Invalid function slope specification. Valid choices are:");
+                    ShowContinueError(state, format("CheckInternalConsistency: iSlopeIncreasing={}", iSlopeIncreasing));
+                    ShowContinueError(state, format("CheckInternalConsistency: iSlopeDecreasing={}", iSlopeDecreasing));
+                    ShowFatalError(state, "CheckInternalConsistency: Preceding error causes program termination.");
                 }
             }
         }
@@ -832,10 +816,10 @@ namespace RootFinder {
 
                 } else {
                     // Should never happen
-                    ShowSevereError("CheckInternalConsistency: Invalid function slope specification. Valid choices are:");
-                    ShowContinueError("CheckInternalConsistency: iSlopeIncreasing=" + TrimSigDigits(iSlopeIncreasing));
-                    ShowContinueError("CheckInternalConsistency: iSlopeDecreasing=" + TrimSigDigits(iSlopeDecreasing));
-                    ShowFatalError("CheckInternalConsistency: Preceding error causes program termination.");
+                    ShowSevereError(state, "CheckInternalConsistency: Invalid function slope specification. Valid choices are:");
+                    ShowContinueError(state, format("CheckInternalConsistency: iSlopeIncreasing={}", iSlopeIncreasing));
+                    ShowContinueError(state, format("CheckInternalConsistency: iSlopeDecreasing={}", iSlopeDecreasing));
+                    ShowFatalError(state, "CheckInternalConsistency: Preceding error causes program termination.");
                 }
             }
         }
@@ -1025,7 +1009,7 @@ namespace RootFinder {
         return CheckLowerUpperBracket;
     }
 
-    bool CheckSlope(RootFinderDataType const &RootFinderData) // Data used by root finding algorithm
+    bool CheckSlope(EnergyPlusData &state, RootFinderDataType const &RootFinderData) // Data used by root finding algorithm
     {
         // FUNCTION INFORMATION:
         //       AUTHOR         Dimitri Curtil (LBNL)
@@ -1091,10 +1075,10 @@ namespace RootFinder {
 
             } else {
                 // Should never happen
-                ShowSevereError("CheckSlope: Invalid function slope specification. Valid choices are:");
-                ShowContinueError("CheckSlope: iSlopeIncreasing=" + TrimSigDigits(iSlopeIncreasing));
-                ShowContinueError("CheckSlope: iSlopeDecreasing=" + TrimSigDigits(iSlopeDecreasing));
-                ShowFatalError("CheckSlope: Preceding error causes program termination.");
+                ShowSevereError(state, "CheckSlope: Invalid function slope specification. Valid choices are:");
+                ShowContinueError(state, format("CheckSlope: iSlopeIncreasing={}", iSlopeIncreasing));
+                ShowContinueError(state, format("CheckSlope: iSlopeDecreasing={}", iSlopeDecreasing));
+                ShowFatalError(state, "CheckSlope: Preceding error causes program termination.");
             }
         }
 
@@ -1174,7 +1158,7 @@ namespace RootFinder {
         return CheckNonSingularity;
     }
 
-    bool CheckMinConstraint(RootFinderDataType const &RootFinderData) // Data used by root finding algorithm
+    bool CheckMinConstraint(EnergyPlusData &state, RootFinderDataType const &RootFinderData) // Data used by root finding algorithm
     {
         // FUNCTION INFORMATION:
         //       AUTHOR         Dimitri Curtil (LBNL)
@@ -1235,10 +1219,10 @@ namespace RootFinder {
 
             } else {
                 // Should never happen
-                ShowSevereError("CheckMinConstraint: Invalid function slope specification. Valid choices are:");
-                ShowContinueError("CheckMinConstraint: iSlopeIncreasing=" + TrimSigDigits(iSlopeIncreasing));
-                ShowContinueError("CheckMinConstraint: iSlopeDecreasing=" + TrimSigDigits(iSlopeDecreasing));
-                ShowFatalError("CheckMinConstraint: Preceding error causes program termination.");
+                ShowSevereError(state, "CheckMinConstraint: Invalid function slope specification. Valid choices are:");
+                ShowContinueError(state, format("CheckMinConstraint: iSlopeIncreasing={}", iSlopeIncreasing));
+                ShowContinueError(state, format("CheckMinConstraint: iSlopeDecreasing={}", iSlopeDecreasing));
+                ShowFatalError(state, "CheckMinConstraint: Preceding error causes program termination.");
             }
         }
 
@@ -1247,7 +1231,7 @@ namespace RootFinder {
         return CheckMinConstraint;
     }
 
-    bool CheckMaxConstraint(RootFinderDataType const &RootFinderData) // Data used by root finding algorithm
+    bool CheckMaxConstraint(EnergyPlusData &state, RootFinderDataType const &RootFinderData) // Data used by root finding algorithm
     {
         // FUNCTION INFORMATION:
         //       AUTHOR         Dimitri Curtil (LBNL)
@@ -1309,10 +1293,10 @@ namespace RootFinder {
 
             } else {
                 // Should never happen
-                ShowSevereError("CheckMaxConstraint: Invalid function slope specification. Valid choices are:");
-                ShowContinueError("CheckMaxConstraint: iSlopeIncreasing=" + TrimSigDigits(iSlopeIncreasing));
-                ShowContinueError("CheckMaxConstraint: iSlopeDecreasing=" + TrimSigDigits(iSlopeDecreasing));
-                ShowFatalError("CheckMaxConstraint: Preceding error causes program termination.");
+                ShowSevereError(state, "CheckMaxConstraint: Invalid function slope specification. Valid choices are:");
+                ShowContinueError(state, format("CheckMaxConstraint: iSlopeIncreasing={}", iSlopeIncreasing));
+                ShowContinueError(state, format("CheckMaxConstraint: iSlopeDecreasing={}", iSlopeDecreasing));
+                ShowFatalError(state, "CheckMaxConstraint: Preceding error causes program termination.");
             }
         }
 
@@ -1373,65 +1357,6 @@ namespace RootFinder {
         CheckRootFinderConvergence = false;
 
         return CheckRootFinderConvergence;
-    }
-
-    bool CheckIncrementRoundOff(RootFinderDataType const &RootFinderData, // Data used by root finding algorithm
-                                Real64 const X                            // X value for current iterate
-    )
-    {
-        // FUNCTION INFORMATION:
-        //       AUTHOR         Dimitri Curtil (LBNL)
-        //       DATE WRITTEN   February 2006
-        //       MODIFIED
-        //       RE-ENGINEERED  na
-
-        // PURPOSE OF THIS FUNCTION:
-        // This function checks whether the current iterate X satisfies the
-        // round-off criterion or not.
-
-        // METHODOLOGY EMPLOYED:
-        // na
-
-        // REFERENCES:
-        // na
-
-        // USE STATEMENTS:
-        // na
-
-        // Return value
-        bool CheckIncrementRoundOff;
-
-        // Locals
-        // FUNCTION ARGUMENT DEFINITIONS:
-
-        // FUNCTION PARAMETER DEFINITIONS:
-        // na
-
-        // INTERFACE BLOCK SPECIFICATIONS
-        // na
-
-        // DERIVED TYPE DEFINITIONS
-        // na
-
-        // FUNCTION LOCAL VARIABLE DECLARATIONS:
-        Real64 DeltaX; // Increment in X since last iterate
-        Real64 TolX;   // Tolerance to satisfy for X increment
-        // FLOW:
-
-        CheckIncrementRoundOff = false;
-        // Check for round-off error in X increments since last iterate
-        if (RootFinderData.CurrentPoint.DefinedFlag) {
-            // TODO: Use typical value for X averaged over successive iterations
-            TolX = RootFinderData.Controls.TolX * std::abs(X) + RootFinderData.Controls.ATolX;
-            DeltaX = X - RootFinderData.CurrentPoint.Y;
-
-            if (std::abs(DeltaX) <= std::abs(TolX)) {
-                CheckIncrementRoundOff = true;
-                return CheckIncrementRoundOff;
-            }
-        }
-
-        return CheckIncrementRoundOff;
     }
 
     bool CheckBracketRoundOff(RootFinderDataType const &RootFinderData) // Data used by root finding algorithm
@@ -1551,7 +1476,7 @@ namespace RootFinder {
         }
     }
 
-    void UpdateBracket(RootFinderDataType &RootFinderData, // Data used by root finding algorithm
+    void UpdateBracket(EnergyPlusData &state, RootFinderDataType &RootFinderData, // Data used by root finding algorithm
                        Real64 const X,                     // X value for current iterate
                        Real64 const Y                      // Y value for current iterate, F(X)=Y
     )
@@ -1623,11 +1548,12 @@ namespace RootFinder {
                             RootFinderData.LowerPoint.Y = Y;
                         } else {
                             // Should never happen if CheckLowerUpperBracket() is called before
-                            ShowSevereError("UpdateBracket: Current iterate is smaller than the lower bracket.");
-                            ShowContinueError("UpdateBracket: X=" + TrimSigDigits(X, 15) + ", Y=" + TrimSigDigits(Y, 15));
-                            ShowContinueError("UpdateBracket: XLower=" + TrimSigDigits(RootFinderData.LowerPoint.X, 15) +
-                                              ", YLower=" + TrimSigDigits(RootFinderData.LowerPoint.Y, 15));
-                            ShowFatalError("UpdateBracket: Preceding error causes program termination.");
+                            ShowSevereError(state, "UpdateBracket: Current iterate is smaller than the lower bracket.");
+                            ShowContinueError(state, format("UpdateBracket: X={:.15T}, Y={:.15T}", X, Y));
+                            ShowContinueError(
+                                state,
+                                format("UpdateBracket: XLower={:.15T}, YLower={:.15T}", RootFinderData.LowerPoint.X, RootFinderData.LowerPoint.Y));
+                            ShowFatalError(state, "UpdateBracket: Preceding error causes program termination.");
                         }
                     }
 
@@ -1649,11 +1575,12 @@ namespace RootFinder {
                             RootFinderData.UpperPoint.Y = Y;
                         } else {
                             // Should never happen if CheckLowerUpperBracket() is called before
-                            ShowSevereError("UpdateBracket: Current iterate is greater than the upper bracket.");
-                            ShowContinueError("UpdateBracket: X=" + TrimSigDigits(X, 15) + ", Y=" + TrimSigDigits(Y, 15));
-                            ShowContinueError("UpdateBracket: XUpper=" + TrimSigDigits(RootFinderData.UpperPoint.X, 15) +
-                                              ", YUpper=" + TrimSigDigits(RootFinderData.UpperPoint.Y, 15));
-                            ShowFatalError("UpdateBracket: Preceding error causes program termination.");
+                            ShowSevereError(state, "UpdateBracket: Current iterate is greater than the upper bracket.");
+                            ShowContinueError(state, format("UpdateBracket: X={:.15T}, Y={:.15T}", X, Y));
+                            ShowContinueError(
+                                state,
+                                format("UpdateBracket: XUpper={:.15T}, YUpper={:.15T}", RootFinderData.UpperPoint.X, RootFinderData.UpperPoint.Y));
+                            ShowFatalError(state, "UpdateBracket: Preceding error causes program termination.");
                         }
                     }
                 }
@@ -1678,11 +1605,12 @@ namespace RootFinder {
                             RootFinderData.LowerPoint.Y = Y;
                         } else {
                             // Should never happen if CheckLowerUpperBracket() is called before
-                            ShowSevereError("UpdateBracket: Current iterate is smaller than the lower bracket.");
-                            ShowContinueError("UpdateBracket: X=" + TrimSigDigits(X, 15) + ", Y=" + TrimSigDigits(Y, 15));
-                            ShowContinueError("UpdateBracket: XLower=" + TrimSigDigits(RootFinderData.LowerPoint.X, 15) +
-                                              ", YLower=" + TrimSigDigits(RootFinderData.LowerPoint.Y, 15));
-                            ShowFatalError("UpdateBracket: Preceding error causes program termination.");
+                            ShowSevereError(state, "UpdateBracket: Current iterate is smaller than the lower bracket.");
+                            ShowContinueError(state, format("UpdateBracket: X={:.15T}, Y={:.15T}", X, Y));
+                            ShowContinueError(
+                                state,
+                                format("UpdateBracket: XLower={:.15T}, YLower={:.15T}", RootFinderData.LowerPoint.X, RootFinderData.LowerPoint.Y));
+                            ShowFatalError(state, "UpdateBracket: Preceding error causes program termination.");
                         }
                     }
 
@@ -1704,21 +1632,22 @@ namespace RootFinder {
                             RootFinderData.UpperPoint.Y = Y;
                         } else {
                             // Should never happen if CheckLowerUpperBracket() is called before
-                            ShowSevereError("UpdateBracket: Current iterate is greater than the upper bracket.");
-                            ShowContinueError("UpdateBracket: X=" + TrimSigDigits(X, 15) + ", Y=" + TrimSigDigits(Y, 15));
-                            ShowContinueError("UpdateBracket: XUpper=" + TrimSigDigits(RootFinderData.UpperPoint.X, 15) +
-                                              ", YUpper=" + TrimSigDigits(RootFinderData.UpperPoint.Y, 15));
-                            ShowFatalError("UpdateBracket: Preceding error causes program termination.");
+                            ShowSevereError(state, "UpdateBracket: Current iterate is greater than the upper bracket.");
+                            ShowContinueError(state, format("UpdateBracket: X={:.15T}, Y={:.15T}", X, Y));
+                            ShowContinueError(
+                                state,
+                                format("UpdateBracket: XUpper={:.15T}, YUpper={:.15T}", RootFinderData.UpperPoint.X, RootFinderData.UpperPoint.Y));
+                            ShowFatalError(state, "UpdateBracket: Preceding error causes program termination.");
                         }
                     }
                 }
 
             } else {
                 // Should never happen
-                ShowSevereError("UpdateBracket: Invalid function slope specification. Valid choices are:");
-                ShowContinueError("UpdateBracket: iSlopeIncreasing=" + TrimSigDigits(iSlopeIncreasing));
-                ShowContinueError("UpdateBracket: iSlopeDecreasing=" + TrimSigDigits(iSlopeDecreasing));
-                ShowFatalError("UpdateBracket: Preceding error causes program termination.");
+                ShowSevereError(state, "UpdateBracket: Invalid function slope specification. Valid choices are:");
+                ShowContinueError(state, format("UpdateBracket: iSlopeIncreasing={}", iSlopeIncreasing));
+                ShowContinueError(state, format("UpdateBracket: iSlopeDecreasing={}", iSlopeDecreasing));
+                ShowFatalError(state, "UpdateBracket: Preceding error causes program termination.");
             }
         }
     }
@@ -1799,7 +1728,7 @@ namespace RootFinder {
         SortHistory(NumHistory, RootFinderData.History);
     }
 
-    void UpdateRootFinder(RootFinderDataType &RootFinderData, // Data used by root finding algorithm
+    void UpdateRootFinder(EnergyPlusData &state, RootFinderDataType &RootFinderData, // Data used by root finding algorithm
                           Real64 const X,                     // X value for current iterate
                           Real64 const Y                      // Y value for current iterate, F(X)=Y
     )
@@ -1862,7 +1791,7 @@ namespace RootFinder {
         UpdateHistory(RootFinderData, X, Y);
 
         // Update lower and upper points
-        UpdateBracket(RootFinderData, X, Y);
+        UpdateBracket(state, RootFinderData, X, Y);
 
         // Update increments and convergence rate
         if (RootFinderData.CurrentPoint.DefinedFlag) {
@@ -1885,8 +1814,8 @@ namespace RootFinder {
         RootFinderData.CurrentPoint.Y = Y;
     }
 
-    void SortHistory(int const N,               // Number of points to sort in history array
-                     Array1S<PointType> History // Array of PointType variables. At least N of them
+    void SortHistory(int const N,                // Number of points to sort in history array
+                     Array1D<PointType> &History // Array of PointType variables. At least N of them
     )
     {
         // SUBROUTINE INFORMATION:
@@ -1951,7 +1880,7 @@ namespace RootFinder {
         }
     }
 
-    void AdvanceRootFinder(RootFinderDataType &RootFinderData) // Data used by root finding algorithm
+    void AdvanceRootFinder(EnergyPlusData &state, RootFinderDataType &RootFinderData) // Data used by root finding algorithm
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Dimitri Curtil (LBNL)
@@ -2011,7 +1940,7 @@ namespace RootFinder {
                     RootFinderData.XCandidate = RootFinderData.MinPoint.X;
                 } else {
                     // Should never happen
-                    ShowFatalError("AdvanceRootFinder: Cannot find lower bracket.");
+                    ShowFatalError(state, "AdvanceRootFinder: Cannot find lower bracket.");
                 }
             }
 
@@ -2026,7 +1955,7 @@ namespace RootFinder {
                     RootFinderData.XCandidate = RootFinderData.MaxPoint.X;
                 } else {
                     // Should never happen
-                    ShowFatalError("AdvanceRootFinder: Cannot find upper bracket.");
+                    ShowFatalError(state, "AdvanceRootFinder: Cannot find upper bracket.");
                 }
             }
 
@@ -2069,12 +1998,12 @@ namespace RootFinder {
                             // Brent method
                             RootFinderData.XCandidate = BrentMethod(RootFinderData);
                         } else {
-                            ShowSevereError("AdvanceRootFinder: Invalid solution method specification. Valid choices are:");
-                            ShowContinueError("AdvanceRootFinder: iMethodBisection=" + TrimSigDigits(iMethodBisection));
-                            ShowContinueError("AdvanceRootFinder: iMethodFalsePosition=" + TrimSigDigits(iMethodFalsePosition));
-                            ShowContinueError("AdvanceRootFinder: iMethodSecant=" + TrimSigDigits(iMethodSecant));
-                            ShowContinueError("AdvanceRootFinder: iMethodBrent=" + TrimSigDigits(iMethodBrent));
-                            ShowFatalError("AdvanceRootFinder: Preceding error causes program termination.");
+                            ShowSevereError(state, "AdvanceRootFinder: Invalid solution method specification. Valid choices are:");
+                            ShowContinueError(state, format("AdvanceRootFinder: iMethodBisection={}", iMethodBisection));
+                            ShowContinueError(state, format("AdvanceRootFinder: iMethodFalsePosition={}", iMethodFalsePosition));
+                            ShowContinueError(state, format("AdvanceRootFinder: iMethodSecant={}", iMethodSecant));
+                            ShowContinueError(state, format("AdvanceRootFinder: iMethodBrent={}", iMethodBrent));
+                            ShowFatalError(state, "AdvanceRootFinder: Preceding error causes program termination.");
                         }
                     }
                 }
@@ -2540,7 +2469,7 @@ namespace RootFinder {
         return BrentMethod;
     }
 
-    void WriteRootFinderTraceHeader(int const TraceFileUnit) // Unit for trace file
+    void WriteRootFinderTraceHeader(InputOutputFile &TraceFile) // Unit for trace file
     {
         // SUBROUTINE INFORMATION:
         //       AUTHOR         Dimitri Curtil (LBNL)
@@ -2585,18 +2514,31 @@ namespace RootFinder {
         //'History(1)%DefinedFlag', ',', &
         //'History(2)%DefinedFlag', ',', &
         //'History(3)%DefinedFlag', ',', &
-        {
-            IOFlags flags;
-            flags.ADVANCE("No");
-            gio::write(TraceFileUnit, "(20(A,A))", flags)
-                << "Status" << ',' << "Method" << ',' << "CurrentPoint%X" << ',' << "CurrentPoint%Y" << ',' << "XCandidate" << ','
-                << "ConvergenceRate" << ',' << "MinPoint%X" << ',' << "MinPoint%Y" << ',' << "LowerPoint%X" << ',' << "LowerPoint%Y" << ','
-                << "UpperPoint%X" << ',' << "UpperPoint%Y" << ',' << "MaxPoint%X" << ',' << "MaxPoint%Y" << ',' << "History(1)%X" << ','
-                << "History(1)%Y" << ',' << "History(2)%X" << ',' << "History(2)%Y" << ',' << "History(3)%X" << ',' << "History(3)%Y" << ',';
-        }
+        print(TraceFile,
+              "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},",
+              "Status",
+              "Method",
+              "CurrentPoint%X",
+              "CurrentPoint%Y",
+              "XCandidate",
+              "ConvergenceRate",
+              "MinPoint%X",
+              "MinPoint%Y",
+              "LowerPoint%X",
+              "LowerPoint%Y",
+              "UpperPoint%X",
+              "UpperPoint%Y",
+              "MaxPoint%X",
+              "MaxPoint%Y",
+              "History(1)%X",
+              "History(1)%Y",
+              "History(2)%X",
+              "History(2)%Y",
+              "History(3)%X",
+              "History(3)%Y");
     }
 
-    void WriteRootFinderTrace(int const TraceFileUnit,                 // Unit for trace file
+    void WriteRootFinderTrace(InputOutputFile &TraceFile,                 // Unit for trace file
                               RootFinderDataType const &RootFinderData // Data used by root finding algorithm
     )
     {
@@ -2617,7 +2559,6 @@ namespace RootFinder {
         // na
 
         // Using/Aliasing
-        using General::TrimSigDigits;
 
         // Locals
         // SUBROUTINE ARGUMENT DEFINITIONS:
@@ -2636,35 +2577,26 @@ namespace RootFinder {
 
         // FLOW:
 
-        {
-            IOFlags flags;
-            flags.ADVANCE("No");
-            gio::write(TraceFileUnit, "(2(A,A))", flags)
-                << TrimSigDigits(RootFinderData.StatusFlag) << ',' << TrimSigDigits(RootFinderData.CurrentMethodType) << ',';
-        }
+        print(TraceFile, "{},{},", RootFinderData.StatusFlag,RootFinderData.CurrentMethodType);
 
         // Only show current point if defined.
-        WritePoint(TraceFileUnit, RootFinderData.CurrentPoint, false);
+        WritePoint(TraceFile, RootFinderData.CurrentPoint, false);
 
-        {
-            IOFlags flags;
-            flags.ADVANCE("No");
-            gio::write(TraceFileUnit, "(2(F20.10,A))", flags) << RootFinderData.XCandidate << ',' << RootFinderData.ConvergenceRate << ',';
-        }
+        print(TraceFile, "{:20.10F},{:20.10F},", RootFinderData.XCandidate, RootFinderData.ConvergenceRate);
 
         // Always show min and max points.
         // Only show lower and upper points if defined.
-        WritePoint(TraceFileUnit, RootFinderData.MinPoint, true);
-        WritePoint(TraceFileUnit, RootFinderData.LowerPoint, false);
-        WritePoint(TraceFileUnit, RootFinderData.UpperPoint, false);
-        WritePoint(TraceFileUnit, RootFinderData.MaxPoint, true);
+        WritePoint(TraceFile, RootFinderData.MinPoint, true);
+        WritePoint(TraceFile, RootFinderData.LowerPoint, false);
+        WritePoint(TraceFile, RootFinderData.UpperPoint, false);
+        WritePoint(TraceFile, RootFinderData.MaxPoint, true);
         // Only show history points if defined.
-        WritePoint(TraceFileUnit, RootFinderData.History(1), false);
-        WritePoint(TraceFileUnit, RootFinderData.History(2), false);
-        WritePoint(TraceFileUnit, RootFinderData.History(3), false);
+        WritePoint(TraceFile, RootFinderData.History(1), false);
+        WritePoint(TraceFile, RootFinderData.History(2), false);
+        WritePoint(TraceFile, RootFinderData.History(3), false);
     }
 
-    void WritePoint(int const TraceFileUnit,    // Unit for trace file
+    void WritePoint(InputOutputFile &TraceFile,    // Unit for trace file
                     PointType const &PointData, // Point data structure
                     bool const ShowXValue)
     {
@@ -2693,8 +2625,6 @@ namespace RootFinder {
         // If set to TRUE, ten always show the X value even if not defined
 
         // SUBROUTINE PARAMETER DEFINITIONS:
-        static std::string NoValue; // String used whenever the value is not available
-
         // INTERFACE BLOCK SPECIFICATIONS
         // na
 
@@ -2707,29 +2637,17 @@ namespace RootFinder {
         // FLOW:
 
         if (PointData.DefinedFlag) {
-            {
-                IOFlags flags;
-                flags.ADVANCE("No");
-                gio::write(TraceFileUnit, "(2(F20.10,A))", flags) << PointData.X << ',' << PointData.Y << ',';
-            }
+            print(TraceFile, "{:20.10F},{:20.10F},", PointData.X, PointData.Y);
         } else {
             if (ShowXValue) {
-                {
-                    IOFlags flags;
-                    flags.ADVANCE("No");
-                    gio::write(TraceFileUnit, "(1(F20.10,A),1(A,A))", flags) << PointData.X << ',' << NoValue << ',';
-                }
+                print(TraceFile, "{:20.10F},,", PointData.X);
             } else {
-                {
-                    IOFlags flags;
-                    flags.ADVANCE("No");
-                    gio::write(TraceFileUnit, "(2(A,A))", flags) << NoValue << ',' << NoValue << ',';
-                }
+                print(TraceFile, ",,");
             }
         }
     }
 
-    void DebugRootFinder(int const FileUnit,                      // File unit where to write debugging info
+    void DebugRootFinder(InputOutputFile &DebugFile,                   // File unit where to write debugging info
                          RootFinderDataType const &RootFinderData // Data used by root finding algorithm
     )
     {
@@ -2757,8 +2675,6 @@ namespace RootFinder {
         // SUBROUTINE ARGUMENT DEFINITIONS:
 
         // SUBROUTINE PARAMETER DEFINITIONS:
-        static gio::Fmt fmtLD("*");
-        static gio::Fmt fmtA("(A)");
 
         // INTERFACE BLOCK SPECIFICATIONS
         // na
@@ -2771,49 +2687,28 @@ namespace RootFinder {
 
         // FLOW:
 
-        // UNIT=0 should correspond to the standard output file (screen).
-        {
-            IOFlags flags;
-            flags.ADVANCE("No");
-            gio::write(FileUnit, fmtA, flags) << "Current = ";
-        }
-        WritePoint(FileUnit, RootFinderData.CurrentPoint, true);
-        gio::write(FileUnit, fmtLD);
+        print(DebugFile, "Current = ");
+        WritePoint(DebugFile, RootFinderData.CurrentPoint, true);
+        print(DebugFile, "\n");
 
-        {
-            IOFlags flags;
-            flags.ADVANCE("No");
-            gio::write(FileUnit, fmtA, flags) << "Min     = ";
-        }
-        WritePoint(FileUnit, RootFinderData.MinPoint, true);
-        gio::write(FileUnit, fmtLD);
+        print(DebugFile, "Min     = ");
+        WritePoint(DebugFile, RootFinderData.MinPoint, true);
+        print(DebugFile, "\n");
 
-        {
-            IOFlags flags;
-            flags.ADVANCE("No");
-            gio::write(FileUnit, fmtA, flags) << "Lower   = ";
-        }
-        WritePoint(FileUnit, RootFinderData.LowerPoint, false);
-        gio::write(FileUnit, fmtLD);
+        print(DebugFile, "Lower   = ");
+        WritePoint(DebugFile, RootFinderData.LowerPoint, false);
+        print(DebugFile, "\n");
 
-        {
-            IOFlags flags;
-            flags.ADVANCE("No");
-            gio::write(FileUnit, fmtA, flags) << "Upper   = ";
-        }
-        WritePoint(FileUnit, RootFinderData.UpperPoint, false);
-        gio::write(FileUnit, fmtLD);
+        print(DebugFile, "Upper   = ");
+        WritePoint(DebugFile, RootFinderData.UpperPoint, false);
+        print(DebugFile, "\n");
 
-        {
-            IOFlags flags;
-            flags.ADVANCE("No");
-            gio::write(FileUnit, fmtA, flags) << "Max     = ";
-        }
-        WritePoint(FileUnit, RootFinderData.MaxPoint, true);
-        gio::write(FileUnit, fmtLD);
+        print(DebugFile, "Max     = ");
+        WritePoint(DebugFile, RootFinderData.MaxPoint, true);
+        print(DebugFile, "\n");
     }
 
-    void WriteRootFinderStatus(int const FileUnit,                      // File unit where to write the status description
+    void WriteRootFinderStatus(InputOutputFile &File,                      // File unit where to write the status description
                                RootFinderDataType const &RootFinderData // Data used by root finding algorithm
     )
     {
@@ -2838,7 +2733,6 @@ namespace RootFinder {
         // SUBROUTINE ARGUMENT DEFINITIONS:
 
         // SUBROUTINE PARAMETER DEFINITIONS:
-        static gio::Fmt fmtA("(A)");
 
         // INTERFACE BLOCK SPECIFICATIONS
         // na
@@ -2851,35 +2745,33 @@ namespace RootFinder {
 
         // FLOW:
 
-        {
             auto const SELECT_CASE_var(RootFinderData.StatusFlag);
             if (SELECT_CASE_var == iStatusOK) {
-                gio::write(FileUnit, fmtA) << "Found unconstrained root";
+                print(File, "Found unconstrained root");
             } else if (SELECT_CASE_var == iStatusOKMin) {
-                gio::write(FileUnit, fmtA) << "Found min constrained root";
+                print(File, "Found min constrained root");
             } else if (SELECT_CASE_var == iStatusOKMax) {
-                gio::write(FileUnit, fmtA) << "Found max constrained root";
+                print(File, "Found max constrained root");
             } else if (SELECT_CASE_var == iStatusOKRoundOff) {
-                gio::write(FileUnit, fmtA) << "Detected round-off convergence in bracket";
+                print(File, "Detected round-off convergence in bracket");
 
             } else if (SELECT_CASE_var == iStatusWarningSingular) {
-                gio::write(FileUnit, fmtA) << "Detected singularity warning";
+                print(File, "Detected singularity warning");
             } else if (SELECT_CASE_var == iStatusWarningNonMonotonic) {
-                gio::write(FileUnit, fmtA) << "Detected non-monotonicity warning";
+                print(File, "Detected non-monotonicity warning");
 
             } else if (SELECT_CASE_var == iStatusErrorRange) {
-                gio::write(FileUnit, fmtA) << "Detected out-of-range error";
+                print(File, "Detected out-of-range error");
             } else if (SELECT_CASE_var == iStatusErrorBracket) {
-                gio::write(FileUnit, fmtA) << "Detected bracket error";
+                print(File, "Detected bracket error");
             } else if (SELECT_CASE_var == iStatusErrorSlope) {
-                gio::write(FileUnit, fmtA) << "Detected slope error";
+                print(File, "Detected slope error");
             } else if (SELECT_CASE_var == iStatusErrorSingular) {
-                gio::write(FileUnit, fmtA) << "Detected singularity error";
+                print(File, "Detected singularity error");
 
             } else {
-                gio::write(FileUnit, fmtA) << "Detected bad root finder status";
+                print(File, "Detected bad root finder status");
             }
-        }
     }
 
 } // namespace RootFinder

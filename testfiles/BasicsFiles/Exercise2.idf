@@ -31,13 +31,13 @@
 !
 !
 
-  Version,9.0;
+  Version,9.4;
 
   Building,
     Exercise 2,              !- Name
     0.0,                     !- North Axis {deg}
     City,                    !- Terrain
-    0.04,                    !- Loads Convergence Tolerance Value
+    0.04,                    !- Loads Convergence Tolerance Value {W}
     0.4,                     !- Temperature Convergence Tolerance Value {deltaC}
     FullInteriorAndExterior, !- Solar Distribution
     ,                        !- Maximum Number of Warmup Days
@@ -64,21 +64,24 @@
     No,                      !- Do System Sizing Calculation
     No,                      !- Do Plant Sizing Calculation
     Yes,                     !- Run Simulation for Sizing Periods
-    No;                      !- Run Simulation for Weather File Run Periods
+    No,                      !- Run Simulation for Weather File Run Periods
+    No,                      !- Do HVAC Sizing Simulation for Sizing Periods
+    1;                       !- Maximum Number of HVAC Sizing Simulation Passes
 
   RunPeriod,
-    ,                        !- Name
+    Run Period 1,            !- Name
     1,                       !- Begin Month
     1,                       !- Begin Day of Month
+    ,                        !- Begin Year
     12,                      !- End Month
     31,                      !- End Day of Month
-    UseWeatherFile,          !- Day of Week for Start Day
+    ,                        !- End Year
+    Sunday,                  !- Day of Week for Start Day
     Yes,                     !- Use Weather File Holidays and Special Days
     Yes,                     !- Use Weather File Daylight Saving Period
     No,                      !- Apply Weekend Holiday Rule
     Yes,                     !- Use Weather File Rain Indicators
-    Yes,                     !- Use Weather File Snow Indicators
-    1;                       !- Number of Times Runperiod to be Repeated
+    Yes;                     !- Use Weather File Snow Indicators
 
   Site:Location,
     CHICAGO_IL_USA TMY2-94846,  !- Name
@@ -1154,7 +1157,6 @@
     FRONT-1,                 !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1170,7 +1172,6 @@
     FRONT-1,                 !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1186,7 +1187,6 @@
     RIGHT-1,                 !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1202,7 +1202,6 @@
     BACK-1,                  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1218,7 +1217,6 @@
     BACK-1,                  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1234,7 +1232,6 @@
     LEFT-1,                  !- Building Surface Name
     ,                        !- Outside Boundary Condition Object
     0.50000,                 !- View Factor to Ground
-    ,                        !- Shading Control Name
     ,                        !- Frame and Divider Name
     1,                       !- Multiplier
     4,                       !- Number of Vertices
@@ -1737,17 +1734,17 @@
 
   Output:Meter:MeterFileOnly,Electricity:Plant,RunPeriod;
 
-  Output:Meter:MeterFileOnly,Gas:Facility,Monthly;
+  Output:Meter:MeterFileOnly,NaturalGas:Facility,Monthly;
 
-  Output:Meter:MeterFileOnly,Gas:HVAC,Monthly;
+  Output:Meter:MeterFileOnly,NaturalGas:HVAC,Monthly;
 
-  Output:Meter:MeterFileOnly,Gas:Plant,Monthly;
+  Output:Meter:MeterFileOnly,NaturalGas:Plant,Monthly;
 
-  Output:Meter:MeterFileOnly,Gas:Facility,RunPeriod;
+  Output:Meter:MeterFileOnly,NaturalGas:Facility,RunPeriod;
 
-  Output:Meter:MeterFileOnly,Gas:HVAC,RunPeriod;
+  Output:Meter:MeterFileOnly,NaturalGas:HVAC,RunPeriod;
 
-  Output:Meter:MeterFileOnly,Gas:Plant,RunPeriod;
+  Output:Meter:MeterFileOnly,NaturalGas:Plant,RunPeriod;
 
   Output:VariableDictionary,Regular;
 
@@ -1757,5 +1754,5 @@
     HTML;                    !- Column Separator
 
   Output:Table:SummaryReports,
-    ABUPS;                   !- Report 1 Name
+    AnnualBuildingUtilityPerformanceSummary;  !- Report 1 Name
 
