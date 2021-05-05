@@ -174,7 +174,7 @@ namespace AirflowNetwork {
 
         n = 0;
         for (i = 1; i <= state.dataAirflowNetwork->AirflowNetworkNumOfLinks; ++i) {
-            ComponentType j = state.dataAirflowNetwork->AirflowNetworkCompData(state.dataAirflowNetwork->AirflowNetworkLinkageData(i).CompNum).CompTypeNum;
+            ComponentType j = state.dataAirflowNetwork->AirflowNetworkLinkageData(i).element->type();
             if (j == ComponentType::DOP) {
                 ++n;
             }
@@ -519,7 +519,7 @@ namespace AirflowNetwork {
             // if (LIST >= 1) {
             //    gio::write(outputFile, Format_901) << "Flow: " << i << n << m << AirflowNetworkLinkSimu(i).DP << AFLOW(i) << AFLOW2(i);
             //}
-            if (state.dataAirflowNetwork->AirflowNetworkCompData(state.dataAirflowNetwork->AirflowNetworkLinkageData(i).CompNum).CompTypeNum == ComponentType::HOP) {
+            if (state.dataAirflowNetwork->AirflowNetworkLinkageData(i).element->type() == ComponentType::HOP) {
                 SUMAF(n) = SUMAF(n) - AFLOW(i);
                 SUMAF(m) += AFLOW(i);
             } else {
@@ -541,7 +541,7 @@ namespace AirflowNetwork {
                 state.dataAirflowNetwork->AirflowNetworkLinkSimu(i).FLOW = 0.0;
                 state.dataAirflowNetwork->AirflowNetworkLinkSimu(i).FLOW2 = -AFLOW(i);
             }
-            if (state.dataAirflowNetwork->AirflowNetworkCompData(state.dataAirflowNetwork->AirflowNetworkLinkageData(i).CompNum).CompTypeNum == ComponentType::HOP) {
+            if (state.dataAirflowNetwork->AirflowNetworkLinkageData(i).element->type() == ComponentType::HOP) {
                 if (AFLOW(i) > 0.0) {
                     state.dataAirflowNetwork->AirflowNetworkLinkSimu(i).FLOW = AFLOW(i) + AFLOW2(i);
                     state.dataAirflowNetwork->AirflowNetworkLinkSimu(i).FLOW2 = AFLOW2(i);
@@ -556,7 +556,7 @@ namespace AirflowNetwork {
                     state.dataAirflowNetwork->AirflowNetworkLinkSimu(i).FLOW2 = AFLOW2(i);
                 }
             }
-            if (state.dataAirflowNetwork->AirflowNetworkCompData(state.dataAirflowNetwork->AirflowNetworkLinkageData(i).CompNum).CompTypeNum == ComponentType::SOP
+            if (state.dataAirflowNetwork->AirflowNetworkLinkageData(i).element->type() == ComponentType::SOP
                 && AFLOW2(i) != 0.0) {
                 if (AFLOW(i) >= 0.0) {
                     state.dataAirflowNetwork->AirflowNetworkLinkSimu(i).FLOW = AFLOW(i);
@@ -895,7 +895,7 @@ namespace AirflowNetwork {
             state.dataAirflowNetwork->AirflowNetworkLinkSimu(i).DP = DP;
             AFLOW(i) = F[0];
             AFLOW2(i) = 0.0;
-            if (state.dataAirflowNetwork->AirflowNetworkCompData(j).CompTypeNum == ComponentType::DOP) {
+            if (state.dataAirflowNetwork->AirflowNetworkLinkageData(i).element->type() == ComponentType::DOP) {
                 AFLOW2(i) = F[1];
             }
             // if (LIST >= 3) ObjexxFCL::gio::write(outputFile, Format_901) << " NRi:" << i << n << M << AirflowNetworkLinkSimu(i).DP << F[0] <<
@@ -2016,7 +2016,7 @@ namespace AirflowNetwork {
                 ll = 3;
             }
 
-            Ltyp = state.dataAirflowNetwork->AirflowNetworkCompData(state.dataAirflowNetwork->AirflowNetworkLinkageData(i).CompNum).CompTypeNum;
+            Ltyp = state.dataAirflowNetwork->AirflowNetworkLinkageData(i).element->type();
             if (Ltyp == ComponentType::DOP) {
                 ActLh = state.dataAirflowNetwork->MultizoneSurfaceData(i).Height;
                 ActLOwnh = ActLh * 1.0;

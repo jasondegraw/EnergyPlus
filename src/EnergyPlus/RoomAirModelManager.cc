@@ -2830,7 +2830,7 @@ namespace RoomAirModelManager {
                          state.dataRoomAirModelMgr->i <= state.dataRoomAirMod->AirflowNetworkSurfaceUCSDCV(0, ZoneNum);
                          ++state.dataRoomAirModelMgr->i) {
                         state.dataRoomAirModelMgr->N = state.dataAirflowNetwork->AirflowNetworkLinkageData(state.dataRoomAirModelMgr->i).CompNum;
-                        if (state.dataAirflowNetwork->AirflowNetworkCompData(state.dataRoomAirModelMgr->N).CompTypeNum ==
+                        if (state.dataAirflowNetwork->AirflowNetworkLinkageData(state.dataRoomAirModelMgr->i).element->type() ==
                             AirflowNetwork::ComponentType::DOP) {
                             SurfNum = state.dataAirflowNetwork->MultizoneSurfaceData(state.dataRoomAirModelMgr->i).SurfNum;
                             SetupOutputVariable(

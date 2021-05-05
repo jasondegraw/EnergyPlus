@@ -818,8 +818,7 @@ namespace AirflowNetwork {
                         SumTermFlow += state.dataLoopNodes->Node(k1).MassFlowRate;
                     }
                 }
-                if (state.dataAirflowNetwork->AirflowNetworkCompData(state.dataAirflowNetwork->AirflowNetworkLinkageData(k).CompNum).CompTypeNum ==
-                    ComponentType::ELR) {
+                if (state.dataAirflowNetwork->AirflowNetworkLinkageData(k).element->type() == ComponentType::ELR) {
                     // Calculate supply leak sensible losses
                     Node1 = state.dataAirflowNetwork->AirflowNetworkLinkageData(k).NodeNums[0];
                     Node2 = state.dataAirflowNetwork->AirflowNetworkLinkageData(k).NodeNums[1];
