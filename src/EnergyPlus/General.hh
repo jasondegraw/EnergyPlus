@@ -197,6 +197,10 @@ namespace General {
                 }
                 break;
             }
+            case HVACSystemRootSolverAlgorithm::Illinois: {
+                XTemp = X1 + Y1 * (X1 - X0) / DY;
+                break;
+            }
             default: {
                 XTemp = (Y0 * X1 - Y1 * X0) / DY;
             }
@@ -221,24 +225,34 @@ namespace General {
             if (Cont) {
 
                 // reassign values (only if further iteration required)
-                if (Y0 < 0.0) {
-                    if (YTemp < 0.0) {
-                        X0 = XTemp;
-                        Y0 = YTemp;
+                if (state.dataRootFinder->HVACSystemRootFinding.HVACSystemRootSolver == HVACSystemRootSolverAlgorithm::Illinois) {
+                    if (YTemp * Y1 < 0.0) {
+                        X0 = X1;
+                        Y0 = Y1;
                     } else {
-                        X1 = XTemp;
-                        Y1 = YTemp;
+                        Y0 *= 0.5;
                     }
+                    X1 = XTemp;
+                    Y1 = YTemp;
                 } else {
-                    if (YTemp < 0.0) {
-                        X1 = XTemp;
-                        Y1 = YTemp;
+                    if (Y0 < 0.0) {
+                        if (YTemp < 0.0) {
+                            X0 = XTemp;
+                            Y0 = YTemp;
+                        } else {
+                            X1 = XTemp;
+                            Y1 = YTemp;
+                        }
                     } else {
-                        X0 = XTemp;
-                        Y0 = YTemp;
-                    }
-                } // ( Y0 < 0 )
-
+                        if (YTemp < 0.0) {
+                            X1 = XTemp;
+                            Y1 = YTemp;
+                        } else {
+                            X0 = XTemp;
+                            Y0 = YTemp;
+                        }
+                    } // ( Y0 < 0 )
+                }
             } // (Cont)
 
         } // Cont

@@ -57,7 +57,8 @@ enum class HVACSystemRootSolverAlgorithm : int
     Bisection,
     RegulaFalsiThenBisection,
     BisectionThenRegulaFalsi,
-    Alternation
+    Alternation,
+    Illinois
 };
 struct HVACSystemRootFindingAlgorithm
 {
