@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -107,6 +107,9 @@ void GetInputTabularAnnual(EnergyPlusData &state)
 
     objCount = state.dataInputProcessing->inputProcessor->getNumObjectsFound(state, currentModuleObject);
     if (objCount > 0) {
+
+        state.dataOutRptTab->WriteTabularFiles = true;
+
         // if not a run period using weather do not create reports
         if (!state.dataGlobal->DoWeathSim) {
             ShowWarningError(state,

@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -78,7 +78,6 @@ struct BaseSizerWithScalableInputs : BaseSizerWithFanHeatInputs
     Real64 dataCoilSizingAirOutHumRat = 0.0;
     Real64 dataCoilSizingFanCoolLoad = 0.0;
     Real64 dataCoilSizingCapFT = 0.0;
-    Real64 dataTotCapCurveIndex = 0.0;
     Real64 dataTotCapCurveValue = 0.0;
     Real64 dataFracOfAutosizedCoolingCapacity = 0.0;
     Real64 dataFracOfAutosizedHeatingCapacity = 0.0;
@@ -86,6 +85,7 @@ struct BaseSizerWithScalableInputs : BaseSizerWithFanHeatInputs
     Real64 dataCoilIsSuppHeater = false;
     Real64 suppHeatCap = 0.0;
     Real64 unitaryHeatCap = 0.0;
+    int dataTotCapCurveIndex = 0;
 
     int zoneHVACSizingIndex = 0;
     EPVector<DataSizing::ZoneHVACSizingData> zoneHVACSizing;

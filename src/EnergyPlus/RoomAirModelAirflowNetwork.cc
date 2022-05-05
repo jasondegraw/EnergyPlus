@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -1083,14 +1083,14 @@ namespace RoomAirModelAirflowNetwork {
             HA = HA + state.dataHeatBalSurf->SurfHConvInt(SurfNum) * Area;
             SumHATsurf += state.dataHeatBalSurf->SurfHConvInt(SurfNum) * Area * state.dataHeatBalSurf->SurfTempInTmp(SurfNum);
 
-            if (state.dataSurface->SurfTAirRef(SurfNum) == ZoneMeanAirTemp) {
+            if (state.dataSurface->SurfTAirRef(SurfNum) == DataSurfaces::RefAirTemp::ZoneMeanAirTemp) {
                 // The zone air is the reference temperature(which is to be solved for in CorrectZoneAirTemp).
                 RefAirTemp = state.dataHeatBalFanSys->MAT(ZoneNum);
                 SumHA += HA;
-            } else if (state.dataSurface->SurfTAirRef(SurfNum) == AdjacentAirTemp) {
+            } else if (state.dataSurface->SurfTAirRef(SurfNum) == DataSurfaces::RefAirTemp::AdjacentAirTemp) {
                 RefAirTemp = state.dataHeatBal->SurfTempEffBulkAir(SurfNum);
                 SumHATref += HA * RefAirTemp;
-            } else if (state.dataSurface->SurfTAirRef(SurfNum) == ZoneSupplyAirTemp) {
+            } else if (state.dataSurface->SurfTAirRef(SurfNum) == DataSurfaces::RefAirTemp::ZoneSupplyAirTemp) {
                 // check whether this zone is a controlled zone or not
                 if (!ControlledZoneAirFlag) {
                     ShowFatalError(state,

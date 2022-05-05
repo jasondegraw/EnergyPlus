@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -6348,7 +6348,7 @@ void CalcInteriorSolarDistribution(EnergyPlusData &state)
             state.dataSurface->SurfOpaqAO(SurfNum) = 0.0;
         }
     }
-    if (state.dataDaylightingDevicesData->NumOfTDDPipes > 0) {
+    if ((int)state.dataDaylightingDevicesData->TDDPipe.size() > 0) {
         for (auto &e : state.dataDaylightingDevicesData->TDDPipe) {
             int SurfDome = e.Dome;
             for (int lay = 1; lay <= CFSMAXNL + 1; ++lay) {

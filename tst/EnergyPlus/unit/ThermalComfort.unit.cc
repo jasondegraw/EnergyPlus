@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -809,6 +809,22 @@ TEST_F(EnergyPlusFixture, ThermalComfort_CalcSurfaceWeightedMRT)
     state->dataThermalComforts->clear_state();
     RadTemp = CalcSurfaceWeightedMRT(*state, ZoneNum, SurfNum);
     EXPECT_NEAR(RadTemp, 14.0, 0.1);
+
+    // set AverageWithSurface to false for Kiva surfaces
+    SurfNum = 1;
+    state->dataThermalComforts->clear_state();
+    RadTemp = CalcSurfaceWeightedMRT(*state, ZoneNum, SurfNum, false);
+    EXPECT_NEAR(RadTemp, 13.1, 0.1);
+
+    SurfNum = 2;
+    state->dataThermalComforts->clear_state();
+    RadTemp = CalcSurfaceWeightedMRT(*state, ZoneNum, SurfNum, false);
+    EXPECT_NEAR(RadTemp, 17.1, 0.1);
+
+    SurfNum = 3;
+    state->dataThermalComforts->clear_state();
+    RadTemp = CalcSurfaceWeightedMRT(*state, ZoneNum, SurfNum, false);
+    EXPECT_NEAR(RadTemp, 18.0, 0.1);
 }
 
 TEST_F(EnergyPlusFixture, ThermalComfort_CalcAngleFactorMRT)

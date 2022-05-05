@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -164,12 +164,13 @@ namespace ScheduleManager {
         Real64 MinValue;                        // Minimum value for this schedule
         Real64 CurrentValue;                    // For Reporting
         bool EMSActuatedOn;                     // indicates if EMS computed
-        Real64 EMSValue;
+        Real64 EMSValue;                        // EMS value
+        bool UseDaylightSaving;                 // Toggles between daylight saving option to be inclused as "No" or "Yes" (default)
 
         // Default Constructor
         ScheduleData()
             : ScheduleTypePtr(0), WeekSchedulePointer(366, 0), Used(false), MaxMinSet(false), MaxValue(0.0), MinValue(0.0), CurrentValue(0.0),
-              EMSActuatedOn(false), EMSValue(0.0)
+              EMSActuatedOn(false), EMSValue(0.0), UseDaylightSaving(true)
         {
         }
     };
@@ -284,19 +285,17 @@ namespace ScheduleManager {
     );
 
     bool CheckDayScheduleValueMinMax(EnergyPlusData &state,
-                                     int const ScheduleIndex,            // Which Day Schedule being tested
-                                     Real64 const Minimum,               // Minimum desired value
-                                     std::string const &MinString,       // Minimum indicator ('>', '>=')
-                                     Optional<Real64 const> Maximum = _, // Maximum desired value
-                                     Optional_string_const MaxString = _ // Maximum indicator ('<', ',=')
+                                     int const ScheduleIndex, // Which Day Schedule being tested
+                                     Real64 const Minimum,    // Minimum desired value
+                                     bool const exclusiveMin, // Minimum indicator ('>', '>=')
+                                     Real64 const Maximum,    // Maximum desired value
+                                     bool const exclusiveMax  // Maximum indicator ('<', ',=')
     );
 
     bool CheckDayScheduleValueMinMax(EnergyPlusData &state,
-                                     int const ScheduleIndex,            // Which Day Schedule being tested
-                                     Real32 const Minimum,               // Minimum desired value
-                                     std::string const &MinString,       // Minimum indicator ('>', '>=')
-                                     Optional<Real32 const> Maximum = _, // Maximum desired value
-                                     Optional_string_const MaxString = _ // Maximum indicator ('<', ',=')
+                                     int const ScheduleIndex, // Which Day Schedule being tested
+                                     Real64 const Minimum,    // Minimum desired value
+                                     bool const exclusiveMin  // Minimum indicator ('>', '>=')
     );
 
     bool HasFractionalScheduleValue(EnergyPlusData &state, int const ScheduleIndex); // Which Schedule being tested
@@ -349,8 +348,7 @@ struct ScheduleManagerData : BaseGlobalStruct
     int NumSchedules = 0;
 
     // Logical Variables for Module
-    bool ScheduleInputProcessed = false; // This is false until the Schedule Input has been processed.
-    bool ScheduleDSTSFileWarningIssued = false;
+    bool ScheduleInputProcessed = false;       // This is false until the Schedule Input has been processed.
     bool ScheduleFileShadingProcessed = false; // This is false unless there is a Schedule:File:Shading object.
 
     // Object Data
@@ -374,7 +372,6 @@ struct ScheduleManagerData : BaseGlobalStruct
         NumSchedules = 0;
 
         ScheduleInputProcessed = false;
-        ScheduleDSTSFileWarningIssued = false;
         ScheduleFileShadingProcessed = false;
 
         ScheduleType.clear(); // Allowed Schedule Types

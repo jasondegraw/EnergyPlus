@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -1076,9 +1076,9 @@ TEST_F(EnergyPlusFixture, ZoneTempPredictorCorrector_CalcZoneSums_SurfConvection
     state->dataHeatBalSurf->SurfTempInTmp.allocate(3);
 
     state->dataSurface->SurfTAirRef.allocate(3);
-    state->dataSurface->SurfTAirRef(1) = ZoneMeanAirTemp;
-    state->dataSurface->SurfTAirRef(2) = AdjacentAirTemp;
-    state->dataSurface->SurfTAirRef(3) = ZoneSupplyAirTemp;
+    state->dataSurface->SurfTAirRef(1) = DataSurfaces::RefAirTemp::ZoneMeanAirTemp;
+    state->dataSurface->SurfTAirRef(2) = DataSurfaces::RefAirTemp::AdjacentAirTemp;
+    state->dataSurface->SurfTAirRef(3) = DataSurfaces::RefAirTemp::ZoneSupplyAirTemp;
 
     state->dataSurface->Surface(1).HeatTransSurf = true;
     state->dataSurface->Surface(2).HeatTransSurf = true;

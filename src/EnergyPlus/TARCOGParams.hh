@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -159,10 +159,10 @@ Real64 constexpr C2_VENET_VERTICAL(0.000);
 Real64 constexpr C3_VENET_VERTICAL(0.270);
 Real64 constexpr C4_VENET_VERTICAL(0.012);
 
-Real64 constexpr C1_SHADE(0.05);
-Real64 constexpr C2_SHADE(1.08);
-Real64 constexpr C3_SHADE(0.79);
-Real64 constexpr C4_SHADE(0.50);
+Real64 constexpr C1_SHADE(0.078);
+Real64 constexpr C2_SHADE(1.2);
+Real64 constexpr C3_SHADE(1.0);
+Real64 constexpr C4_SHADE(1.0);
 
 } // namespace EnergyPlus::TARCOGParams
 

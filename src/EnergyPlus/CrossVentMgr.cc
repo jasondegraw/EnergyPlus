@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -189,7 +189,8 @@ namespace CrossVentMgr {
             // WALL Hc, HA and HAT calculation
             for (Ctd = state.dataUCSDShared->PosZ_Wall((ZoneNum - 1) * 2 + 1); Ctd <= state.dataUCSDShared->PosZ_Wall((ZoneNum - 1) * 2 + 2); ++Ctd) {
                 SurfNum = state.dataUCSDShared->APos_Wall(Ctd);
-                state.dataSurface->SurfTAirRef(SurfNum) = AdjacentAirTemp;
+                state.dataSurface->SurfTAirRef(SurfNum) = DataSurfaces::RefAirTemp::AdjacentAirTemp;
+                state.dataSurface->SurfTAirRefRpt(SurfNum) = DataSurfaces::SurfTAirRefReportVals[state.dataSurface->SurfTAirRef(SurfNum)];
                 if (SurfNum == 0) continue;
                 state.dataHeatBal->SurfTempEffBulkAir(SurfNum) = state.dataRoomAirMod->ZTREC(ZoneNum);
                 CalcDetailedHcInForDVModel(
@@ -203,7 +204,8 @@ namespace CrossVentMgr {
             for (Ctd = state.dataUCSDShared->PosZ_Window((ZoneNum - 1) * 2 + 1); Ctd <= state.dataUCSDShared->PosZ_Window((ZoneNum - 1) * 2 + 2);
                  ++Ctd) {
                 SurfNum = state.dataUCSDShared->APos_Window(Ctd);
-                state.dataSurface->SurfTAirRef(SurfNum) = AdjacentAirTemp;
+                state.dataSurface->SurfTAirRef(SurfNum) = DataSurfaces::RefAirTemp::AdjacentAirTemp;
+                state.dataSurface->SurfTAirRefRpt(SurfNum) = DataSurfaces::SurfTAirRefReportVals[state.dataSurface->SurfTAirRef(SurfNum)];
                 if (SurfNum == 0) continue;
                 if (state.dataSurface->Surface(SurfNum).Tilt > 10.0 && state.dataSurface->Surface(SurfNum).Tilt < 170.0) { // Window Wall
                     state.dataHeatBal->SurfTempEffBulkAir(SurfNum) = state.dataRoomAirMod->ZTREC(ZoneNum);
@@ -266,7 +268,8 @@ namespace CrossVentMgr {
             for (Ctd = state.dataUCSDShared->PosZ_Door((ZoneNum - 1) * 2 + 1); Ctd <= state.dataUCSDShared->PosZ_Door((ZoneNum - 1) * 2 + 2);
                  ++Ctd) { // DOOR
                 SurfNum = state.dataUCSDShared->APos_Door(Ctd);
-                state.dataSurface->SurfTAirRef(SurfNum) = AdjacentAirTemp;
+                state.dataSurface->SurfTAirRef(SurfNum) = DataSurfaces::RefAirTemp::AdjacentAirTemp;
+                state.dataSurface->SurfTAirRefRpt(SurfNum) = DataSurfaces::SurfTAirRefReportVals[state.dataSurface->SurfTAirRef(SurfNum)];
                 if (SurfNum == 0) continue;
                 state.dataHeatBal->SurfTempEffBulkAir(SurfNum) = state.dataRoomAirMod->ZTREC(ZoneNum);
                 CalcDetailedHcInForDVModel(
@@ -280,7 +283,8 @@ namespace CrossVentMgr {
             for (Ctd = state.dataUCSDShared->PosZ_Internal((ZoneNum - 1) * 2 + 1); Ctd <= state.dataUCSDShared->PosZ_Internal((ZoneNum - 1) * 2 + 2);
                  ++Ctd) {
                 SurfNum = state.dataUCSDShared->APos_Internal(Ctd);
-                state.dataSurface->SurfTAirRef(SurfNum) = AdjacentAirTemp;
+                state.dataSurface->SurfTAirRef(SurfNum) = DataSurfaces::RefAirTemp::AdjacentAirTemp;
+                state.dataSurface->SurfTAirRefRpt(SurfNum) = DataSurfaces::SurfTAirRefReportVals[state.dataSurface->SurfTAirRef(SurfNum)];
                 if (SurfNum == 0) continue;
                 state.dataHeatBal->SurfTempEffBulkAir(SurfNum) = state.dataRoomAirMod->ZTREC(ZoneNum);
                 CalcDetailedHcInForDVModel(
@@ -295,7 +299,8 @@ namespace CrossVentMgr {
             for (Ctd = state.dataUCSDShared->PosZ_Ceiling((ZoneNum - 1) * 2 + 1); Ctd <= state.dataUCSDShared->PosZ_Ceiling((ZoneNum - 1) * 2 + 2);
                  ++Ctd) {
                 SurfNum = state.dataUCSDShared->APos_Ceiling(Ctd);
-                state.dataSurface->SurfTAirRef(SurfNum) = AdjacentAirTemp;
+                state.dataSurface->SurfTAirRef(SurfNum) = DataSurfaces::RefAirTemp::AdjacentAirTemp;
+                state.dataSurface->SurfTAirRefRpt(SurfNum) = DataSurfaces::SurfTAirRefReportVals[state.dataSurface->SurfTAirRef(SurfNum)];
                 if (SurfNum == 0) continue;
                 state.dataHeatBal->SurfTempEffBulkAir(SurfNum) = state.dataRoomAirMod->ZTJET(ZoneNum);
                 CalcDetailedHcInForDVModel(
@@ -323,7 +328,8 @@ namespace CrossVentMgr {
             for (Ctd = state.dataUCSDShared->PosZ_Floor((ZoneNum - 1) * 2 + 1); Ctd <= state.dataUCSDShared->PosZ_Floor((ZoneNum - 1) * 2 + 2);
                  ++Ctd) {
                 SurfNum = state.dataUCSDShared->APos_Floor(Ctd);
-                state.dataSurface->SurfTAirRef(SurfNum) = AdjacentAirTemp;
+                state.dataSurface->SurfTAirRef(SurfNum) = DataSurfaces::RefAirTemp::AdjacentAirTemp;
+                state.dataSurface->SurfTAirRefRpt(SurfNum) = DataSurfaces::SurfTAirRefReportVals[state.dataSurface->SurfTAirRef(SurfNum)];
                 if (SurfNum == 0) continue;
                 state.dataHeatBal->SurfTempEffBulkAir(SurfNum) = state.dataRoomAirMod->ZTJET(ZoneNum);
                 CalcDetailedHcInForDVModel(

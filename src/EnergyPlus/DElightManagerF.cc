@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -708,8 +708,8 @@ namespace DElightManagerF {
 
         constexpr auto cCurrentModuleObject("Daylighting:DELight:ComplexFenestration");
 
-        state.dataDaylightingData->TotDElightCFS = state.dataInputProcessing->inputProcessor->getNumObjectsFound(state, cCurrentModuleObject);
-        state.dataDaylightingData->DElightComplexFene.allocate(state.dataDaylightingData->TotDElightCFS);
+        int TotDElightCFS = state.dataInputProcessing->inputProcessor->getNumObjectsFound(state, cCurrentModuleObject);
+        state.dataDaylightingData->DElightComplexFene.allocate(TotDElightCFS);
         for (auto &cfs : state.dataDaylightingData->DElightComplexFene) {
             state.dataInputProcessing->inputProcessor->getObjectItem(state,
                                                                      cCurrentModuleObject,

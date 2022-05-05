@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -85,7 +85,9 @@ TEST_F(EnergyPlusFixture, OutputReportTabularAnnual_GetInput)
 
     state->dataGlobal->DoWeathSim = true;
 
+    EXPECT_FALSE(state->dataOutRptTab->WriteTabularFiles);
     GetInputTabularAnnual(*state);
+    EXPECT_TRUE(state->dataOutRptTab->WriteTabularFiles);
 
     EXPECT_EQ(state->dataOutputReportTabularAnnual->annualTables.size(), 1u);
 

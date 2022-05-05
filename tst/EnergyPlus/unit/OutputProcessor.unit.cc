@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -125,9 +125,9 @@ namespace OutputProcessor {
     TEST_F(SQLiteFixture, OutputProcessor_reportTSMeters_PrintESOTimeStamp)
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true, _);
+            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true);
 
         state->dataOutputProcessor->NumEnergyMeters = 2;
         state->dataOutputProcessor->EnergyMeters.allocate(state->dataOutputProcessor->NumEnergyMeters);
@@ -192,9 +192,9 @@ namespace OutputProcessor {
     TEST_F(SQLiteFixture, OutputProcessor_reportTSMeters)
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true, _);
+            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true);
 
         state->dataOutputProcessor->NumEnergyMeters = 2;
         state->dataOutputProcessor->EnergyMeters.allocate(state->dataOutputProcessor->NumEnergyMeters);
@@ -259,9 +259,9 @@ namespace OutputProcessor {
     TEST_F(SQLiteFixture, OutputProcessor_reportHRMeters)
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true, _);
+            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true);
 
         state->dataOutputProcessor->NumEnergyMeters = 2;
         state->dataOutputProcessor->EnergyMeters.allocate(state->dataOutputProcessor->NumEnergyMeters);
@@ -320,9 +320,9 @@ namespace OutputProcessor {
     TEST_F(SQLiteFixture, OutputProcessor_reportDYMeters)
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true, _);
+            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true);
 
         state->dataOutputProcessor->NumEnergyMeters = 2;
         state->dataOutputProcessor->EnergyMeters.allocate(state->dataOutputProcessor->NumEnergyMeters);
@@ -394,9 +394,9 @@ namespace OutputProcessor {
     TEST_F(SQLiteFixture, OutputProcessor_reportMNMeters)
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true, _);
+            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true);
 
         state->dataOutputProcessor->NumEnergyMeters = 2;
         state->dataOutputProcessor->EnergyMeters.allocate(state->dataOutputProcessor->NumEnergyMeters);
@@ -468,9 +468,9 @@ namespace OutputProcessor {
     TEST_F(SQLiteFixture, OutputProcessor_reportSMMeters)
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true, _);
+            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true);
 
         state->dataOutputProcessor->NumEnergyMeters = 2;
         state->dataOutputProcessor->EnergyMeters.allocate(state->dataOutputProcessor->NumEnergyMeters);
@@ -542,9 +542,9 @@ namespace OutputProcessor {
     TEST_F(SQLiteFixture, OutputProcessor_reportYRMeters)
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true, _);
+            2, 2, "Facility:Electricity", "", "Facility:Electricity", 1, "J", 1, true);
 
         state->dataOutputProcessor->NumEnergyMeters = 2;
         state->dataOutputProcessor->EnergyMeters.allocate(state->dataOutputProcessor->NumEnergyMeters);
@@ -779,7 +779,7 @@ namespace OutputProcessor {
 
         state->dataSQLiteProcedures->sqlite->createSQLiteTimeIndexRecord(4, 1, 1, 0, 2017);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
 
         WriteReportMeterData(*state, 1, "1", 999.9, ReportingFrequency::TimeStep, 0.0, 0, 0.0, 0, false);
         EXPECT_TRUE(compare_mtr_stream(delimited_string({"1,999.9"}, "\n")));
@@ -872,7 +872,7 @@ namespace OutputProcessor {
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteTimeIndexRecord(4, 1, 1, 0, 2017);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
 
         WriteReportRealData(*state, 1, "1", 999.9, StoreType::Summed, 1, ReportingFrequency::TimeStep, 0.0, 0, 0.0, 0);
         EXPECT_TRUE(compare_eso_stream(delimited_string({"1,999.9"}, "\n")));
@@ -1036,7 +1036,7 @@ namespace OutputProcessor {
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteTimeIndexRecord(4, 1, 1, 0, 2017);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
 
         WriteReportIntegerData(*state, 1, "1", 999.9, StoreType::Summed, 1, ReportingFrequency::TimeStep, 0, 0, 0, 0);
         EXPECT_TRUE(compare_eso_stream(delimited_string({"1,999.9"}, "\n")));
@@ -1083,6 +1083,9 @@ namespace OutputProcessor {
         WriteReportIntegerData(*state, 1, "1", 0, StoreType::Summed, 1, ReportingFrequency::TimeStep, 0, 0, 0, 0);
         EXPECT_TRUE(compare_eso_stream(delimited_string({"1,0.0"}, "\n")));
 
+        WriteReportIntegerData(*state, 1, "1", 25.75, StoreType::Averaged, 720, ReportingFrequency::Monthly, 0, 4010115, 1, 4011560);
+        EXPECT_TRUE(compare_eso_stream(delimited_string({"1,0.3E-01,0, 1, 1,15,1, 1,15,60"}, "\n")));
+
         auto reportDataResults = queryResult("SELECT * FROM ReportData;", "ReportData");
         auto reportExtendedDataResults = queryResult("SELECT * FROM ReportExtendedData;", "ReportExtendedData");
 
@@ -1098,7 +1101,8 @@ namespace OutputProcessor {
                                                           {"10", "1", "1", "61677162.0987027"},
                                                           {"11", "1", "1", "61677162.0987027"},
                                                           {"12", "1", "1", "61677162.0987027"},
-                                                          {"13", "1", "1", "0.0"}});
+                                                          {"13", "1", "1", "0.0"},
+                                                          {"14", "1", "1", "0.0357638888888889"}});
 
         std::vector<std::vector<std::string>> reportExtendedData(
             {{"1", "4", "4283196.0", "12", "21", "24", "", "0", "4283136.0", "12", "21", "0", "", "10"},
@@ -1106,7 +1110,8 @@ namespace OutputProcessor {
              {"3", "6", "4283196.0", "12", "21", "24", "", "0", "4283136.0", "12", "21", "0", "", "10"},
              {"4", "10", "4283196.0", "12", "21", "24", "", "0", "4283136.0", "12", "21", "0", "", "10"},
              {"5", "11", "4283196.0", "12", "21", "24", "", "0", "4283136.0", "12", "21", "0", "", "10"},
-             {"6", "12", "4283196.0", "12", "21", "24", "", "0", "4283136.0", "12", "21", "0", "", "10"}});
+             {"6", "12", "4283196.0", "12", "21", "24", "", "0", "4283136.0", "12", "21", "0", "", "10"},
+             {"7", "14", "1.0", "4", "1", "15", "", "0", "0.0", "4", "1", "0", "", "15"}});
 
         EXPECT_EQ(reportData, reportDataResults);
         EXPECT_EQ(reportExtendedData, reportExtendedDataResults);
@@ -1116,7 +1121,7 @@ namespace OutputProcessor {
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteTimeIndexRecord(4, 1, 1, 0, 2017);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
 
         WriteNumericData(*state, 1, "1", 999);
         EXPECT_TRUE(compare_eso_stream(delimited_string({"1,999"}, "\n")));
@@ -1856,7 +1861,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(compare_eso_stream(delimited_string({"1,1,keyedValue,variableName [m3/s] !TimeStep"}, "\n")));
 
         WriteReportVariableDictionaryItem(*state,
@@ -1871,7 +1876,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(compare_eso_stream(delimited_string({"2,1,keyedValue,variableName [m3/s] !TimeStep"}, "\n")));
 
         WriteReportVariableDictionaryItem(*state,
@@ -1901,7 +1906,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::System,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(compare_eso_stream(delimited_string({"4,1,keyedValue,variableName [m3/s] !TimeStep"}, "\n")));
 
         // Hum, can no longer pass Something else than what's in the enum...
@@ -1917,7 +1922,7 @@ namespace OutputProcessor {
                                           aThirdTimeStepType,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(compare_eso_stream(delimited_string({"5,1,keyedValue,variableName [m3/s] !TimeStep"}, "\n")));
 
         WriteReportVariableDictionaryItem(*state,
@@ -1932,7 +1937,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(compare_eso_stream(delimited_string({"6,1,keyedValue,variableName [m3/s] !Each Call"}, "\n")));
 
         WriteReportVariableDictionaryItem(*state,
@@ -1947,7 +1952,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(compare_eso_stream(delimited_string({"7,1,keyedValue,variableName [m3/s] !Each Call"}, "\n")));
 
         WriteReportVariableDictionaryItem(*state,
@@ -1977,7 +1982,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::System,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(compare_eso_stream(delimited_string({"9,1,keyedValue,variableName [m3/s] !Each Call"}, "\n")));
 
         WriteReportVariableDictionaryItem(*state,
@@ -1992,7 +1997,7 @@ namespace OutputProcessor {
                                           aThirdTimeStepType,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(compare_eso_stream(delimited_string({"10,1,keyedValue,variableName [m3/s] !Each Call"}, "\n")));
 
         WriteReportVariableDictionaryItem(*state,
@@ -2007,7 +2012,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingHourlyVariables);
         state->dataOutputProcessor->TrackingHourlyVariables = false;
         EXPECT_TRUE(compare_eso_stream(delimited_string({"11,1,keyedValue,variableName [m3/s] !Hourly"}, "\n")));
@@ -2024,7 +2029,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingHourlyVariables);
         state->dataOutputProcessor->TrackingHourlyVariables = false;
         EXPECT_TRUE(compare_eso_stream(delimited_string({"12,1,keyedValue,variableName [m3/s] !Hourly"}, "\n")));
@@ -2058,7 +2063,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::System,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingHourlyVariables);
         state->dataOutputProcessor->TrackingHourlyVariables = false;
         EXPECT_TRUE(compare_eso_stream(delimited_string({"14,1,keyedValue,variableName [m3/s] !Hourly"}, "\n")));
@@ -2075,7 +2080,7 @@ namespace OutputProcessor {
                                           aThirdTimeStepType,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingHourlyVariables);
         state->dataOutputProcessor->TrackingHourlyVariables = false;
         EXPECT_TRUE(compare_eso_stream(delimited_string({"15,1,keyedValue,variableName [m3/s] !Hourly"}, "\n")));
@@ -2092,7 +2097,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingDailyVariables);
         state->dataOutputProcessor->TrackingDailyVariables = false;
         EXPECT_TRUE(
@@ -2110,7 +2115,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingDailyVariables);
         state->dataOutputProcessor->TrackingDailyVariables = false;
         EXPECT_TRUE(
@@ -2146,7 +2151,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::System,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingDailyVariables);
         state->dataOutputProcessor->TrackingDailyVariables = false;
         EXPECT_TRUE(
@@ -2164,7 +2169,7 @@ namespace OutputProcessor {
                                           aThirdTimeStepType,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingDailyVariables);
         state->dataOutputProcessor->TrackingDailyVariables = false;
         EXPECT_TRUE(
@@ -2182,7 +2187,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingMonthlyVariables);
         state->dataOutputProcessor->TrackingMonthlyVariables = false;
         EXPECT_TRUE(compare_eso_stream(
@@ -2200,7 +2205,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingMonthlyVariables);
         state->dataOutputProcessor->TrackingMonthlyVariables = false;
         EXPECT_TRUE(compare_eso_stream(
@@ -2236,7 +2241,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::System,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingMonthlyVariables);
         state->dataOutputProcessor->TrackingMonthlyVariables = false;
         EXPECT_TRUE(compare_eso_stream(
@@ -2254,7 +2259,7 @@ namespace OutputProcessor {
                                           aThirdTimeStepType,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingMonthlyVariables);
         state->dataOutputProcessor->TrackingMonthlyVariables = false;
         EXPECT_TRUE(compare_eso_stream(
@@ -2272,7 +2277,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingRunPeriodVariables);
         state->dataOutputProcessor->TrackingRunPeriodVariables = false;
         EXPECT_TRUE(compare_eso_stream(
@@ -2290,7 +2295,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::Zone,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingRunPeriodVariables);
         state->dataOutputProcessor->TrackingRunPeriodVariables = false;
         EXPECT_TRUE(compare_eso_stream(
@@ -2326,7 +2331,7 @@ namespace OutputProcessor {
                                           OutputProcessor::TimeStepType::System,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingRunPeriodVariables);
         state->dataOutputProcessor->TrackingRunPeriodVariables = false;
         EXPECT_TRUE(compare_eso_stream(
@@ -2344,7 +2349,7 @@ namespace OutputProcessor {
                                           aThirdTimeStepType,
                                           OutputProcessor::Unit::m3_s,
                                           _,
-                                          _);
+                                          {});
         EXPECT_TRUE(state->dataOutputProcessor->TrackingRunPeriodVariables);
         state->dataOutputProcessor->TrackingRunPeriodVariables = false;
         EXPECT_TRUE(compare_eso_stream(
@@ -2390,7 +2395,7 @@ namespace OutputProcessor {
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteTimeIndexRecord(4, 1, 1, 0, 2017);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
 
         WriteCumulativeReportMeterData(*state, 1, "1", 616771620.98702729, true);
         EXPECT_TRUE(compare_mtr_stream(delimited_string({"1,616771620.9870273"}, "\n")));
@@ -2426,7 +2431,7 @@ namespace OutputProcessor {
     {
         state->dataSQLiteProcedures->sqlite->createSQLiteTimeIndexRecord(4, 1, 1, 0, 2017);
         state->dataSQLiteProcedures->sqlite->createSQLiteReportDictionaryRecord(
-            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false, _);
+            1, 1, "Zone", "Environment", "Site Outdoor Air Drybulb Temperature", 1, "C", 1, false);
 
         WriteNumericData(*state, 1, "1", 0);
         EXPECT_TRUE(compare_eso_stream(delimited_string({"1,0"}, "\n")));
@@ -3983,6 +3988,43 @@ namespace OutputProcessor {
         EXPECT_EQ(0, state->dataOutputProcessor->ReqRepVars(5).SchedPtr);
         EXPECT_EQ("", state->dataOutputProcessor->ReqRepVars(5).SchedName);
         EXPECT_EQ(true, state->dataOutputProcessor->ReqRepVars(5).Used);
+    }
+
+    TEST_F(SQLiteFixture, OutputProcessor_getMeters_WildCard)
+    {
+        // Test for #9150
+        std::string const idf_objects = delimited_string({"Output:Meter:MeterFileOnly,InteriorLights:Electricity:Zone:*,Monthly;"});
+
+        ASSERT_TRUE(process_idf(idf_objects));
+
+        Real64 light_consumption = 0;
+        for (int i = 1; i <= 5; ++i) {
+            SetupOutputVariable(*state,
+                                "Lights Electricity Energy",
+                                OutputProcessor::Unit::J,
+                                light_consumption,
+                                OutputProcessor::SOVTimeStepType::Zone,
+                                OutputProcessor::SOVStoreType::Summed,
+                                "SPACE" + std::to_string(i) + "LIGHTS",
+                                _,
+                                "Electricity",
+                                "InteriorLights",
+                                "GeneralLights",
+                                "Building",
+                                "SPACE" + std::to_string(i),
+                                1,
+                                1);
+        }
+
+        UpdateMeterReporting(*state);
+
+        compare_mtr_stream(
+            delimited_string({"53,9,InteriorLights:Electricity:Zone:SPACE1 [J] !Monthly [Value,Min,Day,Hour,Minute,Max,Day,Hour,Minute]",
+                              "102,9,InteriorLights:Electricity:Zone:SPACE2 [J] !Monthly [Value,Min,Day,Hour,Minute,Max,Day,Hour,Minute]",
+                              "139,9,InteriorLights:Electricity:Zone:SPACE3 [J] !Monthly [Value,Min,Day,Hour,Minute,Max,Day,Hour,Minute]",
+                              "176,9,InteriorLights:Electricity:Zone:SPACE4 [J] !Monthly [Value,Min,Day,Hour,Minute,Max,Day,Hour,Minute]",
+                              "213,9,InteriorLights:Electricity:Zone:SPACE5 [J] !Monthly [Value,Min,Day,Hour,Minute,Max,Day,Hour,Minute]"},
+                             "\n"));
     }
 
     TEST_F(SQLiteFixture, OutputProcessor_getCustomMeterInput)

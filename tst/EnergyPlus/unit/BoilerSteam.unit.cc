@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -93,7 +93,7 @@ TEST_F(EnergyPlusFixture, BoilerSteam_GetInput)
 
     ASSERT_TRUE(process_idf(idf_objects, false));
     GetBoilerInput(*state);
-    auto &thisBoiler = state->dataBoilerSteam->Boiler(state->dataBoilerSteam->numBoilers);
+    auto &thisBoiler = state->dataBoilerSteam->Boiler((int)state->dataBoilerSteam->Boiler.size());
     EXPECT_EQ(thisBoiler.Name, "STEAM BOILER PLANT BOILER");
     EXPECT_TRUE(compare_enums(thisBoiler.FuelType, AssignResourceTypeNum("NATURALGAS")));
     EXPECT_EQ(thisBoiler.BoilerMaxOperPress, 160000);
@@ -103,9 +103,9 @@ TEST_F(EnergyPlusFixture, BoilerSteam_GetInput)
     EXPECT_EQ(thisBoiler.MinPartLoadRat, 0.00001);
     EXPECT_EQ(thisBoiler.MaxPartLoadRat, 1.0);
     EXPECT_EQ(thisBoiler.OptPartLoadRat, 0.2);
-    EXPECT_EQ(thisBoiler.FullLoadCoef(1), 0.8);
-    EXPECT_EQ(thisBoiler.FullLoadCoef(2), 0.1);
-    EXPECT_EQ(thisBoiler.FullLoadCoef(3), 0.1);
+    EXPECT_EQ(thisBoiler.FullLoadCoef[0], 0.8);
+    EXPECT_EQ(thisBoiler.FullLoadCoef[1], 0.1);
+    EXPECT_EQ(thisBoiler.FullLoadCoef[2], 0.1);
     EXPECT_EQ(thisBoiler.SizFac, 1.0);
 
     // Additional tests for fuel type input
@@ -149,28 +149,26 @@ TEST_F(EnergyPlusFixture, BoilerSteam_BoilerEfficiency)
 
     state->dataPlnt->PlantLoop.allocate(state->dataPlnt->TotNumLoops);
     for (int l = 1; l <= state->dataPlnt->TotNumLoops; ++l) {
-        auto &loop(state->dataPlnt->PlantLoop(l));
-        loop.LoopSide.allocate(2);
-        auto &loopside(state->dataPlnt->PlantLoop(l).LoopSide(1));
+        auto &loopside(state->dataPlnt->PlantLoop(l).LoopSide(DataPlant::LoopSideLocation::Demand));
         loopside.TotalBranches = 1;
         loopside.Branch.allocate(1);
-        auto &loopsidebranch(state->dataPlnt->PlantLoop(l).LoopSide(1).Branch(1));
+        auto &loopsidebranch(state->dataPlnt->PlantLoop(l).LoopSide(DataPlant::LoopSideLocation::Demand).Branch(1));
         loopsidebranch.TotalComponents = 1;
         loopsidebranch.Comp.allocate(1);
     }
 
     GetBoilerInput(*state);
-    auto &thisBoiler = state->dataBoilerSteam->Boiler(state->dataBoilerSteam->numBoilers);
+    auto &thisBoiler = state->dataBoilerSteam->Boiler((int)state->dataBoilerSteam->Boiler.size());
 
     state->dataPlnt->PlantLoop(1).Name = "SteamLoop";
     state->dataPlnt->PlantLoop(1).FluidName = "Steam";
     state->dataPlnt->PlantLoop(1).FluidIndex = 1;
     state->dataPlnt->PlantLoop(1).PlantSizNum = 1;
     state->dataPlnt->PlantLoop(1).FluidName = "STEAM";
-    state->dataPlnt->PlantLoop(1).LoopSide(1).Branch(1).Comp(1).Name = thisBoiler.Name;
-    state->dataPlnt->PlantLoop(1).LoopSide(1).Branch(1).Comp(1).Type = DataPlant::PlantEquipmentType::Boiler_Steam;
-    state->dataPlnt->PlantLoop(1).LoopSide(1).Branch(1).Comp(1).NodeNumIn = thisBoiler.BoilerInletNodeNum;
-    state->dataPlnt->PlantLoop(1).LoopSide(1).Branch(1).Comp(1).NodeNumOut = thisBoiler.BoilerOutletNodeNum;
+    state->dataPlnt->PlantLoop(1).LoopSide(DataPlant::LoopSideLocation::Demand).Branch(1).Comp(1).Name = thisBoiler.Name;
+    state->dataPlnt->PlantLoop(1).LoopSide(DataPlant::LoopSideLocation::Demand).Branch(1).Comp(1).Type = DataPlant::PlantEquipmentType::Boiler_Steam;
+    state->dataPlnt->PlantLoop(1).LoopSide(DataPlant::LoopSideLocation::Demand).Branch(1).Comp(1).NodeNumIn = thisBoiler.BoilerInletNodeNum;
+    state->dataPlnt->PlantLoop(1).LoopSide(DataPlant::LoopSideLocation::Demand).Branch(1).Comp(1).NodeNumOut = thisBoiler.BoilerOutletNodeNum;
 
     state->dataSize->PlantSizData.allocate(1);
     state->dataSize->PlantSizData(1).DesVolFlowRate = 0.1;

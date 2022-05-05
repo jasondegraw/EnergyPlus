@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -60,6 +60,7 @@
 #include <EnergyPlus/DataGlobals.hh>
 #include <EnergyPlus/DataHVACSystems.hh>
 #include <EnergyPlus/EnergyPlus.hh>
+#include <EnergyPlus/ExhaustAirSystemManager.hh>
 #include <EnergyPlus/OutputProcessor.hh>
 #include <EnergyPlus/SystemReports.hh>
 
@@ -86,18 +87,21 @@ namespace DataZoneEquipment {
         Num
     };
 
-    enum class AirLoopHVAC
+    enum class AirLoopHVACZone
     {
         Invalid = -1,
-        ZoneSplitter,
-        ZoneSupplyPlenum,
-        ZoneMixer,
-        ZoneReturnPlenum,
+        Splitter,
+        SupplyPlenum,
+        Mixer,
+        ReturnPlenum,
         Num
     };
 
-    constexpr std::array<std::string_view, static_cast<int>(AirLoopHVAC::Num)> AirLoopHVACTypeNamesCC = {
+    constexpr std::array<std::string_view, static_cast<int>(AirLoopHVACZone::Num)> AirLoopHVACTypeNamesCC = {
         "AirLoopHVAC:ZoneSplitter", "AirLoopHVAC:SupplyPlenum", "AirLoopHVAC:ZoneMixer", "AirLoopHVAC:ReturnPlenum"};
+
+    constexpr std::array<std::string_view, static_cast<int>(AirLoopHVACZone::Num)> AirLoopHVACTypeNamesUC = {
+        "AIRLOOPHVAC:ZONESPLITTER", "AIRLOOPHVAC:SUPPLYPLENUM", "AIRLOOPHVAC:ZONEMIXER", "AIRLOOPHVAC:RETURNPLENUM"};
 
     // Start zone equip objects
     // list units that are valid for zone system availability managers first
@@ -153,10 +157,10 @@ namespace DataZoneEquipment {
     enum class LoadDist
     {
         Invalid = -1,
-        SequentialLoading,
-        UniformLoading,
-        UniformPLRLoading,
-        SequentialUniformPLRLoading,
+        Sequential,
+        Uniform,
+        UniformPLR,
+        SequentialUniformPLR,
         Num
     };
 
@@ -397,7 +401,7 @@ namespace DataZoneEquipment {
         Array1D<EquipmentData> EquipData; // Index of energy output report data
 
         // Default Constructor
-        EquipList() : LoadDistScheme(DataZoneEquipment::LoadDist::SequentialLoading), NumOfEquipTypes(0), NumAvailHeatEquip(0), NumAvailCoolEquip(0)
+        EquipList() : LoadDistScheme(DataZoneEquipment::LoadDist::Sequential), NumOfEquipTypes(0), NumAvailHeatEquip(0), NumAvailCoolEquip(0)
         {
         }
 
@@ -433,7 +437,7 @@ namespace DataZoneEquipment {
         int NumOfComponents;
         int InletNodeNum;
         Array1D_string ComponentType; // TODO: Convert this from string to enum and remove ComponentTypeEnum below
-        Array1D<DataZoneEquipment::AirLoopHVAC> ComponentTypeEnum;
+        Array1D<DataZoneEquipment::AirLoopHVACZone> ComponentTypeEnum;
         Array1D_string ComponentName;
         Array1D_int ComponentIndex;
         Array1D_int SplitterIndex;
@@ -457,7 +461,7 @@ namespace DataZoneEquipment {
         int NumOfComponents;
         int OutletNodeNum;
         Array1D_string ComponentType; // TODO: Convert this from string to enum and remove ComponentTypeEnum below
-        Array1D<DataZoneEquipment::AirLoopHVAC> ComponentTypeEnum;
+        Array1D<DataZoneEquipment::AirLoopHVACZone> ComponentTypeEnum;
         Array1D_string ComponentName;
         Array1D_int ComponentIndex;
 
@@ -509,6 +513,8 @@ struct DataZoneEquipmentData : BaseGlobalStruct
     int GetZoneEquipmentDataFound = 0;
     int NumSupplyAirPaths = 0;
     int NumReturnAirPaths = 0;
+    int NumExhaustAirSystems = 0;
+    int NumZoneExhaustControls = 0;
     bool ZoneEquipInputsFilled = false;
     bool ZoneEquipSimulatedOnce = false;
     int NumOfZoneEquipLists = 0;
@@ -523,6 +529,8 @@ struct DataZoneEquipmentData : BaseGlobalStruct
     Array1D<DataZoneEquipment::EquipList> ZoneEquipList;
     Array1D<DataZoneEquipment::SupplyAir> SupplyAirPath;
     Array1D<DataZoneEquipment::ReturnAir> ReturnAirPath;
+    Array1D<ExhaustAirSystemManager::ExhaustAir> ExhaustAirSystem;
+    Array1D<ExhaustAirSystemManager::ZoneExhaustControl> ZoneExhaustControlSystem; // 2022-01: maybe a better name?
 
     void clear_state() override
     {
@@ -530,6 +538,8 @@ struct DataZoneEquipmentData : BaseGlobalStruct
         this->GetZoneEquipmentDataFound = 0;
         this->NumSupplyAirPaths = 0;
         this->NumReturnAirPaths = 0;
+        this->NumExhaustAirSystems = 0;
+        this->NumZoneExhaustControls = 0;
         this->ZoneEquipInputsFilled = false;
         this->ZoneEquipSimulatedOnce = false;
         this->NumOfZoneEquipLists = 0;
@@ -544,6 +554,8 @@ struct DataZoneEquipmentData : BaseGlobalStruct
         this->ZoneEquipList.deallocate();
         this->SupplyAirPath.deallocate();
         this->ReturnAirPath.deallocate();
+        this->ExhaustAirSystem.deallocate();
+        this->ZoneExhaustControlSystem.deallocate();
     }
 };
 

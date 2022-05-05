@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -203,6 +203,7 @@ void CoilCoolingDXCurveFitPerformance::simulate(EnergyPlus::EnergyPlusData &stat
                                                 bool const singleMode,
                                                 Real64 LoadSHR)
 {
+    static constexpr std::string_view RoutineName = "CoilCoolingDXCurveFitPerformance::simulate";
     Real64 reportingConstant = state.dataHVACGlobal->TimeStepSys * DataGlobalConstants::SecInHour;
     this->recoveredEnergyRate = 0.0;
     this->NormalSHR = 0.0;
@@ -325,6 +326,12 @@ void CoilCoolingDXCurveFitPerformance::simulate(EnergyPlus::EnergyPlusData &stat
                 this->ModeRatio = 0.0;
                 this->OperatingMode = 1;
                 this->recoveredEnergyRate = 0.0;
+            }
+            // Check for saturation error and modify temperature at constant enthalpy
+            Real64 tsat = Psychrometrics::PsyTsatFnHPb(state, outletNode.Enthalpy, inletNode.Press, RoutineName);
+            if (outletNode.Temp < tsat) {
+                outletNode.Temp = tsat;
+                outletNode.HumRat = Psychrometrics::PsyWFnTdbH(state, tsat, outletNode.Enthalpy);
             }
         }
     } else if (useAlternateMode == DataHVACGlobals::coilEnhancedMode) {

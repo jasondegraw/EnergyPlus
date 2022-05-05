@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -962,11 +962,11 @@ void ManageSystemSizingAdjustments(EnergyPlusData &state)
                                 state.dataSize->VpzHtgByZone(termUnitSizingIndex) =
                                     sd_airterminal(singleDuctATUNum).MaxHeatAirVolFlowRate; // store std 62.1 values
                             } else {
-                                if (sd_airterminal(singleDuctATUNum).DamperHeatingAction == SingleDuct::Action::ReverseAction) {
+                                if (sd_airterminal(singleDuctATUNum).DamperHeatingAction == SingleDuct::Action::Reverse) {
                                     airLoopHeatingMaximumFlowRateSum += sd_airterminal(singleDuctATUNum).MaxAirVolFlowRate;
                                     state.dataSize->VpzHtgByZone(termUnitSizingIndex) =
                                         sd_airterminal(singleDuctATUNum).MaxAirVolFlowRate; // store std 62.1 values
-                                } else if (sd_airterminal(singleDuctATUNum).DamperHeatingAction == SingleDuct::Action::ReverseActionWithLimits) {
+                                } else if (sd_airterminal(singleDuctATUNum).DamperHeatingAction == SingleDuct::Action::ReverseWithLimits) {
                                     airLoopHeatingMaximumFlowRateSum +=
                                         max(sd_airterminal(singleDuctATUNum).MaxAirVolFlowRateDuringReheat,
                                             (sd_airterminal(singleDuctATUNum).MaxAirVolFlowRate * sd_airterminal(singleDuctATUNum).ZoneMinAirFrac));
@@ -1197,8 +1197,8 @@ void ManageSystemSizingAdjustments(EnergyPlusData &state)
             }
 
             // sum up heating and max flows for any four pipe cooled beam terminal units (the only one using the airTerminalPtr at this point)
-            if (allocated(AirDistUnit) && state.dataDefineEquipment->NumAirDistUnits > 0) {
-                for (int aDUNum = 1; aDUNum <= state.dataDefineEquipment->NumAirDistUnits; ++aDUNum) {
+            if (allocated(AirDistUnit) && (int)state.dataDefineEquipment->AirDistUnit.size() > 0) {
+                for (int aDUNum = 1; aDUNum <= (int)state.dataDefineEquipment->AirDistUnit.size(); ++aDUNum) {
                     if (AirDistUnit(aDUNum).airTerminalPtr.get() != nullptr) {
                         if (AirLoopNum == AirDistUnit(aDUNum).airTerminalPtr->getAirLoopNum()) {
                             airLoopHeatingMaximumFlowRateSum += AirDistUnit(aDUNum).airTerminalPtr->getPrimAirDesignVolFlow();
@@ -1879,7 +1879,7 @@ void ManageSystemVentilationAdjustments(EnergyPlusData &state)
                                                              state.dataOutRptPredefined->pdchS62zcdAlN,
                                                              TermUnitFinalZoneSizing(termUnitSizingIndex).ZoneName,
                                                              AirToZoneNodeInfo(AirLoopNum).AirLoopName); // Air loop name
-                    for (int iAirDistUnit = 1; iAirDistUnit <= state.dataDefineEquipment->NumAirDistUnits; ++iAirDistUnit) {
+                    for (int iAirDistUnit = 1; iAirDistUnit <= (int)state.dataDefineEquipment->AirDistUnit.size(); ++iAirDistUnit) {
                         if (AirDistUnit(iAirDistUnit).TermUnitSizingNum == termUnitSizingIndex) {
                             OutputReportPredefined::PreDefTableEntry(state,
                                                                      state.dataOutRptPredefined->pdchS62zcdBox,
@@ -1961,7 +1961,7 @@ void ManageSystemVentilationAdjustments(EnergyPlusData &state)
                                                              state.dataOutRptPredefined->pdchS62zhdAlN,
                                                              TermUnitFinalZoneSizing(termUnitSizingIndex).ZoneName,
                                                              AirToZoneNodeInfo(AirLoopNum).AirLoopName); // Air loop name
-                    for (int iAirDistUnit = 1; iAirDistUnit <= state.dataDefineEquipment->NumAirDistUnits; ++iAirDistUnit) {
+                    for (int iAirDistUnit = 1; iAirDistUnit <= (int)state.dataDefineEquipment->AirDistUnit.size(); ++iAirDistUnit) {
                         if (AirDistUnit(iAirDistUnit).TermUnitSizingNum == termUnitSizingIndex) {
                             OutputReportPredefined::PreDefTableEntry(state,
                                                                      state.dataOutRptPredefined->pdchS62zhdBox,
@@ -2801,7 +2801,12 @@ void GetSizingParams(EnergyPlusData &state)
     } else {
         ShowFatalError(state, cCurrentModuleObject + ": More than 1 occurrence of this object; only 1 allowed");
     }
-
+    if (state.dataGlobal->OverrideTimestep) {
+        state.dataSize->NumTimeStepsInAvg = state.dataGlobal->NumOfTimeStepInHour;
+        ShowWarningError(state,
+                         "Due to the use of the fast simulation mode, the time step for simulation and averaging window of sizing is overwritten to "
+                         "one hour. Original user inputs for averaging window and timestep are no longer used.");
+    }
     if (state.dataSize->NumTimeStepsInAvg < state.dataGlobal->NumOfTimeStepInHour) {
         ShowWarningError(state,
                          format("{}: note {} entered value=[{}] is less than 1 hour (i.e., {} timesteps).",

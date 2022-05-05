@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -173,22 +173,18 @@ namespace Humidifiers {
         thisHum.ControlHumidifier(state, WaterAddNeeded);
 
         // call the correct humidifier calculation routine
-        {
-            auto const SELECT_CASE_var(thisHum.HumType);
-
-            if (SELECT_CASE_var == HumidType::Electric) { // 'HUMIDIFIER:STEAM:ELECTRIC'
-
-                thisHum.CalcElecSteamHumidifier(state, WaterAddNeeded);
-
-            } else if (SELECT_CASE_var == HumidType::Gas) { // 'HUMIDIFIER:STEAM:GAS'
-
-                thisHum.CalcGasSteamHumidifier(state, WaterAddNeeded);
-
-            } else {
-                ShowSevereError(state, format("SimHumidifier: Invalid Humidifier Type Code={}", thisHum.HumType));
-                ShowContinueError(state, "...Component Name=[" + std::string{CompName} + "].");
-                ShowFatalError(state, "Preceding Condition causes termination.");
-            }
+        switch (thisHum.HumType) {
+        case HumidType::Electric: { // 'HUMIDIFIER:STEAM:ELECTRIC'
+            thisHum.CalcElecSteamHumidifier(state, WaterAddNeeded);
+        } break;
+        case HumidType::Gas: { // 'HUMIDIFIER:STEAM:GAS'
+            thisHum.CalcGasSteamHumidifier(state, WaterAddNeeded);
+        } break;
+        default: {
+            ShowSevereError(state, format("SimHumidifier: Invalid Humidifier Type Code={}", thisHum.HumType));
+            ShowContinueError(state, "...Component Name=[" + std::string{CompName} + "].");
+            ShowFatalError(state, "Preceding Condition causes termination.");
+        } break;
         }
 
         thisHum.UpdateReportWaterSystem(state);
@@ -312,19 +308,19 @@ namespace Humidifiers {
             Humidifier(HumNum).AirInNode = GetOnlySingleNode(state,
                                                              Alphas(3),
                                                              ErrorsFound,
-                                                             CurrentModuleObject,
+                                                             DataLoopNode::ConnectionObjectType::HumidifierSteamElectric,
                                                              Alphas(1),
                                                              DataLoopNode::NodeFluidType::Air,
-                                                             DataLoopNode::NodeConnectionType::Inlet,
+                                                             DataLoopNode::ConnectionType::Inlet,
                                                              NodeInputManager::CompFluidStream::Primary,
                                                              ObjectIsNotParent);
             Humidifier(HumNum).AirOutNode = GetOnlySingleNode(state,
                                                               Alphas(4),
                                                               ErrorsFound,
-                                                              CurrentModuleObject,
+                                                              DataLoopNode::ConnectionObjectType::HumidifierSteamElectric,
                                                               Alphas(1),
                                                               DataLoopNode::NodeFluidType::Air,
-                                                              DataLoopNode::NodeConnectionType::Outlet,
+                                                              DataLoopNode::ConnectionType::Outlet,
                                                               NodeInputManager::CompFluidStream::Primary,
                                                               ObjectIsNotParent);
             TestCompSet(state, CurrentModuleObject, Alphas(1), Alphas(3), Alphas(4), "Air Nodes");
@@ -383,19 +379,19 @@ namespace Humidifiers {
             Humidifier(HumNum).AirInNode = GetOnlySingleNode(state,
                                                              Alphas(4),
                                                              ErrorsFound,
-                                                             CurrentModuleObject,
+                                                             DataLoopNode::ConnectionObjectType::HumidifierSteamGas,
                                                              Alphas(1),
                                                              DataLoopNode::NodeFluidType::Air,
-                                                             DataLoopNode::NodeConnectionType::Inlet,
+                                                             DataLoopNode::ConnectionType::Inlet,
                                                              NodeInputManager::CompFluidStream::Primary,
                                                              ObjectIsNotParent);
             Humidifier(HumNum).AirOutNode = GetOnlySingleNode(state,
                                                               Alphas(5),
                                                               ErrorsFound,
-                                                              CurrentModuleObject,
+                                                              DataLoopNode::ConnectionObjectType::HumidifierSteamGas,
                                                               Alphas(1),
                                                               DataLoopNode::NodeFluidType::Air,
-                                                              DataLoopNode::NodeConnectionType::Outlet,
+                                                              DataLoopNode::ConnectionType::Outlet,
                                                               NodeInputManager::CompFluidStream::Primary,
                                                               ObjectIsNotParent);
             TestCompSet(state, CurrentModuleObject, Alphas(1), Alphas(4), Alphas(5), "Air Nodes");
@@ -843,18 +839,24 @@ namespace Humidifiers {
                             OutletHumRatDes = std::max(state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).CoolSupHumRat,
                                                        state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).HeatSupHumRat);
                         } else { // ELSE size to supply air duct flow rate
-                            auto const SELECT_CASE_var(state.dataSize->CurDuctType);
-                            if (SELECT_CASE_var == Main) {
+                            switch (state.dataSize->CurDuctType) {
+                            case Main: {
                                 AirVolFlow = state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).DesMainVolFlow;
-                            } else if (SELECT_CASE_var == Cooling) {
+                            } break;
+                            case Cooling: {
                                 AirVolFlow = state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).DesCoolVolFlow;
-                            } else if (SELECT_CASE_var == Heating) {
+                            } break;
+                            case Heating: {
                                 AirVolFlow = state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).DesHeatVolFlow;
-                            } else if (SELECT_CASE_var == Other) {
+                            } break;
+                            case Other: {
                                 AirVolFlow = state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).DesMainVolFlow;
-                            } else {
+                            } break;
+                            default: {
                                 AirVolFlow = state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).DesMainVolFlow;
+                            } break;
                             }
+
                             AirDensity = PsyRhoAirFnPbTdbW(state,
                                                            state.dataEnvrn->OutBaroPress,
                                                            state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).MixTempAtCoolPeak,
@@ -867,18 +869,24 @@ namespace Humidifiers {
                                                   state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).HeatSupHumRat);
                         }
                     } else {
-                        auto const SELECT_CASE_var(state.dataSize->CurDuctType);
-                        if (SELECT_CASE_var == Main) {
+                        switch (state.dataSize->CurDuctType) {
+                        case Main: {
                             AirVolFlow = state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).DesMainVolFlow;
-                        } else if (SELECT_CASE_var == Cooling) {
+                        } break;
+                        case Cooling: {
                             AirVolFlow = state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).DesCoolVolFlow;
-                        } else if (SELECT_CASE_var == Heating) {
+                        } break;
+                        case Heating: {
                             AirVolFlow = state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).DesHeatVolFlow;
-                        } else if (SELECT_CASE_var == Other) {
+                        } break;
+                        case Other: {
                             AirVolFlow = state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).DesMainVolFlow;
-                        } else {
+                        } break;
+                        default: {
                             AirVolFlow = state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).DesMainVolFlow;
+                        } break;
                         }
+
                         AirDensity = PsyRhoAirFnPbTdbW(state,
                                                        state.dataEnvrn->OutBaroPress,
                                                        state.dataSize->FinalSysSizing(state.dataSize->CurSysNum).MixTempAtCoolPeak,

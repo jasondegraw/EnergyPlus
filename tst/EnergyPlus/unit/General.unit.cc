@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -400,5 +400,31 @@ TEST_F(EnergyPlusFixture, General_EpexpTest)
     //    y = epexpOverflow(x, d);
     //    EXPECT_NEAR(1.0142320547350045e+304, y, 1.0E2);
     //    */
+}
+
+TEST_F(EnergyPlusFixture, General_MovingAvg)
+{
+    int numItem = 12;
+    Array1D<Real64> inputData;
+    Array1D<Real64> outputData;
+    inputData.allocate(numItem);
+    outputData.allocate(numItem);
+    for (int i = 1; i <= numItem; i++) {
+        inputData(i) = (Real64)i * i;
+    }
+    outputData = 0.0;
+
+    int avgWindowWidth = 1;
+    MovingAvg(inputData, numItem, avgWindowWidth, outputData);
+    for (int i = 1; i <= numItem; i++) {
+        ASSERT_EQ(outputData(i), inputData(i));
+    }
+
+    avgWindowWidth = 2;
+    MovingAvg(inputData, numItem, avgWindowWidth, outputData);
+    ASSERT_EQ(outputData(1), (inputData(1) + inputData(numItem)) / 2);
+    for (int j = 2; j <= numItem; j++) {
+        ASSERT_EQ(outputData(j), (inputData(j) + inputData(j - 1)) / 2);
+    }
 }
 } // namespace EnergyPlus

@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -1239,7 +1239,7 @@ void GetInputEconomicsCurrencyType(EnergyPlusData &state, bool &ErrorsFound) // 
                                                                  state.dataIPShortCut->cAlphaFieldNames,
                                                                  state.dataIPShortCut->cNumericFieldNames);
         // Monetary Unit
-        for (i = 1; i <= state.dataCostEstimateManager->numMonetaryUnit; ++i) {
+        for (i = 1; i <= (int)state.dataCostEstimateManager->monetaryUnit.size(); ++i) {
             if (UtilityRoutines::SameString(state.dataIPShortCut->cAlphaArgs(1), state.dataCostEstimateManager->monetaryUnit(i).code)) {
                 state.dataCostEstimateManager->selectedMonetaryUnit = i;
                 break;
@@ -1385,8 +1385,8 @@ void initializeMonetaryUnit(EnergyPlusData &state)
 
     //   www.xe.com/symbols.php
 
-    state.dataCostEstimateManager->numMonetaryUnit = 111;
-    state.dataCostEstimateManager->monetaryUnit.allocate(state.dataCostEstimateManager->numMonetaryUnit);
+    int numMonetaryUnit = 111;
+    state.dataCostEstimateManager->monetaryUnit.allocate(numMonetaryUnit);
     state.dataCostEstimateManager->monetaryUnit(1).code = "USD";
     state.dataCostEstimateManager->monetaryUnit(2).code = "AFN";
     state.dataCostEstimateManager->monetaryUnit(3).code = "ALL";
@@ -4407,25 +4407,33 @@ void WriteTabularTariffReports(EnergyPlusData &state)
                 } else {
                     tableBody(1, 6) = "automatic";
                 }
-                {
-                    auto const SELECT_CASE_var(tariff(iTariff).convChoice);
-                    if (SELECT_CASE_var == EconConv::USERDEF) {
-                        tableBody(1, 7) = "User Defined";
-                    } else if (SELECT_CASE_var == EconConv::KWH) {
-                        tableBody(1, 7) = "kWh";
-                    } else if (SELECT_CASE_var == EconConv::THERM) {
-                        tableBody(1, 7) = "Therm";
-                    } else if (SELECT_CASE_var == EconConv::MMBTU) {
-                        tableBody(1, 7) = "MMBtu";
-                    } else if (SELECT_CASE_var == EconConv::MJ) {
-                        tableBody(1, 7) = "MJ";
-                    } else if (SELECT_CASE_var == EconConv::KBTU) {
-                        tableBody(1, 7) = "kBtu";
-                    } else if (SELECT_CASE_var == EconConv::MCF) {
-                        tableBody(1, 7) = "MCF";
-                    } else if (SELECT_CASE_var == EconConv::CCF) {
-                        tableBody(1, 7) = "CCF";
-                    }
+                switch (tariff(iTariff).convChoice) {
+                case EconConv::USERDEF: {
+                    tableBody(1, 7) = "User Defined";
+                } break;
+                case EconConv::KWH: {
+                    tableBody(1, 7) = "kWh";
+                } break;
+                case EconConv::THERM: {
+                    tableBody(1, 7) = "Therm";
+                } break;
+                case EconConv::MMBTU: {
+                    tableBody(1, 7) = "MMBtu";
+                } break;
+                case EconConv::MJ: {
+                    tableBody(1, 7) = "MJ";
+                } break;
+                case EconConv::KBTU: {
+                    tableBody(1, 7) = "kBtu";
+                } break;
+                case EconConv::MCF: {
+                    tableBody(1, 7) = "MCF";
+                } break;
+                case EconConv::CCF: {
+                    tableBody(1, 7) = "CCF";
+                } break;
+                default:
+                    break;
                 }
                 columnWidth = 14; // array assignment - same for all columns
                 WriteSubtitle(state, "General");

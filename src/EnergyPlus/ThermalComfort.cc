@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -2085,13 +2085,13 @@ namespace ThermalComfort {
         return CalcAngleFactorMRT;
     }
 
-    Real64 CalcSurfaceWeightedMRT(EnergyPlusData &state, int const ZoneNum, int const SurfNum)
+    Real64 CalcSurfaceWeightedMRT(EnergyPlusData &state, int const ZoneNum, int const SurfNum, bool AverageWithSurface)
     {
 
         // Purpose: Calculate a modified zone MRT that excludes the Surface( SurfNum ).
         //          This is necessary for the surface weighted option to not in essence
-        //          double count SurfNum in the MRT calculation.  Other than that, the
-        //          method here is the same as CalculateZoneMRT.  Once a modified zone
+        //          double count SurfNum in the MRT calculation when averaged with the Surface( SurfNum ).
+        //          Other than that, the method here is the same as CalculateZoneMRT.  Once a modified zone
         //          MRT is calculated, the subroutine then calculates and returns the
         //          RadTemp (radiant temperature) for use by the thermal comfort routines
         //          that is the average of the surface temperature to be weighted and
@@ -2141,17 +2141,24 @@ namespace ThermalComfort {
             }
         }
 
-        // Now weight the MRT--half comes from the surface used for weighting (SurfNum) and the rest from the adjusted MRT that excludes this surface
+        // Now weight the MRT
         if (state.dataThermalComforts->ZoneAESum(ZoneNum) > 0.01) {
-            CalcSurfaceWeightedMRT =
-                0.5 * (state.dataHeatBalSurf->SurfInsideTempHist(1)(SurfNum) + (SumAET / state.dataThermalComforts->ZoneAESum(ZoneNum)));
+            CalcSurfaceWeightedMRT = SumAET / state.dataThermalComforts->ZoneAESum(ZoneNum);
+            // if averaged with surface--half comes from the surface used for weighting (SurfNum) and the rest from the calculated MRT that excludes
+            // this surface
+            if (AverageWithSurface) {
+                CalcSurfaceWeightedMRT = 0.5 * (state.dataHeatBalSurf->SurfInsideTempHist(1)(SurfNum) + CalcSurfaceWeightedMRT);
+            }
         } else {
             if (state.dataThermalComforts->FirstTimeError) {
                 ShowWarningError(
                     state, "Zone areas*inside surface emissivities are summing to zero, for Zone=\"" + state.dataHeatBal->Zone(ZoneNum).Name + "\"");
                 ShowContinueError(state, "As a result, MAT will be used for MRT when calculating a surface weighted MRT for this zone.");
                 state.dataThermalComforts->FirstTimeError = false;
-                CalcSurfaceWeightedMRT = 0.5 * (state.dataHeatBalSurf->SurfInsideTempHist(1)(SurfNum) + state.dataHeatBalFanSys->MAT(ZoneNum));
+                CalcSurfaceWeightedMRT = state.dataHeatBalFanSys->MAT(ZoneNum);
+                if (AverageWithSurface) {
+                    CalcSurfaceWeightedMRT = 0.5 * (state.dataHeatBalSurf->SurfInsideTempHist(1)(SurfNum) + CalcSurfaceWeightedMRT);
+                }
             }
         }
 
@@ -2236,19 +2243,21 @@ namespace ThermalComfort {
         // FUNCTION LOCAL VARIABLE DECLARATIONS:
         Real64 ZoneRadTemp;
 
-        {
-            auto const SELECT_CASE_var(state.dataHeatBal->People(PeopleListNum).MRTCalcType);
-
-            if (SELECT_CASE_var == DataHeatBalance::CalcMRT::ZoneAveraged) {
-                state.dataThermalComforts->RadTemp = state.dataHeatBal->ZoneMRT(state.dataThermalComforts->ZoneNum);
-            } else if (SELECT_CASE_var == DataHeatBalance::CalcMRT::SurfaceWeighted) {
-                ZoneRadTemp = state.dataHeatBal->ZoneMRT(state.dataThermalComforts->ZoneNum);
-                SurfaceTemp = state.dataHeatBalSurf->SurfInsideTempHist(1)(state.dataHeatBal->People(PeopleListNum).SurfacePtr);
-                state.dataThermalComforts->RadTemp =
-                    CalcSurfaceWeightedMRT(state, state.dataThermalComforts->ZoneNum, state.dataHeatBal->People(PeopleListNum).SurfacePtr);
-            } else if (SELECT_CASE_var == DataHeatBalance::CalcMRT::AngleFactor) {
-                state.dataThermalComforts->RadTemp = CalcAngleFactorMRT(state, state.dataHeatBal->People(PeopleListNum).AngleFactorListPtr);
-            }
+        switch (state.dataHeatBal->People(PeopleListNum).MRTCalcType) {
+        case DataHeatBalance::CalcMRT::ZoneAveraged: {
+            state.dataThermalComforts->RadTemp = state.dataHeatBal->ZoneMRT(state.dataThermalComforts->ZoneNum);
+        } break;
+        case DataHeatBalance::CalcMRT::SurfaceWeighted: {
+            ZoneRadTemp = state.dataHeatBal->ZoneMRT(state.dataThermalComforts->ZoneNum);
+            SurfaceTemp = state.dataHeatBalSurf->SurfInsideTempHist(1)(state.dataHeatBal->People(PeopleListNum).SurfacePtr);
+            state.dataThermalComforts->RadTemp =
+                CalcSurfaceWeightedMRT(state, state.dataThermalComforts->ZoneNum, state.dataHeatBal->People(PeopleListNum).SurfacePtr);
+        } break;
+        case DataHeatBalance::CalcMRT::AngleFactor: {
+            state.dataThermalComforts->RadTemp = CalcAngleFactorMRT(state, state.dataHeatBal->People(PeopleListNum).AngleFactorListPtr);
+        } break;
+        default:
+            break;
         }
 
         // If high temperature radiant heater present and on, then must account for this in MRT calculation
@@ -2457,15 +2466,18 @@ namespace ThermalComfort {
             state.dataThermalComforts->TotalAnyZoneTimeNotSimpleASH55Summer = 0.0;
             state.dataThermalComforts->TotalAnyZoneTimeNotSimpleASH55Either = 0.0;
             // report how the aggregation is conducted
-            {
-                auto const SELECT_CASE_var(state.dataGlobal->KindOfSim);
-                if (SELECT_CASE_var == DataGlobalConstants::KindOfSim::DesignDay) {
-                    addFootNoteSubTable(state, state.dataOutRptPredefined->pdstSimpleComfort, "Aggregated over the Design Days");
-                } else if (SELECT_CASE_var == DataGlobalConstants::KindOfSim::RunPeriodDesign) {
-                    addFootNoteSubTable(state, state.dataOutRptPredefined->pdstSimpleComfort, "Aggregated over the RunPeriods for Design");
-                } else if (SELECT_CASE_var == DataGlobalConstants::KindOfSim::RunPeriodWeather) {
-                    addFootNoteSubTable(state, state.dataOutRptPredefined->pdstSimpleComfort, "Aggregated over the RunPeriods for Weather");
-                }
+            switch (state.dataGlobal->KindOfSim) {
+            case DataGlobalConstants::KindOfSim::DesignDay: {
+                addFootNoteSubTable(state, state.dataOutRptPredefined->pdstSimpleComfort, "Aggregated over the Design Days");
+            } break;
+            case DataGlobalConstants::KindOfSim::RunPeriodDesign: {
+                addFootNoteSubTable(state, state.dataOutRptPredefined->pdstSimpleComfort, "Aggregated over the RunPeriods for Design");
+            } break;
+            case DataGlobalConstants::KindOfSim::RunPeriodWeather: {
+                addFootNoteSubTable(state, state.dataOutRptPredefined->pdstSimpleComfort, "Aggregated over the RunPeriods for Weather");
+            } break;
+            default:
+                break;
             }
             // report number of occupied hours per week for LEED report
             for (iZone = 1; iZone <= state.dataGlobal->NumOfZones; ++iZone) {
@@ -2655,15 +2667,18 @@ namespace ThermalComfort {
             state.dataThermalComforts->TotalAnyZoneNotMetCoolingOccupied = 0.0;
             state.dataThermalComforts->TotalAnyZoneNotMetOccupied = 0.0;
             // report how the aggregation is conducted
-            {
-                auto const SELECT_CASE_var(state.dataGlobal->KindOfSim);
-                if (SELECT_CASE_var == DataGlobalConstants::KindOfSim::DesignDay) {
-                    addFootNoteSubTable(state, state.dataOutRptPredefined->pdstUnmetLoads, "Aggregated over the Design Days");
-                } else if (SELECT_CASE_var == DataGlobalConstants::KindOfSim::RunPeriodDesign) {
-                    addFootNoteSubTable(state, state.dataOutRptPredefined->pdstUnmetLoads, "Aggregated over the RunPeriods for Design");
-                } else if (SELECT_CASE_var == DataGlobalConstants::KindOfSim::RunPeriodWeather) {
-                    addFootNoteSubTable(state, state.dataOutRptPredefined->pdstUnmetLoads, "Aggregated over the RunPeriods for Weather");
-                }
+            switch (state.dataGlobal->KindOfSim) {
+            case DataGlobalConstants::KindOfSim::DesignDay: {
+                addFootNoteSubTable(state, state.dataOutRptPredefined->pdstUnmetLoads, "Aggregated over the Design Days");
+            } break;
+            case DataGlobalConstants::KindOfSim::RunPeriodDesign: {
+                addFootNoteSubTable(state, state.dataOutRptPredefined->pdstUnmetLoads, "Aggregated over the RunPeriods for Design");
+            } break;
+            case DataGlobalConstants::KindOfSim::RunPeriodWeather: {
+                addFootNoteSubTable(state, state.dataOutRptPredefined->pdstUnmetLoads, "Aggregated over the RunPeriods for Weather");
+            } break;
+            default:
+                break;
             }
         }
     }

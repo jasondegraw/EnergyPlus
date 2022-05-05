@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -588,10 +588,9 @@ void ReportCoilSelection::doZoneEqSetup(EnergyPlusData &state, int const coilVec
                 state.dataAirSystemsData->PrimaryAirSystems(c->airloopNum).supFanVecIndex);
             break;
         }
-        case DataAirSystems::Invalid: {
+        default:
             // do nothing
             break;
-        }
         } // end switch
     }
 
@@ -850,10 +849,9 @@ void ReportCoilSelection::doFinalProcessingOfCoilData(EnergyPlusData &state)
             c->fanSizeMaxAirMassFlow = state.dataHVACFan->fanObjs[c->supFanVecIndex]->maxAirMassFlowRate();
             break;
         }
-        case DataAirSystems::Invalid: {
+        default:
             // do nothing
             break;
-        }
         } // end switch
 
         c->coilAndFanNetTotalCapacityIdealPeak = c->coilTotCapAtPeak - c->fanHeatGainIdealPeak;
@@ -875,8 +873,8 @@ void ReportCoilSelection::doFinalProcessingOfCoilData(EnergyPlusData &state)
             } else {
                 // find boiler on this plant loop and get capacity from it
                 if (allocated(state.dataBoilerSteam->Boiler)) {
-                    for (int boilerIndex = 1; boilerIndex <= state.dataBoilerSteam->numBoilers; ++boilerIndex) {
-                        if (state.dataBoilerSteam->Boiler(boilerIndex).LoopNum == c->waterLoopNum) { // steam boiler on this loop
+                    for (int boilerIndex = 1; boilerIndex <= (int)state.dataBoilerSteam->Boiler.size(); ++boilerIndex) {
+                        if (state.dataBoilerSteam->Boiler(boilerIndex).plantLoc.loopNum == c->waterLoopNum) { // steam boiler on this loop
                             c->plantDesSupTemp = state.dataBoilerSteam->Boiler(boilerIndex).TempUpLimitBoilerOut;
                             c->plantDesRetTemp = state.dataBoilerSteam->Boiler(boilerIndex).TempUpLimitBoilerOut - c->plantDesDeltaTemp;
                             c->plantDesCapacity = state.dataBoilerSteam->Boiler(boilerIndex).NomCap;
@@ -1906,7 +1904,7 @@ void ReportCoilSelection::setCoilSupplyFanInfo(EnergyPlusData &state,
     if (fanEnumType == DataAirSystems::StructArrayLegacyFanModels) {
         if (fanIndex <= 0) {
             bool errorsFound(false);
-            Fans::GetFanIndex(state, fanName, locFanIndex, errorsFound, ObjexxFCL::Optional_string_const());
+            Fans::GetFanIndex(state, fanName, locFanIndex, errorsFound);
         } else {
             locFanIndex = fanIndex;
         }

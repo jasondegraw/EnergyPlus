@@ -1,4 +1,4 @@
-// EnergyPlus, Copyright (c) 1996-2021, The Board of Trustees of the University of Illinois,
+// EnergyPlus, Copyright (c) 1996-2022, The Board of Trustees of the University of Illinois,
 // The Regents of the University of California, through Lawrence Berkeley National Laboratory
 // (subject to receipt of any required approvals from the U.S. Dept. of Energy), Oak Ridge
 // National Laboratory, managed by UT-Battelle, Alliance for Sustainable Energy, LLC, and other
@@ -456,12 +456,16 @@ Real64 HeatingCapacitySizer::size(EnergyPlusData &state, Real64 _originalValue, 
         if (this->isEpJSON) this->sizingString = "nominal_capacity [W]";
     }
     if (this->dataScalableCapSizingON) {
-        auto const SELECT_CASE_var(this->zoneEqSizing(this->curZoneEqNum).SizingMethod(DataHVACGlobals::HeatingCapacitySizing));
-        if (SELECT_CASE_var == DataSizing::CapacityPerFloorArea) {
+        switch (this->zoneEqSizing(this->curZoneEqNum).SizingMethod(DataHVACGlobals::HeatingCapacitySizing)) {
+        case DataSizing::CapacityPerFloorArea: {
             this->sizingStringScalable = "(scaled by capacity / area) ";
-        } else if (SELECT_CASE_var == DataSizing::FractionOfAutosizedHeatingCapacity ||
-                   SELECT_CASE_var == DataSizing::FractionOfAutosizedCoolingCapacity) {
+        } break;
+        case DataSizing::FractionOfAutosizedHeatingCapacity:
+        case DataSizing::FractionOfAutosizedCoolingCapacity: {
             this->sizingStringScalable = "(scaled by fractional multiplier) ";
+        } break;
+        default:
+            break;
         }
     }
 
