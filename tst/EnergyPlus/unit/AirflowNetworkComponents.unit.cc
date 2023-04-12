@@ -76,6 +76,114 @@ using namespace DataHeatBalance;
 
 namespace EnergyPlus {
 
+
+TEST_F(EnergyPlusFixture, AirflowNetwork_SolverTest_SimpleOpening)
+{
+
+    int n = 1;
+    int m = 2;
+    int NF;
+    std::array<Real64, 2> F{{0.0, 0.0}};
+    std::array<Real64, 2> DF{{0.0, 0.0}};
+
+    state->dataSurface->Surface.allocate(1);
+    state->dataSurface->Surface(1).Tilt = 90.0;
+    state->dataSurface->Surface(1).SinTilt = 1.0;
+
+    state->afn->AirflowNetworkCompData.allocate(1);
+    state->afn->AirflowNetworkCompData(1).TypeNum = 1;
+    state->afn->MultizoneSurfaceData.allocate(1);
+    state->afn->MultizoneSurfaceData(1).Width = 10.0;
+    state->afn->MultizoneSurfaceData(1).Height = 5.0;
+    state->afn->MultizoneSurfaceData(1).OpenFactor = 1.0;
+    state->afn->MultizoneSurfaceData(1).SurfNum = 1;
+
+    state->afn->node_states.clear();
+    for (int it = 0; it < 2; ++it)
+        state->afn->node_states.emplace_back(AirState(AIRDENSITY_CONSTEXPR(20.0, 101325.0, 0.0)));
+    //state->afn->node_states[0].density = 1.2;
+    //state->afn->node_states[1].density = 1.18;
+
+    SimpleOpening opening; 
+
+    opening.FlowCoef = 0.001;
+    opening.FlowExpo = 0.5;
+    opening.DischCoeff = 0.6;
+    opening.MinRhoDiff = 0.01;
+
+    state->afn->AirflowNetworkLinkageData.allocate(1);
+    state->afn->AirflowNetworkLinkageData(1).NodeHeights[0] = 4.0;
+    state->afn->AirflowNetworkLinkageData(1).NodeHeights[1] = 2.0;
+
+    Real64 multiplier = 1.0;
+    Real64 control = 1.0;
+    Real64 pdrop = 0.05;
+
+    NF = opening.calculate(*state, false, pdrop, 1, multiplier, control, state->afn->node_states[0], state->afn->node_states[1], F, DF);
+    EXPECT_EQ(1, NF);
+    //EXPECT_NEAR(3.47863, F[0], 0.00001);
+    //EXPECT_NEAR(34.7863, DF[0], 0.0001);
+    //EXPECT_NEAR(2.96657, F[1], 0.00001);
+    EXPECT_EQ(0.0, DF[1]);
+
+    NF = opening.calculate(*state, false, -pdrop, 1, multiplier, control, state->afn->node_states[0], state->afn->node_states[1], F, DF);
+    EXPECT_EQ(1, NF);
+    //EXPECT_NEAR(-3.42065, F[0], 0.00001);
+    //EXPECT_NEAR(34.20649, DF[0], 0.0001);
+    //EXPECT_NEAR(2.96657, F[1], 0.00001);
+    EXPECT_EQ(0.0, DF[1]);
+
+    state->afn->node_states[0].density = 1.2;
+    state->afn->node_states[1].density = 1.18;
+
+    NF = opening.calculate(*state, true, pdrop, 1, multiplier, control, state->afn->node_states[0], state->afn->node_states[1], F, DF);
+    EXPECT_EQ(1, NF);
+    // EXPECT_NEAR(3.47863, F[0], 0.00001);
+    // EXPECT_NEAR(34.7863, DF[0], 0.0001);
+    // EXPECT_NEAR(2.96657, F[1], 0.00001);
+    EXPECT_EQ(0.0, F[1]);
+    EXPECT_EQ(0.0, DF[1]);
+
+    NF = opening.calculate(*state, true, -pdrop, 1, multiplier, control, state->afn->node_states[0], state->afn->node_states[1], F, DF);
+    EXPECT_EQ(1, NF);
+    // EXPECT_NEAR(-3.42065, F[0], 0.00001);
+    // EXPECT_NEAR(34.20649, DF[0], 0.0001);
+    // EXPECT_NEAR(2.96657, F[1], 0.00001);
+    EXPECT_EQ(0.0, F[1]);
+    EXPECT_EQ(0.0, DF[1]);
+
+    NF = opening.calculate(*state, false, pdrop, 1, multiplier, control, state->afn->node_states[0], state->afn->node_states[1], F, DF);
+    EXPECT_EQ(2, NF);
+    // EXPECT_NEAR(3.47863, F[0], 0.00001);
+    // EXPECT_NEAR(34.7863, DF[0], 0.0001);
+    // EXPECT_NEAR(2.96657, F[1], 0.00001);
+    // EXPECT_EQ(0.0, DF[1]);
+
+    NF = opening.calculate(*state, false, -pdrop, 1, multiplier, control, state->afn->node_states[0], state->afn->node_states[1], F, DF);
+    EXPECT_EQ(1, NF);
+    // EXPECT_NEAR(-3.42065, F[0], 0.00001);
+    // EXPECT_NEAR(34.20649, DF[0], 0.0001);
+    EXPECT_EQ(0.0, F[1]);
+    EXPECT_EQ(0.0, DF[1]);
+
+    // Have to flip the density difference to get two-way flow
+    state->afn->node_states[0].density = 1.18;
+    state->afn->node_states[1].density = 1.2;
+
+    NF = opening.calculate(*state, false, -pdrop, 1, multiplier, control, state->afn->node_states[0], state->afn->node_states[1], F, DF);
+    EXPECT_EQ(2, NF);
+    // EXPECT_NEAR(-3.42065, F[0], 0.00001);
+    // EXPECT_NEAR(34.20649, DF[0], 0.0001);
+    // EXPECT_NEAR(2.96657, F[1], 0.00001);
+    // EXPECT_EQ(0.0, DF[1]);
+
+    state->afn->AirflowNetworkCompData.deallocate();
+    state->afn->AirflowNetworkLinkageData.deallocate();
+    state->afn->MultizoneSurfaceData.deallocate();
+    state->afn->AirflowNetworkCompData.deallocate();
+}
+
+
 TEST_F(EnergyPlusFixture, AirflowNetwork_SolverTest_HorizontalOpening)
 {
 

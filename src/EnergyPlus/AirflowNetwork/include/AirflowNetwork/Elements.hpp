@@ -524,38 +524,6 @@ namespace AirflowNetwork {
         }
     };
 
-    struct SimpleOpening : public AirflowElement // Large simple opening component
-    {
-        // Members
-        Real64 FlowCoef;   // Air Mass Flow Coefficient When Window or Door Is Closed [kg/s at 1Pa]
-        Real64 FlowExpo;   // Air Mass Flow exponent When Window or Door Is Closed [dimensionless]
-        Real64 MinRhoDiff; // Minimum density difference for two-way flow
-        Real64 DischCoeff; // Discharge coefficient at full opening
-        Real64 OpenFactor; // Opening factor
-
-        // Default Constructor
-        SimpleOpening() : FlowCoef(0.0), FlowExpo(0.0), MinRhoDiff(0.0), DischCoeff(0.0), OpenFactor(0.0)
-        {
-        }
-
-        int calculate(EnergyPlusData &state,
-                      bool const LFLAG,                         // Initialization flag.If = 1, use laminar relationship
-                      Real64 const PDROP,                       // Total pressure drop across a component (P1 - P2) [Pa]
-                      int const i,                              // Linkage number
-                      [[maybe_unused]] const Real64 multiplier, // Element multiplier
-                      [[maybe_unused]] const Real64 control,    // Element control signal
-                      const AirState &propN,                    // Node 1 properties
-                      const AirState &propM,                    // Node 2 properties
-                      std::array<Real64, 2> &F,                 // Airflow through the component [kg/s]
-                      std::array<Real64, 2> &DF                 // Partial derivative:  DF/DP
-        );
-
-        virtual ComponentType type()
-        {
-            return ComponentType::SOP;
-        }
-    };
-
     struct HorizontalOpening : public AirflowElement // Large horizontal opening component
     {
         // Members
@@ -702,6 +670,38 @@ namespace AirflowNetwork {
         virtual ComponentType type()
         {
             return ComponentType::SCR;
+        }
+    };
+
+    struct SimpleOpening : public AirflowElement // Large simple opening component
+    {
+        // Members
+        Real64 FlowCoef;   // Air Mass Flow Coefficient When Window or Door Is Closed [kg/s at 1Pa]
+        Real64 FlowExpo;   // Air Mass Flow exponent When Window or Door Is Closed [dimensionless]
+        Real64 MinRhoDiff; // Minimum density difference for two-way flow
+        Real64 DischCoeff; // Discharge coefficient at full opening
+        Real64 OpenFactor; // Opening factor
+
+        // Default Constructor
+        SimpleOpening() : FlowCoef(0.0), FlowExpo(0.0), MinRhoDiff(0.0), DischCoeff(0.0), OpenFactor(0.0)
+        {
+        }
+
+        int calculate(EnergyPlusData &state,
+                      bool const LFLAG,                         // Initialization flag.If = 1, use laminar relationship
+                      Real64 const PDROP,                       // Total pressure drop across a component (P1 - P2) [Pa]
+                      int const i,                              // Linkage number
+                      [[maybe_unused]] const Real64 multiplier, // Element multiplier
+                      [[maybe_unused]] const Real64 control,    // Element control signal
+                      const AirState &propN,                    // Node 1 properties
+                      const AirState &propM,                    // Node 2 properties
+                      std::array<Real64, 2> &F,                 // Airflow through the component [kg/s]
+                      std::array<Real64, 2> &DF                 // Partial derivative:  DF/DP
+        );
+
+        virtual ComponentType type()
+        {
+            return ComponentType::SOP;
         }
     };
 

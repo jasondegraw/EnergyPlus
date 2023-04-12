@@ -25664,11 +25664,12 @@ AirflowNetwork:MultiZone:Component:SimpleOpening,
       \note Mass Flow Rate = Air Mass Flow Coefficient * (dP)^Air Mass Flow Exponent.
       \note Used only when opening (window or door) is closed.
  N3 , \field Minimum Density Difference for Two-Way Flow
-      \required-field
       \units kg/m3
       \type real
-      \minimum> 0
+      \minimum 0
+      \default 0
       \note Enter the minimum density difference above which two-way flow may occur due to stack effect.
+      \note If the value is zero or blank, a the minimum density difference is computed as 0.0001 * |dP|.
  N4 ; \field Discharge Coefficient
       \required-field
       \units dimensionless

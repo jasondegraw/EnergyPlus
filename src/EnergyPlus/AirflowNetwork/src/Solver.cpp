@@ -998,8 +998,8 @@ namespace AirflowNetwork {
             m_state.dataInputProcessing->inputProcessor->getNumObjectsFound(m_state, CurrentModuleObject); // Temporary workaround
         instances = m_state.dataInputProcessing->inputProcessor->epJSON.find(CurrentModuleObject);
         if (instances != m_state.dataInputProcessing->inputProcessor->epJSON.end()) {
-            int i = 1;                                                               // Temporary workaround
-            MultizoneCompSimpleOpeningData.allocate(AirflowNetworkNumOfSimOpenings); // Temporary workaround
+            int i_old = 0;                                                               // Temporary workaround
+            //MultizoneCompSimpleOpeningData.allocate(AirflowNetworkNumOfSimOpenings); // Temporary workaround
             auto &instancesValue = instances.value();
             for (auto instance = instancesValue.begin(); instance != instancesValue.end(); ++instance) {
                 auto const &fields = instance.value();
@@ -1008,30 +1008,36 @@ namespace AirflowNetwork {
 
                 Real64 coeff{fields.at("air_mass_flow_coefficient_when_opening_is_closed")};
                 Real64 expnt{0.65};
-                if (fields.find("air_mass_flow_exponent_when_opening_is_closed") != fields.end()) {
-                    expnt = fields.at("air_mass_flow_exponent_when_opening_is_closed").get<Real64>();
+                auto found = fields.find("air_mass_flow_exponent_when_opening_is_closed");
+                if (found != fields.end()) {
+                    expnt = *found;
                 }
-                Real64 diff{fields.at("minimum_density_difference_for_two_way_flow")};
                 Real64 dischargeCoeff{fields.at("discharge_coefficient")};
 
-                MultizoneCompSimpleOpeningData(i).name = thisObjectName;       // Name of large simple opening component
-                MultizoneCompSimpleOpeningData(i).FlowCoef = coeff;            // Air Mass Flow Coefficient When Window or Door Is Closed
-                MultizoneCompSimpleOpeningData(i).FlowExpo = expnt;            // Air Mass Flow exponent When Window or Door Is Closed
-                MultizoneCompSimpleOpeningData(i).MinRhoDiff = diff;           // Minimum density difference for two-way flow
-                MultizoneCompSimpleOpeningData(i).DischCoeff = dischargeCoeff; // Discharge coefficient at full opening
+                found = fields.find("minimum_density_difference_for_two_way_flow");
+                if (found != fields.end()) {
+                    Real64 diff{*found};
+                    MultizoneCompSimpleOpeningData.emplace_back();
+                    MultizoneCompSimpleOpeningData[i_old].name = thisObjectName;       // Name of large simple opening component
+                    MultizoneCompSimpleOpeningData[i_old].FlowCoef = coeff;            // Air Mass Flow Coefficient When Window or Door Is Closed
+                    MultizoneCompSimpleOpeningData[i_old].FlowExpo = expnt;            // Air Mass Flow exponent When Window or Door Is Closed
+                    MultizoneCompSimpleOpeningData[i_old].MinRhoDiff = diff;           // Minimum density difference for two-way flow
+                    MultizoneCompSimpleOpeningData[i_old].DischCoeff = dischargeCoeff; // Discharge coefficient at full opening
+                    ++i_old;
+                }
 
-                // Add the element to the lookup table, check for name overlaps
-                if (elements.find(thisObjectName) == elements.end()) {
-                    elements[thisObjectName] = &MultizoneCompSimpleOpeningData(i); // Yet another workaround
-                } else {
+                // Check for name overlaps
+                if (elements.find(thisObjectName) != elements.end()) {
                     ShowSevereError(
                         m_state,
                         format("{}: {}: Duplicated airflow element names are found = \"{}\".", RoutineName, CurrentModuleObject, thisObjectName));
-                    // ShowContinueError(state, "A unique component name is required in both objects " + CompName(1) + " and " + CompName(2));
                     success = false;
                 }
 
-                ++i;
+            }
+            // Add the element to the lookup table
+            for (auto &afe : MultizoneCompSimpleOpeningData) {
+                elements[afe.name] = &afe; // Yet another workaround
             }
         }
 

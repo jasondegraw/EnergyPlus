@@ -511,7 +511,7 @@ namespace AirflowNetwork {
         Array1D<AirflowNetwork::MultizoneZoneProp> MultizoneZoneData;
         EPVector<AirflowNetwork::MultizoneSurfaceProp> MultizoneSurfaceData;
         Array1D<AirflowNetwork::DetailedOpening> MultizoneCompDetOpeningData;
-        Array1D<AirflowNetwork::SimpleOpening> MultizoneCompSimpleOpeningData;
+        EPVector<AirflowNetwork::SimpleOpening> MultizoneCompSimpleOpeningData;
         Array1D<AirflowNetwork::HorizontalOpening> MultizoneCompHorOpeningData;
         Array1D<AirflowNetwork::SurfaceCrack> MultizoneSurfaceCrackData;
         Array1D<AirflowNetwork::EffectiveLeakageArea> MultizoneSurfaceELAData;
