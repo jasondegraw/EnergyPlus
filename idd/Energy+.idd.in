@@ -23462,6 +23462,7 @@ Daylighting:Controls,
        \type choice
        \key SplitFlux
        \key DElight
+       \note DElight is a legacy value retained only so EnergyPlus can emit a targeted fatal error.
        \default SplitFlux
   A4,  \field Availability Schedule Name
        \type object-list
@@ -23678,7 +23679,7 @@ Daylighting:ReferencePoint,
 
 Daylighting:DELight:ComplexFenestration,
        \min-fields 5
-       \memo Used for DElight Complex Fenestration of all types
+       \memo Legacy object retained only so EnergyPlus can emit a targeted fatal error.
   A1,  \field Name
        \required-field
        \note Only used for user reference
@@ -108797,47 +108798,32 @@ OutputControl:Files,
        \key Yes
        \key No
        \default Yes
-  A21, \field Output DelightIn
+  A21, \field Output EDD
        \type choice
        \key Yes
        \key No
        \default Yes
-  A22, \field Output DelightELdmp
+  A22, \field Output DBG
        \type choice
        \key Yes
        \key No
        \default Yes
-  A23, \field Output DelightDFdmp
+  A23, \field Output PerfLog
        \type choice
        \key Yes
        \key No
        \default Yes
-  A24, \field Output EDD
+  A24, \field Output SLN
        \type choice
        \key Yes
        \key No
        \default Yes
-  A25, \field Output DBG
+  A25, \field Output SCI
        \type choice
        \key Yes
        \key No
        \default Yes
-  A26, \field Output PerfLog
-       \type choice
-       \key Yes
-       \key No
-       \default Yes
-  A27, \field Output SLN
-       \type choice
-       \key Yes
-       \key No
-       \default Yes
-  A28, \field Output SCI
-       \type choice
-       \key Yes
-       \key No
-       \default Yes
-  A29, \field Output WRL
+  A26, \field Output WRL
        \type choice
        \key Yes
        \key No

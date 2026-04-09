@@ -61,10 +61,8 @@
 #include <ObjexxFCL/string.functions.hh>
 
 // EnergyPlus Headers
-#include <EnergyPlus/DElightManagerF.hh>
 #include <EnergyPlus/Data/EnergyPlusData.hh>
 #include <EnergyPlus/DataBSDFWindow.hh>
-#include <EnergyPlus/DataDElight.hh>
 #include <EnergyPlus/DataDaylighting.hh>
 #include <EnergyPlus/DataDaylightingDevices.hh>
 #include <EnergyPlus/DataEnvironment.hh>
@@ -97,6 +95,17 @@
 #include <EnergyPlus/WindowManager.hh>
 
 namespace EnergyPlus::Dayltg {
+
+namespace {
+
+    void reportDElightRemoval(EnergyPlusData &state, std::string const &objectType, std::string const &objectName, std::string const &detail)
+    {
+        ShowSevereError(state, EnergyPlus::format("{}=\"{}\" requests legacy DElight daylighting, which is no longer supported.", objectType, objectName));
+        ShowContinueError(state, detail);
+        ShowContinueError(state, "Update the model to use Daylighting:Controls with Daylighting Method = SplitFlux.");
+    }
+
+} // namespace
 
 // MODULE INFORMATION
 //       AUTHOR         Fred Winkelmann
@@ -3822,10 +3831,32 @@ void GetDaylightingParametersInput(EnergyPlusData &state)
         GeometryTransformForDaylighting(state);
         GetInputIlluminanceMap(state, ErrorsFound);
         GetLightWellData(state, ErrorsFound);
-        if (ErrorsFound) {
-            ShowFatalError(state, "Program terminated for above reasons, related to DAYLIGHTING");
-        }
         DayltgSetupAdjZoneListsAndPointers(state);
+    }
+
+    s_ipsc->cCurrentModuleObject = "Daylighting:DELight:ComplexFenestration";
+    int TotDElightComplexFen = state.dataInputProcessing->inputProcessor->getNumObjectsFound(state, s_ipsc->cCurrentModuleObject);
+    for (int complexFenNum = 1; complexFenNum <= TotDElightComplexFen; ++complexFenNum) {
+        int NumAlpha;
+        int NumNumbers;
+        int IOStat;
+        state.dataInputProcessing->inputProcessor->getObjectItem(state,
+                                                                 s_ipsc->cCurrentModuleObject,
+                                                                 complexFenNum,
+                                                                 s_ipsc->cAlphaArgs,
+                                                                 NumAlpha,
+                                                                 s_ipsc->rNumericArgs,
+                                                                 NumNumbers,
+                                                                 IOStat,
+                                                                 s_ipsc->lNumericFieldBlanks,
+                                                                 s_ipsc->lAlphaFieldBlanks,
+                                                                 s_ipsc->cAlphaFieldNames,
+                                                                 s_ipsc->cNumericFieldNames);
+        reportDElightRemoval(state,
+                             s_ipsc->cCurrentModuleObject,
+                             s_ipsc->cAlphaArgs(1),
+                             "Remove this Daylighting:DELight:ComplexFenestration object from the model.");
+        ErrorsFound = true;
     }
 
     dl->maxNumRefPtInAnyDaylCtrl = 0;
@@ -4020,66 +4051,6 @@ void GetDaylightingParametersInput(EnergyPlusData &state)
             } // for (enclSurfNum)
         } // for (enclNum)
     }
-
-    // RJH DElight Modification Begin - Calls to DElight preprocessing subroutines
-    if (doesDayLightingUseDElight(state)) {
-        Real64 dLatitude = state.dataEnvrn->Latitude;
-        DisplayString(state, "Calculating DElight Daylighting Factors");
-        DElightManagerF::DElightInputGenerator(state);
-        // Init Error Flag to 0 (no Warnings or Errors)
-        DisplayString(state, "ReturnFrom DElightInputGenerator");
-        int iErrorFlag = 0;
-        DisplayString(state, "Calculating DElight DaylightCoefficients");
-        DElightManagerF::GenerateDElightDaylightCoefficients(dLatitude, iErrorFlag);
-        // Check Error Flag for Warnings or Errors returning from DElight
-        // RJH 2008-03-07: open file for READWRITE and DELETE file after processing
-        DisplayString(state, "ReturnFrom DElight DaylightCoefficients Calc");
-        if (iErrorFlag != 0) {
-            // Open DElight Daylight Factors Error File for reading
-            auto iDElightErrorFile = state.files.outputDelightDfdmpFilePath.try_open(state.files.outputControl.delightdfdmp); // (THIS_AUTO_OK)
-
-            // Sequentially read lines in DElight Daylight Factors Error File
-            // and process them using standard EPlus warning/error handling calls
-            // Process all error/warning messages first
-            // Then, if any error has occurred, ShowFatalError to terminate processing
-            bool bEndofErrFile = !iDElightErrorFile.good();
-            std::string cErrorMsg; // Each DElight Error Message can be up to 200 characters long
-            while (!bEndofErrFile) {
-                auto cErrorLine = iDElightErrorFile.readLine(); // (THIS_AUTO_OK)
-                if (cErrorLine.eof) {
-                    bEndofErrFile = true;
-                    continue;
-                }
-                // Is the current line a Warning message?
-                if (has_prefix(cErrorLine.data, "WARNING: ")) {
-                    cErrorMsg = cErrorLine.data.substr(9);
-                    ShowWarningError(state, cErrorMsg);
-                }
-                // Is the current line an Error message?
-                if (has_prefix(cErrorLine.data, "ERROR: ")) {
-                    cErrorMsg = cErrorLine.data.substr(7);
-                    ShowSevereError(state, cErrorMsg);
-                    iErrorFlag = 1;
-                }
-            }
-
-            // Close and Delete DElight Error File
-            if (iDElightErrorFile.is_open()) {
-                iDElightErrorFile.close();
-                FileSystem::removeFile(iDElightErrorFile.filePath);
-            }
-
-            // If any DElight Error occurred then ShowFatalError to terminate
-            if (iErrorFlag > 0) {
-                ErrorsFound = true;
-            }
-        } else {
-            if (FileSystem::fileExists(state.files.outputDelightDfdmpFilePath.filePath)) {
-                FileSystem::removeFile(state.files.outputDelightDfdmpFilePath.filePath);
-            }
-        }
-    }
-    // RJH DElight Modification End - Calls to DElight preprocessing subroutines
 
     // TH 6/3/2010, added to report daylight factors
     s_ipsc->cCurrentModuleObject = "Output:DaylightFactors";
@@ -4603,8 +4574,17 @@ void GetDaylightingControls(EnergyPlusData &state, bool &ErrorsFound)
         if (s_ipsc->lAlphaFieldBlanks(3)) {
             daylightControl.DaylightMethod = DaylightingMethod::SplitFlux;
         } else {
-            daylightControl.DaylightMethod =
-                static_cast<DaylightingMethod>(getEnumValue(DaylightingMethodNamesUC, Util::makeUPPER(s_ipsc->cAlphaArgs(3))));
+            if (Util::SameString(s_ipsc->cAlphaArgs(3), "DElight")) {
+                reportDElightRemoval(state,
+                                     s_ipsc->cCurrentModuleObject,
+                                     daylightControl.Name,
+                                     EnergyPlus::format("Field {} must no longer be set to DElight.", s_ipsc->cAlphaFieldNames(3)));
+                ErrorsFound = true;
+                daylightControl.DaylightMethod = DaylightingMethod::SplitFlux;
+            } else {
+                daylightControl.DaylightMethod =
+                    static_cast<DaylightingMethod>(getEnumValue(DaylightingMethodNamesUC, Util::makeUPPER(s_ipsc->cAlphaArgs(3))));
+            }
 
             if (daylightControl.DaylightMethod == DaylightingMethod::Invalid) {
                 daylightControl.DaylightMethod = DaylightingMethod::SplitFlux;
@@ -4665,8 +4645,7 @@ void GetDaylightingControls(EnergyPlusData &state, bool &ErrorsFound)
         // Field: Glare Calculation Azimuth Angle of View Direction Clockwise from Zone y-Axis
         daylightControl.ViewAzimuthForGlare = !s_ipsc->lNumericFieldBlanks(5) ? s_ipsc->rNumericArgs(5) : 0.0;
 
-        daylightControl.MaxGlareallowed = s_ipsc->rNumericArgs(6);           // Field: Maximum Allowable Discomfort Glare Index
-        daylightControl.DElightGriddingResolution = s_ipsc->rNumericArgs(7); // Field: DElight Gridding Resolution
+        daylightControl.MaxGlareallowed = s_ipsc->rNumericArgs(6); // Field: Maximum Allowable Discomfort Glare Index
 
         int curTotalDaylRefPts = NumAlpha - 6; // first six alpha fields are not part of extensible group
         daylightControl.TotalDaylRefPoints = curTotalDaylRefPts;
@@ -4744,7 +4723,6 @@ void GetDaylightingControls(EnergyPlusData &state, bool &ErrorsFound)
             } // if (DaylightMethod == SplitFlux)
         } // for (RefPtNum)
 
-        // Register Error if 0 DElight RefPts have been input for valid DElight object
         if (countRefPts < 1) {
             ShowSevereError(state,
                             EnergyPlus::format("No Reference Points input for {} zone ={}", s_ipsc->cCurrentModuleObject, daylightControl.ZoneName));
@@ -4856,11 +4834,7 @@ void GeometryTransformForDaylighting(EnergyPlusData &state)
             auto &orp = state.dataOutRptPredefined;
             OutputReportPredefined::PreDefTableEntry(state, orp->pdchDyLtZone, curRefPt.Name, daylCntrl.ZoneName);
             OutputReportPredefined::PreDefTableEntry(state, orp->pdchDyLtCtrlName, curRefPt.Name, daylCntrl.Name);
-            if (daylCntrl.DaylightMethod == DaylightingMethod::SplitFlux) {
-                OutputReportPredefined::PreDefTableEntry(state, orp->pdchDyLtKind, curRefPt.Name, "SplitFlux");
-            } else {
-                OutputReportPredefined::PreDefTableEntry(state, orp->pdchDyLtKind, curRefPt.Name, "DElight");
-            }
+            OutputReportPredefined::PreDefTableEntry(state, orp->pdchDyLtKind, curRefPt.Name, "SplitFlux");
             // ( 1=continuous, 2=stepped, 3=continuous/off )
             if (daylCntrl.LightControlType == LtgCtrlType::Continuous) {
                 OutputReportPredefined::PreDefTableEntry(state, orp->pdchDyLtCtrlType, curRefPt.Name, "Continuous");
@@ -4967,17 +4941,6 @@ void GetInputDayliteRefPt(EnergyPlusData &state, bool &ErrorsFound)
         }
         pt.coords = {s_ipsc->rNumericArgs(1), s_ipsc->rNumericArgs(2), s_ipsc->rNumericArgs(3)};
     }
-}
-
-bool doesDayLightingUseDElight(EnergyPlusData const &state)
-{
-    auto const &dl = state.dataDayltg;
-    for (auto const &znDayl : dl->daylightControl) {
-        if (znDayl.DaylightMethod == DaylightingMethod::DElight) {
-            return true;
-        }
-    }
-    return false;
 }
 
 void CheckTDDsAndLightShelvesInDaylitZones(EnergyPlusData &state)
@@ -5708,110 +5671,6 @@ void initDaylighting(EnergyPlusData &state, bool const initSurfaceHeatBalancefir
     for (int daylightCtrlNum = 1; daylightCtrlNum <= (int)dl->daylightControl.size(); ++daylightCtrlNum) {
         auto &thisDayltgCtrl = dl->daylightControl(daylightCtrlNum);
 
-        // RJH DElight Modification Begin - Call to DElight electric lighting control subroutine
-        // Check if the sun is up and the current Thermal Zone hosts a Daylighting:DElight object
-        if (state.dataEnvrn->SunIsUp && thisDayltgCtrl.TotalDaylRefPoints != 0 && (thisDayltgCtrl.DaylightMethod == DaylightingMethod::DElight)) {
-            int zoneNum = thisDayltgCtrl.zoneIndex;
-            // Call DElight interior illuminance and electric lighting control subroutine
-            Real64 dPowerReducFac = 1.0; // Return value Electric Lighting Power Reduction Factor for current Zone and Timestep
-            Real64 dHISKFFC = state.dataEnvrn->HISKF * DataDElight::LUX2FC;
-            Real64 dHISUNFFC = state.dataEnvrn->HISUNF * DataDElight::LUX2FC;
-            Real64 dSOLCOS1 = state.dataEnvrn->SOLCOS.x;
-            Real64 dSOLCOS2 = state.dataEnvrn->SOLCOS.y;
-            Real64 dSOLCOS3 = state.dataEnvrn->SOLCOS.z;
-            Real64 dLatitude = state.dataEnvrn->Latitude;
-            Real64 dCloudFraction = state.dataEnvrn->CloudFraction;
-            // Init Error Flag to 0 (no Warnings or Errors) (returned from DElight)
-            int iErrorFlag = 0;
-
-            DElightManagerF::DElightElecLtgCtrl(len(state.dataHeatBal->Zone(zoneNum).Name),
-                                                state.dataHeatBal->Zone(zoneNum).Name,
-                                                dLatitude,
-                                                dHISKFFC,
-                                                dHISUNFFC,
-                                                dCloudFraction,
-                                                dSOLCOS1,
-                                                dSOLCOS2,
-                                                dSOLCOS3,
-                                                dPowerReducFac,
-                                                iErrorFlag);
-            // Check Error Flag for Warnings or Errors returning from DElight
-            // RJH 2008-03-07: If no warnings/errors then read refpt illuminances for standard output reporting
-            if (iErrorFlag != 0) {
-                std::string cErrorMsg; // Each DElight Error Message can be up to 200 characters long
-                // Open DElight Electric Lighting Error File for reading
-                auto iDElightErrorFile = state.files.outputDelightDfdmpFilePath.try_open(state.files.outputControl.delightdfdmp); // (THIS_AUTO_OK)
-                bool elOpened = iDElightErrorFile.good();
-
-                // Sequentially read lines in DElight Electric Lighting Error File
-                // and process them using standard EPlus warning/error handling calls
-                bool bEndofErrFile = false;
-                while (!bEndofErrFile && elOpened) {
-                    auto cErrorLine = iDElightErrorFile.readLine(); // (THIS_AUTO_OK)
-                    if (cErrorLine.eof) {
-                        bEndofErrFile = true;
-                        continue;
-                    }
-
-                    // Is the current line a Warning message?
-                    if (has_prefix(cErrorLine.data, "WARNING: ")) {
-                        cErrorMsg = cErrorLine.data.substr(9);
-                        ShowWarningError(state, cErrorMsg);
-                    }
-                    // Is the current line an Error message?
-                    if (has_prefix(cErrorLine.data, "ERROR: ")) {
-                        cErrorMsg = cErrorLine.data.substr(7);
-                        ShowSevereError(state, cErrorMsg);
-                        iErrorFlag = 1;
-                    }
-                }
-
-                // Close DElight Error File and delete
-
-                if (elOpened) {
-                    iDElightErrorFile.close();
-                    FileSystem::removeFile(iDElightErrorFile.filePath);
-                }
-                // If any DElight Error occurred then ShowFatalError to terminate
-                if (iErrorFlag > 0) {
-                    ShowFatalError(state, "End of DElight Error Messages");
-                }
-            } else { // RJH 2008-03-07: No errors
-                     // extract reference point illuminance values from DElight Electric Lighting dump file for reporting
-                     // Open DElight Electric Lighting Dump File for reading
-                auto iDElightErrorFile = state.files.outputDelightEldmpFilePath.try_open(state.files.outputControl.delighteldmp); // (THIS_AUTO_OK)
-                bool elOpened = iDElightErrorFile.is_open();
-
-                // Sequentially read lines in DElight Electric Lighting Dump File
-                // and extract refpt illuminances for standard EPlus output handling
-                bool bEndofErrFile = false;
-                int iDElightRefPt = 0; // Reference Point number for reading DElight Dump File (eplusout.delighteldmp)
-                while (!bEndofErrFile && elOpened) {
-                    auto line = iDElightErrorFile.read<Real64>(); // (THIS_AUTO_OK)
-                    Real64 dRefPtIllum = line.data;               // tmp var for reading RefPt illuminance
-                    if (line.eof) {
-                        bEndofErrFile = true;
-                        continue;
-                    }
-                    // Increment refpt counter
-                    ++iDElightRefPt;
-                    // Assure refpt index does not exceed number of refpts in this zone
-                    if (iDElightRefPt <= thisDayltgCtrl.TotalDaylRefPoints) {
-                        thisDayltgCtrl.refPts(iDElightRefPt).lums[iLum_Illum] = dRefPtIllum;
-                    }
-                }
-
-                // Close DElight Electric Lighting Dump File and delete
-                if (elOpened) {
-                    iDElightErrorFile.close();
-                    FileSystem::removeFile(iDElightErrorFile.filePath);
-                };
-            }
-            // Store the calculated total zone Power Reduction Factor due to DElight daylighting
-            // in the ZoneDaylight structure for later use
-            thisDayltgCtrl.PowerReductionFactor = dPowerReducFac;
-        }
-        // RJH DElight Modification End - Call to DElight electric lighting control subroutine
     }
 
     if (state.dataEnvrn->SunIsUp && !state.dataGlobal->DoingSizing) {

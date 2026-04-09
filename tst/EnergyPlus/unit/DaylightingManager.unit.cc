@@ -170,7 +170,6 @@ TEST_F(EnergyPlusFixture, DaylightingManager_GetInputDaylightingControls_Test)
     EXPECT_EQ(1, thisDaylightControl.glareRefPtNumber);
     EXPECT_EQ(180., thisDaylightControl.ViewAzimuthForGlare);
     EXPECT_EQ(20., thisDaylightControl.MaxGlareallowed);
-    EXPECT_EQ(0, thisDaylightControl.DElightGriddingResolution);
 
     EXPECT_EQ(1, thisDaylightControl.TotalDaylRefPoints);
 
@@ -282,7 +281,6 @@ TEST_F(EnergyPlusFixture, DaylightingManager_GetInputDaylightingControls_3RefPt_
     EXPECT_EQ(1, thisDaylightControl.glareRefPtNumber);
     EXPECT_EQ(180., thisDaylightControl.ViewAzimuthForGlare);
     EXPECT_EQ(20., thisDaylightControl.MaxGlareallowed);
-    EXPECT_EQ(0, thisDaylightControl.DElightGriddingResolution);
 
     EXPECT_EQ(3, thisDaylightControl.TotalDaylRefPoints);
 
@@ -374,6 +372,129 @@ TEST_F(EnergyPlusFixture, DaylightingManager_GetInputDayliteRefPt_Test)
     EXPECT_EQ(0.9, dl->DaylRefPt(3).coords.z);
 }
 
+TEST_F(EnergyPlusFixture, DaylightingManager_FailsClearlyForLegacyDElightMethod)
+{
+    using HeatBalanceManager::GetZoneData;
+
+    std::string const idf_objects = delimited_string({
+        "Zone,",
+        "  West Zone,",
+        "  0.0,",
+        "  0.0,",
+        "  0.0,",
+        "  0.0,",
+        "  1,",
+        "  1,",
+        "  autocalculate,",
+        "  autocalculate;",
+        "Daylighting:Controls,",
+        "  West Zone_DaylCtrl,",
+        "  West Zone,",
+        "  DElight,",
+        "  ,",
+        "  Continuous,",
+        "  0.3,",
+        "  0.2,",
+        "  ,",
+        "  1.0,",
+        "  West Zone_DaylRefPt1,",
+        "  180.0,",
+        "  20.0,",
+        "  ,",
+        "  West Zone_DaylRefPt1,",
+        "  1.0,",
+        "  500.0;",
+        "Daylighting:ReferencePoint,",
+        "  West Zone_DaylRefPt1,",
+        "  West Zone,",
+        "  3.048,",
+        "  3.048,",
+        "  0.9;",
+    });
+
+    ASSERT_TRUE(process_idf(idf_objects));
+    state->init_state(*state);
+
+    bool foundErrors = false;
+    GetZoneData(*state, foundErrors);
+    ASSERT_FALSE(foundErrors);
+
+    state->dataHeatBal->space(1).solarEnclosureNum = 1;
+    state->dataViewFactor->NumOfSolarEnclosures = 1;
+    state->dataViewFactor->EnclSolInfo.allocate(1);
+
+    EXPECT_THROW(GetDaylightingParametersInput(*state), EnergyPlus::FatalError);
+    EXPECT_TRUE(compare_err_stream_substring("requests legacy DElight daylighting", true));
+}
+
+TEST_F(EnergyPlusFixture, DaylightingManager_FailsClearlyForLegacyDElightComplexFenestration)
+{
+    using HeatBalanceManager::GetZoneData;
+
+    std::string const idf_objects = delimited_string({
+        "Zone,",
+        "  West Zone,",
+        "  0.0,",
+        "  0.0,",
+        "  0.0,",
+        "  0.0,",
+        "  1,",
+        "  1,",
+        "  autocalculate,",
+        "  autocalculate;",
+        "BuildingSurface:Detailed,",
+        "  Zn001:Wall001,",
+        "  Wall,",
+        "  WALL80,",
+        "  West Zone,",
+        "  ,",
+        "  Outdoors,",
+        "  ,",
+        "  SunExposed,",
+        "  WindExposed,",
+        "  0.5,",
+        "  4,",
+        "  0.0,0.0,3.048,",
+        "  0.0,0.0,0.0,",
+        "  6.096,0.0,0.0,",
+        "  6.096,0.0,3.048;",
+        "FenestrationSurface:Detailed,",
+        "  ZN001:WALL001:WIN001,",
+        "  Window,",
+        "  WIN-CON,",
+        "  Zn001:Wall001,",
+        "  ,",
+        "  0.5,",
+        "  ,",
+        "  1.0,",
+        "  4,",
+        "  0.548,0.0,2.5,",
+        "  0.548,0.0,0.5,",
+        "  5.548,0.0,0.5,",
+        "  5.548,0.0,2.5;",
+        "Daylighting:DELight:ComplexFenestration,",
+        "  Test CFS,",
+        "  BTDF^GEN^LIGHTSHELF^1.0^20.0,",
+        "  Zn001:Wall001,",
+        "  ZN001:WALL001:WIN001,",
+        "  0.0;",
+    });
+
+    ASSERT_TRUE(process_idf(idf_objects));
+    state->init_state(*state);
+
+    bool foundErrors = false;
+    GetZoneData(*state, foundErrors);
+    ASSERT_FALSE(foundErrors);
+
+    state->dataHeatBal->space(1).solarEnclosureNum = 1;
+    state->dataViewFactor->NumOfSolarEnclosures = 1;
+    state->dataViewFactor->EnclSolInfo.allocate(1);
+
+    EXPECT_THROW(GetDaylightingParametersInput(*state), EnergyPlus::FatalError);
+    EXPECT_TRUE(compare_err_stream_substring("Daylighting:DELight:ComplexFenestration", true));
+}
+
 TEST_F(EnergyPlusFixture, DaylightingManager_GetInputOutputIlluminanceMap_Test)
 {
     using HeatBalanceManager::GetZoneData;
@@ -437,25 +558,6 @@ TEST_F(EnergyPlusFixture, DaylightingManager_GetInputOutputIlluminanceMap_Test)
 
     // OutputControl:IlluminanceMap:Style
     EXPECT_EQ(',', dl->MapColSep);
-}
-
-TEST_F(EnergyPlusFixture, DaylightingManager_doesDayLightingUseDElight_Test)
-{
-    state->init_state(*state);
-    EXPECT_FALSE(doesDayLightingUseDElight(*state));
-
-    auto &dl = state->dataDayltg;
-
-    dl->daylightControl.allocate(3);
-    dl->daylightControl(1).DaylightMethod = DaylightingMethod::SplitFlux;
-    dl->daylightControl(2).DaylightMethod = DaylightingMethod::SplitFlux;
-    dl->daylightControl(3).DaylightMethod = DaylightingMethod::SplitFlux;
-
-    EXPECT_FALSE(doesDayLightingUseDElight(*state));
-
-    dl->daylightControl(2).DaylightMethod = DaylightingMethod::DElight;
-
-    EXPECT_TRUE(doesDayLightingUseDElight(*state));
 }
 
 TEST_F(EnergyPlusFixture, DaylightingManager_GetDaylParamInGeoTrans_Test)
@@ -2029,7 +2131,6 @@ TEST_F(EnergyPlusFixture, DaylightingManager_GetInputDaylightingControls_Roundin
     EXPECT_EQ(1, thisDaylightControl.glareRefPtNumber);
     EXPECT_EQ(180., thisDaylightControl.ViewAzimuthForGlare);
     EXPECT_EQ(20., thisDaylightControl.MaxGlareallowed);
-    EXPECT_EQ(0, thisDaylightControl.DElightGriddingResolution);
 
     EXPECT_EQ(10, thisDaylightControl.TotalDaylRefPoints);
 

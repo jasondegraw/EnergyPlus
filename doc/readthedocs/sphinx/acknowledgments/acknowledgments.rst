@@ -27,7 +27,7 @@ Department of Energy, Office of Building Technologies.
 Portions of the input processing, output processing, weather processor,
 BLAST Translator were developed by US Army Corps of Engineers,
 Construction Engineering Research Laboratories, 2902 Newmark Drive,
-Champaign IL  61821.
+Champaign ILÂ  61821.
 http://www.erdc.usace.army.mil/Locations/ConstructionEngineeringResearchLaboratory.aspx
 
 Portions of this software package were developed for Ernest Orlando
@@ -64,7 +64,7 @@ EIR chillers, desuperheater air and water heating coils, heat pump water
 heaters, desiccant and generic air-to-air heat exchangers, window
 screens, and thermal comfort controls were developed by University of
 Central Florida, Florida Solar Energy Center (FSEC), 1679 Clearlake
-Road, Cocoa, FL  32922,
+Road, Cocoa, FLÂ  32922,
 `www.fsec.ucf.edu/ <http://www.fsec.ucf.edu/>`__.
 
 Portions of the refrigeration model and the exhaust-fired absorption
@@ -86,7 +86,7 @@ Specialists, 2916 Marketplace Drive, Suite 104, Madison, WI 53719; Tel:
 (608) 274-2577. EnergyPlus v1.2 and later includes Photovoltaic
 calculations implemented in EnergyPlus by Thermal Energy System
 Specialists. This model was originally developed by Oystein Ulleberg,
-Institute for Energy Technology, Norway – based on the Duffie and
+Institute for Energy Technology, Norway â€“ based on the Duffie and
 Beckman equivalent one-diode model.
 
 Portions of this software package that convert certain stand-alone heat
@@ -98,20 +98,17 @@ Department of Architectural Engineering, Pennsylvania State University,
 
 The concept and initial implementation for the EnergyPlus COM/DLL
 version (Wintel platform) was made possible through cooperation with
-DesignBuilder Software, Ltd, Andy Tindale – an EnergyPlus collaborative
+DesignBuilder Software, Ltd, Andy Tindale â€“ an EnergyPlus collaborative
 developer.
 
 The thickness, conductivity, density and specific heat values of the
 material layers for the constructions in the Composite Wall Construction
-reference data set have been taken from the ASHRAE report “Modeling Two-
+reference data set have been taken from the ASHRAE report â€œModeling Two-
 and Three-Dimensional Heat Transfer through Composite Wall and Roof
-Assemblies in Hourly Energy Simulation Programs (1145-TRP),” by
+Assemblies in Hourly Energy Simulation Programs (1145-TRP),â€ by
 Enermodal Engineering Limited, Oak Ridge National Laboratory, and the
 Polish Academy of Sciences, January 2001.
 
-EnergyPlus v1.2 and later versions contains DELight2, a simulation
-engine for daylighting and electric lighting system analysis developed
-at Ernest Orlando Lawrence Berkeley National Laboratory.
 
 EnergyPlus v1.2.2 through v3.1 contained links to SPARK, a simulation
 engine for detailed system modeling developed at Ernest Orlando Lawrence
@@ -125,7 +122,7 @@ for Standards and Technology (NIST), 100 Bureau Drive, Gaithersburg, MD
 stack effect and detailed large opening from an early version of COMIS
 (Conjunction Of Multizone Infiltration Specialists) developed by a
 multinational, multi-institutional effort under the auspices of the
-International Energy Agency’s Buildings and Community Systems Agreement
+International Energy Agencyâ€™s Buildings and Community Systems Agreement
 working group focusing on multizone air flow modeling (Annex 23) and now
 administered by the Swiss Federal Laboratories for Materials Testing and
 Research (EMPA), Division 175, Uberlandstrasse 129, CH-8600 Dubendorf,
@@ -209,7 +206,7 @@ have done extensive profiling and creation of time reduction features
 that have gone into the code.
 
 Second Law modified the WaterToAirHeatPump:EquationFit module to include
-the variable “WaterCyclingMode”. This variable determines whether the
+the variable â€œWaterCyclingModeâ€. This variable determines whether the
 heat pump water flow is constant, whether it cycles with the compressor,
 or whether it is constant when the heat pump is active. WaterFlowMode is
 set by the HVAC wrapper object; either ZoneHVAC:WaterToAirHeatPump or
@@ -239,35 +236,35 @@ include the interface to BCVTB or Functional Mock-up Units.
 ZLIB DATA COMPRESSION LIBRARY
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-zlib 1.2.5 is a general purpose data compression library.  All the code
-is thread safe.  The data format used by the zlib library is described
+zlib 1.2.5 is a general purpose data compression library.Â  All the code
+is thread safe.Â  The data format used by the zlib library is described
 by RFCs (Request for Comments) 1950 to 1952 in the files
 http://www.ietf.org/rfc/rfc1950.txt (zlib format), rfc1951.txt (deflate
 format) and rfc1952.txt (gzip format).
 
 All functions of the compression library are documented in the file
-zlib.h (volunteer to write man pages welcome, contact zlib@gzip.org).  A
+zlib.h (volunteer to write man pages welcome, contact zlib@gzip.org).Â  A
 usage example of the library is given in the file example.c which also
-tests that the library is working correctly.  Another example is given
-in the file minigzip.c.  The compression library itself is composed of
+tests that the library is working correctly. Â Another example is given
+in the file minigzip.c.Â  The compression library itself is composed of
 all source files except example.c and minigzip.c.
 
 To compile all files and run the test program, follow the instructions
-given at the top of Makefile.in.  In short “./configure; make test”, and
-if that goes well, “make install” should work for most flavors of Unix. 
+given at the top of Makefile.in.Â  In short â€œ./configure; make testâ€, and
+if that goes well, â€œmake installâ€ should work for most flavors of Unix.Â 
 For Windows, use one of the special makefiles in win32/ or
-contrib/vstudio/ .  For VMS, use make_vms.com.  Questions about zlib
+contrib/vstudio/ .Â  For VMS, use make_vms.com.Â  Questions about zlib
 should be sent to <zlib@gzip.org>, or to Gilles Vollant
-<info@winimage.com> for the Windows DLL version.  The zlib home page is
-http://zlib.net/ .  Before reporting a problem, please check this site
+<info@winimage.com> for the Windows DLL version.Â  The zlib home page is
+http://zlib.net/ .Â  Before reporting a problem, please check this site
 to verify that you have the latest version of zlib; otherwise get the
 latest version and check whether the problem still exists or not.
 
 PLEASE read the zlib FAQ http://zlib.net/zlib_faq.html before asking for
 help.
 
-Mark Nelson <markn@ieee.org> wrote an article about zlib for the Jan. 
-1997 issue of Dr.  Dobb’s Journal; a copy of the article is available
+Mark Nelson <markn@ieee.org> wrote an article about zlib for the Jan.Â 
+1997 issue of Dr.Â  Dobbâ€™s Journal; a copy of the article is available
 online [3]_.
 
 The changes made in version 1.2.5 are documented in the file ChangeLog.
@@ -298,17 +295,17 @@ Notes for some targets:
 
 -  For 64-bit Irix, deflate.c must be compiled without any optimization.
    With -O, one libpng test fails. The test works in 32 bit mode (with
-   the -n32   compiler flag). The compiler bug has been reported to SGI.
+   the -n32Â Â  compiler flag). The compiler bug has been reported to SGI.
 
--  zlib doesn’t work with gcc 2.6.3 on a DEC 3000/300LX under OSF/1 2.1
+-  zlib doesnâ€™t work with gcc 2.6.3 on a DEC 3000/300LX under OSF/1 2.1
    it works when compiled with cc.
 
 -  On Digital Unix 4.0D (formely OSF/1) on AlphaServer, the cc option
    -std1 is necessary to get gzprintf working correctly. This is done by
    configure.
 
--  zlib doesn’t work on HP-UX 9.05 with some versions of /bin/cc. It
-   works with other compilers. Use “make test” to check your compiler.
+-  zlib doesnâ€™t work on HP-UX 9.05 with some versions of /bin/cc. It
+   works with other compilers. Use â€œmake testâ€ to check your compiler.
 
 -  gzdopen is not supported on RISCOS or BEOS.
 
@@ -316,17 +313,17 @@ Notes for some targets:
 
 Acknowledgments:
 
-  The deflate format used by zlib was defined by Phil Katz.  The deflate
-and zlib specifications were written by L.  Peter Deutsch.  Thanks to
+Â  The deflate format used by zlib was defined by Phil Katz.Â  The deflate
+and zlib specifications were written by L.Â  Peter Deutsch.Â  Thanks to
 all the people who reported problems and suggested various improvements
 in zlib; they are too numerous to cite here.
 
 Copyright notice:
 
- (C) 1995-2010 Jean-loup Gailly and Mark Adler
+Â (C) 1995-2010 Jean-loup Gailly and Mark Adler
 
-This software is provided ‘as-is’, without any express or implied
-warranty.  In no event will the authors be held liable for any damages
+This software is provided â€˜as-isâ€™, without any express or implied
+warranty.Â  In no event will the authors be held liable for any damages
 arising from the use of this software.
 
 Permission is granted to anyone to use this software for any purpose,
@@ -344,21 +341,21 @@ freely, subject to the following restrictions:
 #. This notice may not be removed or altered from any source
    distribution.
 
-  Jean-loup Gailly        Mark Adler
+Â  Jean-loup GaillyÂ Â Â Â Â Â Â  Mark Adler
 
-  jloup@gzip.org          madler@alumni.caltech.edu
+Â  jloup@gzip.orgÂ Â Â Â Â Â Â Â Â  madler@alumni.caltech.edu
 
- 
+Â 
 
 If you use the zlib library in a product, we would appreciate \*not\*
-receiving lengthy legal documents to sign.  The sources are provided for
-free but without warranty of any kind.  The library has been entirely
+receiving lengthy legal documents to sign.Â  The sources are provided for
+free but without warranty of any kind.Â  The library has been entirely
 written by Jean-loup Gailly and Mark Adler; it does not include
 third-party code.
 
 If you redistribute modified sources, we would appreciate that you
 include in the file ChangeLog history information documenting your
-changes.  Please read the FAQ for more information on the distribution
+changes.Â  Please read the FAQ for more information on the distribution
 of modified source versions.
 
 ExPat Copying Notice
@@ -368,7 +365,7 @@ Copyright (c) 1998, 1999, 2000 Thai Open Source Software Center Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
-“Software”), to deal in the Software without restriction, including
+â€œSoftwareâ€), to deal in the Software without restriction, including
 without limitation the rights to use, copy, modify, merge, publish,
 distribute, sublicense, and/or sell copies of the Software, and to
 permit persons to whom the Software is furnished to do so, subject to
@@ -377,7 +374,7 @@ the following conditions:
 The above copyright notice and this permission notice shall be included
 in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+THE SOFTWARE IS PROVIDED â€œAS ISâ€, WITHOUT WARRANTY OF ANY KIND, EXPRESS
 OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
@@ -402,7 +399,7 @@ conditions are met:
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY QTRONIC GMBH “AS IS” AND ANY EXPRESS OR
+THIS SOFTWARE IS PROVIDED BY QTRONIC GMBH â€œAS ISâ€ AND ANY EXPRESS OR
 IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 DISCLAIMED. IN NO EVENT SHALL QTRONIC GMBH BE LIABLE FOR ANY DIRECT,
@@ -419,8 +416,8 @@ Minizip Notice
 
 Condition of use and distribution are the same than zlib :
 
-This software is provided ‘as-is’, without any express or implied
-warranty.  In no event will the authors be held liable for any damages
+This software is provided â€˜as-isâ€™, without any express or implied
+warranty.Â  In no event will the authors be held liable for any damages
 arising from the use of this software.
 
 Permission is granted to anyone to use this software for any purpose,
@@ -461,8 +458,8 @@ conditions are met:
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS
-IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS â€œAS
+ISâ€ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
 PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
 HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -482,14 +479,14 @@ Berkeley National Laboratory (subject to receipt of any required
 approvals from the U.S. Dept. of Energy). All rights reserved.
 
 If you have questions about your rights to use or distribute this
-software, please contact Berkeley Lab’s Technology Transfer Department
+software, please contact Berkeley Labâ€™s Technology Transfer Department
 at <TTD@lbl.gov>.
 
-NOTICE.  This software was developed under partial funding from the U.S.
-Department of Energy.  As such, the U.S. Government has been granted for
+NOTICE.Â  This software was developed under partial funding from the U.S.
+Department of Energy.Â  As such, the U.S. Government has been granted for
 itself and others acting on its behalf a paid-up, nonexclusive,
 irrevocable, worldwide license in the Software to reproduce, prepare
-derivative works, and perform publicly and display publicly.  Beginning
+derivative works, and perform publicly and display publicly.Â  Beginning
 five (5) years after the date permission to assert copyright is obtained
 from the U.S. Department of Energy, and subject to any subsequent five
 (5) year renewals, the U.S. Government is granted for itself and others
@@ -503,7 +500,7 @@ Modified BSD License agreement
 Functional Mock-up Unit for Co-Simulation Import in EnergyPlus Copyright
 (c) 2012, The Regents of the University of California, through Lawrence
 Berkeley National Laboratory (subject to receipt of any required
-approvals from the U.S. Dept. of Energy).  All rights reserved.
+approvals from the U.S. Dept. of Energy).Â  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -521,8 +518,8 @@ National Laboratory, U.S. Dept. of Energy nor the names of its
 contributors may be used to endorse or promote products derived from
 this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS
-IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS â€œAS
+ISâ€ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
 PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
 OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -535,7 +532,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 You are under no obligation whatsoever to provide any bug fixes,
 patches, or upgrades to the features, functionality or performance of
-the source code (“Enhancements”) to anyone; however, if you choose to
+the source code (â€œEnhancementsâ€) to anyone; however, if you choose to
 make your Enhancements available either publicly, or directly to
 Lawrence Berkeley National Laboratory, without imposing a separate
 written license agreement for such Enhancements, then you hereby grant
@@ -553,9 +550,9 @@ University of California, through Lawrence Berkeley National Laboratory
 of Energy). All rights reserved.
 
 If you have questions about your rights to use or distribute this
-software, please contact Berkeley Lab’s Technology Transfer Department
-at <TTD@lbl.gov>.referring to “Functional Mock-up Unit Export of
-EnergyPlus (LBNL Ref 2013-088)”.
+software, please contact Berkeley Labâ€™s Technology Transfer Department
+at <TTD@lbl.gov>.referring to â€œFunctional Mock-up Unit Export of
+EnergyPlus (LBNL Ref 2013-088)â€.
 
 NOTICE: This software was produced by The Regents of the University of
 California under Contract No. DE-AC02-05CH11231 with the Department of
@@ -604,7 +601,7 @@ All rights reserved.
    this software without specific prior written permission.
 
 #. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   “AS IS”
+   â€œAS ISâ€
 
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
 THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -619,7 +616,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #. You are under no obligation whatsoever to provide any bug fixes,
    patches, or upgrades to the features, functionality or performance of
-   the source code (“Enhancements”) to anyone; however, if you choose to
+   the source code (â€œEnhancementsâ€) to anyone; however, if you choose to
    make your Enhancements available either publicly, or directly to
    Lawrence Berkeley National Laboratory, without imposing a separate
    written license agreement for such Enhancements, then you hereby
@@ -629,7 +626,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    such enhancements or derivative works thereof, in binary and source
    code form.
 
-NOTE: This license corresponds to the “revised BSD” or “3-clause BSD”
+NOTE: This license corresponds to the â€œrevised BSDâ€ or â€œ3-clause BSDâ€
 
 License and includes the following modification: Paragraph 3. has been
 added.
@@ -672,7 +669,7 @@ Other Acknowledgments
 
 This work was supported by the Assistant Secretary for Energy Efficiency
 and Renewable Energy, Office of Building Technologies of the US
-Department of Energy – under the guidance of Dru Crawley from inception
+Department of Energy â€“ under the guidance of Dru Crawley from inception
 through March 2010.
 
 Additional support was provided by the Gas Technology Institute and the

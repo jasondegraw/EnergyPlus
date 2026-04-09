@@ -84,7 +84,6 @@ set(test_src
     CsvParser.unit.cc
     CurveManager.unit.cc
     CustomMatchers.unit.cc
-    DElightManager.unit.cc
     DOASEffectOnZoneSizing.unit.cc
     DXCoils.unit.cc
     DataEnvironment.unit.cc

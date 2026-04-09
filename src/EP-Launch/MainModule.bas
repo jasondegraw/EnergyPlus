@@ -55,13 +55,9 @@ Public Const okZszTxt = 19
 Public Const okSszCsv = 20
 Public Const okSszTab = 21
 Public Const okSszTxt = 22
-Public Const okDelightIn = 23
-Public Const okDelightOut = 24
 Public Const okMapCsv = 25
 Public Const okMapTab = 26
 Public Const okMapTxt = 27
-Public Const okDelightEldmp = 28
-Public Const okDelightDfdmp = 29
 Public Const okScreenCsv = 30
 Public Const okExpIdf = 31
 Public Const okEmpIdf = 32
@@ -205,14 +201,6 @@ outputKind(okSszTxt).suffix = "Ssz.txt"
 outputKind(okSszTxt).viewer = ovpTextEditor
 outputKind(okSszTxt).outSet(outSetTextOutputFiles) = True
 '----UPPER MIDDLE BLOCK----
-'DE IN
-outputKind(okDelightIn).suffix = "DElight.in"
-outputKind(okDelightIn).viewer = ovpTextEditor
-outputKind(okDelightIn).outSet(outSetTextOutputFiles) = True
-'DE OUT
-outputKind(okDelightOut).suffix = "DElight.out"
-outputKind(okDelightOut).viewer = ovpTextEditor
-outputKind(okDelightOut).outSet(outSetTextOutputFiles) = True
 'Map
 outputKind(okMapCsv).suffix = "Map.csv"
 outputKind(okMapCsv).viewer = ovpSpreadsheet
@@ -225,14 +213,6 @@ outputKind(okMapTab).containsTabs = True
 outputKind(okMapTxt).suffix = "Map.txt"
 outputKind(okMapTxt).viewer = ovpTextEditor
 outputKind(okMapTxt).outSet(outSetTextOutputFiles) = True
-'ELDMP
-outputKind(okDelightEldmp).suffix = "DElight.eldmp"
-outputKind(okDelightEldmp).viewer = ovpTextEditor
-outputKind(okDelightEldmp).outSet(outSetTextOutputFiles) = True
-'DFDMP
-outputKind(okDelightDfdmp).suffix = "DElight.dfdmp"
-outputKind(okDelightDfdmp).viewer = ovpTextEditor
-outputKind(okDelightDfdmp).outSet(outSetTextOutputFiles) = True
 'Screen
 outputKind(okScreenCsv).suffix = "Screen.csv"
 outputKind(okScreenCsv).viewer = ovpSpreadsheet

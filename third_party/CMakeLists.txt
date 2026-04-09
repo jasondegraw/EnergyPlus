@@ -149,10 +149,6 @@ add_subdirectory(zlib)
 set_target_properties(miniziplib PROPERTIES FOLDER ThirdParty/zlib)
 target_link_libraries(miniziplib PRIVATE turn_off_warnings)
 
-add_subdirectory(DElight)
-set_target_properties(DElight PROPERTIES FOLDER ThirdParty/DElight)
-target_link_libraries(DElight PRIVATE turn_off_warnings)
-
 add_subdirectory(re2)
 set_target_properties(re2 PROPERTIES FOLDER ThirdParty/re2)
 

@@ -571,10 +571,6 @@ state.dataStrGlobals->inputFilePath='{:g}',
         }
 
         state.files.screenCsv.filePath = composePath(screenSuffix + ".csv");
-        // TODO, why are these relative paths?
-        state.files.delightIn.filePath = "eplusout.delightin";
-        state.dataStrGlobals->outputDelightOutFilePath = "eplusout.delightout";
-
         // TODO: why is this relative?
         state.files.iniFile.filePath = "Energy+.ini";
 

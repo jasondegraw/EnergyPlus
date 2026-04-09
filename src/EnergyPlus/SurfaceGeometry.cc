@@ -2867,14 +2867,6 @@ namespace SurfaceGeometry {
             ShowFatalError(state, EnergyPlus::format("{}Errors discovered, program terminates.", RoutineName));
         }
 
-        int TotShadSurf = TotDetachedFixed + TotDetachedBldg + TotRectDetachedFixed + TotRectDetachedBldg + TotShdSubs + TotOverhangs +
-                          TotOverhangsProjection + TotFins + TotFinsProjection;
-        int NumDElightCmplxFen = state.dataInputProcessing->inputProcessor->getNumObjectsFound(state, "Daylighting:DElight:ComplexFenestration");
-        if (TotShadSurf > 0 && (NumDElightCmplxFen > 0 || Dayltg::doesDayLightingUseDElight(state))) {
-            ShowWarningError(
-                state, EnergyPlus::format("{}When using DElight daylighting the presence of exterior shading surfaces is ignored.", RoutineName));
-        }
-
         for (int SurfNum = 1; SurfNum <= state.dataSurface->TotSurfaces; SurfNum++) {
             auto &surf = state.dataSurface->Surface(SurfNum);
             // Initialize run time surface arrays

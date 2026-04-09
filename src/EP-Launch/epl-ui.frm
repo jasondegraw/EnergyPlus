@@ -491,48 +491,12 @@ Begin VB.Form eplUI
                Top             =   1920
                Width           =   900
             End
-            Begin VB.CommandButton cmdIN
-               Caption         =   "DE IN"
-               Height          =   255
-               Left            =   2160
-               TabIndex        =   63
-               ToolTipText     =   "DElight input file."
-               Top             =   0
-               Width           =   900
-            End
-            Begin VB.CommandButton cmdOUT
-               Caption         =   "DE OUT"
-               Height          =   255
-               Left            =   2160
-               TabIndex        =   62
-               ToolTipText     =   "DElight output file."
-               Top             =   360
-               Width           =   900
-            End
-            Begin VB.CommandButton cmdELDMP
-               Caption         =   "ELDMP"
-               Height          =   255
-               Left            =   3120
-               TabIndex        =   61
-               ToolTipText     =   "DElight file"
-               Top             =   0
-               Width           =   900
-            End
-            Begin VB.CommandButton cmdDFDMP
-               Caption         =   "DFDMP"
-               Height          =   255
-               Left            =   3120
-               TabIndex        =   60
-               ToolTipText     =   "DElight file"
-               Top             =   360
-               Width           =   900
-            End
             Begin VB.CommandButton cmdScreen
                Caption         =   "Screen"
                Height          =   255
                Left            =   3120
                TabIndex        =   59
-               ToolTipText     =   "DElight file"
+               ToolTipText     =   "Window screen output file."
                Top             =   720
                Width           =   900
             End
@@ -541,7 +505,7 @@ Begin VB.Form eplUI
                Height          =   255
                Left            =   3120
                TabIndex        =   58
-               ToolTipText     =   "Shadowing Details"
+               ToolTipText     =   "Shading data file."
                Top             =   1200
                Width           =   900
             End
@@ -550,7 +514,7 @@ Begin VB.Form eplUI
                Height          =   255
                Left            =   3120
                TabIndex        =   57
-               ToolTipText     =   "Virtual Reality Modeling Language drawing of building surfaces"
+               ToolTipText     =   "VRML geometry file."
                Top             =   1560
                Width           =   900
             End
@@ -559,7 +523,7 @@ Begin VB.Form eplUI
                Height          =   255
                Left            =   960
                TabIndex        =   56
-               ToolTipText     =   "Report data dictionary containing variables that may be requested."
+               ToolTipText     =   "Report data dictionary containing meters that may be requested."
                Top             =   720
                Width           =   900
             End
@@ -1244,22 +1208,6 @@ Begin VB.Form eplUI
             Caption         =   "DXF File"
             Shortcut        =   +{F12}
          End
-         Begin VB.Menu mnuViewDelightIN
-            Caption         =   "Delight IN"
-            Shortcut        =   +^{F4}
-         End
-         Begin VB.Menu mnuViewDelightOut
-            Caption         =   "Delight OUT"
-            Shortcut        =   +^{F5}
-         End
-         Begin VB.Menu mnuViewDelightELDMP
-            Caption         =   "Delight ELDMP"
-            Shortcut        =   +^{F6}
-         End
-         Begin VB.Menu mnuViewDelightDFDMP
-            Caption         =   "Delight DFDMP"
-            Shortcut        =   +^{F7}
-         End
          Begin VB.Menu mnuViewExpIDF
             Caption         =   "EXPIDF File"
             Shortcut        =   +^{F8}
@@ -1891,9 +1839,6 @@ Private Sub cmdDBG_Click()
 Call RunOutputEditorSingleFile(".DBG")
 End Sub
 
-Private Sub cmdDFDMP_Click()
-Call RunOutputEditorSingleFile("DElight.dfdmp")
-End Sub
 
 Private Sub cmdDXF_Click()
 Call runViewDrawing
@@ -1907,9 +1852,6 @@ Private Sub cmdEIO_Click()
 Call RunOutputEditorSingleFile(".EIO")
 End Sub
 
-Private Sub cmdELDMP_Click()
-Call RunOutputEditorSingleFile("DElight.eldmp")
-End Sub
 
 Private Sub cmdEPMDET_Click()
 Call RunOutputEditorSingleFile(".EPMDET")
@@ -1931,9 +1873,6 @@ Private Sub cmdEXPIDF_Click()
 Call RunOutputEditorSingleFile(".EXPIDF")
 End Sub
 
-Private Sub cmdIN_Click()
-Call RunOutputEditorSingleFile("DElight.IN")
-End Sub
 
 Private Sub cmdMain_Click()
 Call viewMainCSV
@@ -1956,9 +1895,6 @@ Private Sub cmdMTR_Click()
 Call RunOutputEditorSingleFile(".MTR")
 End Sub
 
-Private Sub cmdOUT_Click()
-Call RunOutputEditorSingleFile("DElight.out")
-End Sub
 
 Private Sub cmdProcCSV_Click()
 Call runOutputSpreadsheetSingleFile("-Proc.csv")
@@ -2189,18 +2125,6 @@ Call showSingleSVGFile(".SVG")
 End Sub
 Private Sub mnuViewExpIDF_Click()
 Call RunOutputEditorSingleFile(".expidf")
-End Sub
-Private Sub mnuViewDelightDFDMP_Click()
-Call RunOutputEditorSingleFile("DElight.dfdmp")
-End Sub
-Private Sub mnuViewDelightELDMP_Click()
-Call RunOutputEditorSingleFile("DElight.eldmp")
-End Sub
-Private Sub mnuViewDelightIN_Click()
-Call RunOutputEditorSingleFile("DElight.in")
-End Sub
-Private Sub mnuViewDelightOut_Click()
-Call RunOutputEditorSingleFile("DElight.out")
 End Sub
 Private Sub mnuViewErrGrp_Click()
 Call RunGrpErrEdit
@@ -5314,20 +5238,6 @@ If checkIfFileExists(outputFileName & ".TXT") Then
 End If
 If checkIfFileExists(outputFileName & ".EXPIDF") Then
   cmdEXPIDF.Enabled = True
-End If
-If checkIfFileExists(outputFileName & "DElight.in") Then
-  cmdIN.Enabled = True
-Else
-  cmdIN.Enabled = False
-End If
-If checkIfFileExists(outputFileName & "DElight.out") Then
-  cmdOUT.Enabled = True
-End If
-If checkIfFileExists(outputFileName & "DElight.eldmp") Then
-  cmdELDMP.Enabled = True
-End If
-If checkIfFileExists(outputFileName & "DElight.dfdmp") Then
-  cmdDFDMP.Enabled = True
 End If
 If checkIfFileExists(outputFileName & ".EDD") Then
   cmdEDD.Enabled = True

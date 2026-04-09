@@ -50,7 +50,6 @@ set(INCLUDED_TEX
     ${PROJECT_SOURCE_DIR}/engineering-reference/src/daylighting-and-window-calculations/daylighting-calculations.tex
     ${PROJECT_SOURCE_DIR}/engineering-reference/src/daylighting-and-window-calculations/daylight-factor-calculation.tex
     ${PROJECT_SOURCE_DIR}/engineering-reference/src/daylighting-and-window-calculations/time-step-daylighting-calculation.tex
-    ${PROJECT_SOURCE_DIR}/engineering-reference/src/daylighting-and-window-calculations/delight-daylighting-calculations.tex
     ${PROJECT_SOURCE_DIR}/engineering-reference/src/daylighting-and-window-calculations/complex-fenestration-daylighting-calculations.tex
     ${PROJECT_SOURCE_DIR}/engineering-reference/src/daylighting-and-window-calculations/daylighting-devices.tex
     ${PROJECT_SOURCE_DIR}/engineering-reference/src/daylighting-and-window-calculations/window-calculation-module.tex

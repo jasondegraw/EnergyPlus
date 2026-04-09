@@ -107,13 +107,12 @@ namespace Dayltg {
         Invalid = -1,
         None,
         SplitFlux,
-        DElight,
         Num
     };
 
-    static constexpr std::array<std::string_view, (int)DaylightingMethod::Num> DaylightingMethodNamesUC = {"NONE", "SPLITFLUX", "DELIGHT"};
+    static constexpr std::array<std::string_view, (int)DaylightingMethod::Num> DaylightingMethodNamesUC = {"NONE", "SPLITFLUX"};
 
-    // Parameters for "Lighting Control Type" - these are the values expected by DElight
+    // Parameters for "Lighting Control Type"
     enum class LtgCtrlType
     {
         Invalid = -1,
@@ -187,7 +186,7 @@ namespace Dayltg {
         int zoneIndex = 0;    // Index to zone where the daylighting:controls object is located
         int spaceIndex = 0;   // Index to space where the daylighting:controls object is located (0 if specified for a zone)
         int enclIndex = 0;    // Index to enclosure where the daylighting:controls object is located
-        Dayltg::DaylightingMethod DaylightMethod = DaylightingMethod::None; // Type of Daylighting (1=SplitFlux, 2=DElight)
+        Dayltg::DaylightingMethod DaylightMethod = DaylightingMethod::None; // Type of daylighting method
         Sched::Schedule *availSched = nullptr;                              // availability schedule if present
         int TotalExtWindows = 0;
         int TotalDaylRefPoints = 0; // Number of daylighting reference points for this control
@@ -203,7 +202,6 @@ namespace Dayltg {
         int LightControlSteps = 0;                              // Number of levels (excluding zero) of stepped control system
         Real64 LightControlProbability = 0.0;                   // For manual control of stepped systems, probability that lighting will
         Real64 PowerReductionFactor = 1.0;                      // Electric power reduction factor for this control due to daylighting
-        Real64 DElightGriddingResolution = 0.0;                 // Field: Delight Gridding Resolution
 
         // Allocatable daylight factor arrays
         // Arguments (dimensions) for Dayl---Sky are:
@@ -279,15 +277,6 @@ namespace Dayltg {
         int ZoneNum = 0;                          // Pointer to zone being referenced
         Vector3<Real64> coords = {0.0, 0.0, 0.0}; // x coordinate
         int indexToFracAndIllum = 0;
-    };
-
-    struct DElightComplexFeneData // holds Daylighting:DELight:ComplexFenestration
-    {
-        std::string Name;
-        std::string ComplexFeneType; // Complex Fenestration Type
-        std::string surfName;        // Building Surface name
-        std::string wndwName;        // Window name
-        Real64 feneRota;             // Fenestration Rotation
     };
 
 } // namespace Dayltg

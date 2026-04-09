@@ -316,8 +316,6 @@ namespace Dayltg {
 
     void GetInputDayliteRefPt(EnergyPlusData &state, bool &ErrorsFound);
 
-    bool doesDayLightingUseDElight(EnergyPlusData const &state);
-
     void CheckTDDsAndLightShelvesInDaylitZones(EnergyPlusData &state);
 
     void AssociateWindowShadingControlWithDaylighting(EnergyPlusData &state);
@@ -493,7 +491,6 @@ struct DaylightingData : BaseGlobalStruct
     Array1D<Dayltg::DaylightingControl> daylightControl;
     Array1D<Dayltg::IllumMap> illumMaps;
     Array1D<Dayltg::RefPointData> DaylRefPt;
-    Array1D<Dayltg::DElightComplexFeneData> DElightComplexFene;
     Array1D<Real64> spacePowerReductionFactor; // Average electric power reduction factor for space due to daylighting
 
     bool CalcDayltghCoefficients_firstTime = true;

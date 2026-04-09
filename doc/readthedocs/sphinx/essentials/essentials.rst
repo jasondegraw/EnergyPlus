@@ -1210,14 +1210,6 @@ file name prior to the file extension are shown below:
 
 -  WRL – drawing file in VRML (Virtual Reality Markup Language) format
 
--  Delight IN - DElight input generated from EnergyPlus processed input
-
--  Delight OUT – Detailed DElight output
-
--  Delight ELDMP – DElight reference point illuminance per time step
-
--  Delight DFDMP – DElight warning and error messages
-
 -  EXPIDF – Expanded IDF when using HVACTemplate input objects
 
 -  Group Error – combined error files for a group run
@@ -1875,10 +1867,10 @@ Three different devices can be used with daylighting:
 
 -  DaylightingDevice:LightWell - see the GeometryTest.idf example file.
 
-An input object called Daylighting:DELight:ComplexFenestration is used
-with one of the two control methods specified in the
-Daylighting:Controls input object when used in conjunction with complex
-fenestration systems such as prismatic and holographic glass.
+The legacy object ``Daylighting:DELight:ComplexFenestration`` is no
+longer supported. EnergyPlus still recognizes it only so the program
+can emit a targeted fatal error and direct the model author to migrate
+to SplitFlux daylighting inputs.
 
 Some flexibility is given to provide extra output related to daylighting
 and includes:

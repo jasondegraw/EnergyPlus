@@ -438,9 +438,7 @@ static void DXFDaylightingReferencePoints(EnergyPlusData &state, InputOutputFile
             auto &thisDaylightControl = state.dataDayltg->daylightControl(daylightCtrlNum);
             DataSurfaceColors::ColorNo curcolorno = DataSurfaceColors::ColorNo::DaylSensor1;
             std::string refPtType;
-            if (thisDaylightControl.DaylightMethod == Dayltg::DaylightingMethod::DElight) {
-                refPtType = "DEDayRefPt";
-            } else if (thisDaylightControl.DaylightMethod == Dayltg::DaylightingMethod::SplitFlux) {
+            if (thisDaylightControl.DaylightMethod == Dayltg::DaylightingMethod::SplitFlux) {
                 refPtType = "DayRefPt";
             }
 

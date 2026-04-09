@@ -104,7 +104,6 @@ struct DataStringGlobalsData : BaseGlobalStruct
     fs::path outputTblXmlFilePath = "eplustbl.xml";
     fs::path outputAdsFilePath = "eplusADS.out";
     fs::path outputGLHEFilePath = "eplusout.glhe";
-    fs::path outputDelightOutFilePath = "eplusout.delightout";
     fs::path outputIperrFilePath = "eplusout.iperr";
     fs::path outputPerfLogFilePath = "eplusout_perflog.csv";
     fs::path outputSqlFilePath = "eplusout.sql";

@@ -207,9 +207,6 @@ TEST_F(EnergyPlusFixture, OutputControlFiles)
         "  No,                      !- Output SHD",
         "  Yes,                     !- Output DFS",
         "  Yes,                     !- Output GLHE",
-        "  Yes,                     !- Output DelightIn",
-        "  Yes,                     !- Output DelightELdmp",
-        "  Yes,                     !- Output DelightDFdmp",
         "  Yes,                     !- Output EDD",
         "  Yes,                     !- Output DBG",
         "  Yes,                     !- Output PerfLog",
@@ -270,9 +267,6 @@ OutputControl:Files,
   {shd},              !- Output SHD
   {dfs},              !- Output DFS
   {glhe},             !- Output GLHE
-  {delightin},        !- Output DelightIn
-  {delighteldmp},     !- Output DelightELdmp
-  {delightdfdmp},     !- Output DelightDFdmp
   {edd},              !- Output EDD
   {dbg},              !- Output DBG
   {perflog},          !- Output PerfLog
@@ -286,7 +280,7 @@ OutputControl:Files,
 
     auto boolToString = [](bool b) { return b ? "Yes" : "No"; };
 
-    for (int i = 0; i < 31; ++i) {
+    for (int i = 0; i < 29; ++i) {
         bool csv = (i == 0);
         bool mtr = (i == 1);
         bool eso = (i == 2);
@@ -307,18 +301,15 @@ OutputControl:Files,
         bool shd = (i == 17);
         bool dfs = (i == 18);
         bool glhe = (i == 19);
-        bool delightin = (i == 20);
-        bool delighteldmp = (i == 21);
-        bool delightdfdmp = (i == 22);
-        bool edd = (i == 23);
-        bool dbg = (i == 24);
-        bool perflog = (i == 25);
-        bool sln = (i == 26);
-        bool sci = (i == 27);
-        bool wrl = (i == 28);
-        bool screen = (i == 29);
-        bool extshd = (i == 30);
-        bool tarcog = (i == 31);
+        bool edd = (i == 20);
+        bool dbg = (i == 21);
+        bool perflog = (i == 22);
+        bool sln = (i == 23);
+        bool sci = (i == 24);
+        bool wrl = (i == 25);
+        bool screen = (i == 26);
+        bool extshd = (i == 27);
+        bool tarcog = (i == 28);
 
         std::string const idf_objects = fmt::format(fmt::runtime(idf_objects_fmt),
                                                     fmt::arg("csv", boolToString(csv)),
@@ -341,9 +332,6 @@ OutputControl:Files,
                                                     fmt::arg("shd", boolToString(shd)),
                                                     fmt::arg("dfs", boolToString(dfs)),
                                                     fmt::arg("glhe", boolToString(glhe)),
-                                                    fmt::arg("delightin", boolToString(delightin)),
-                                                    fmt::arg("delighteldmp", boolToString(delighteldmp)),
-                                                    fmt::arg("delightdfdmp", boolToString(delightdfdmp)),
                                                     fmt::arg("edd", boolToString(edd)),
                                                     fmt::arg("dbg", boolToString(dbg)),
                                                     fmt::arg("perflog", boolToString(perflog)),
@@ -377,9 +365,6 @@ OutputControl:Files,
         EXPECT_EQ(end, state->files.outputControl.end);
         EXPECT_EQ(shd, state->files.outputControl.shd);
         EXPECT_EQ(dfs, state->files.outputControl.dfs);
-        EXPECT_EQ(delightin, state->files.outputControl.delightin);
-        EXPECT_EQ(delighteldmp, state->files.outputControl.delighteldmp);
-        EXPECT_EQ(delightdfdmp, state->files.outputControl.delightdfdmp);
         EXPECT_EQ(edd, state->files.outputControl.edd);
         EXPECT_EQ(dbg, state->files.outputControl.dbg);
         EXPECT_EQ(perflog, state->files.outputControl.perflog);
@@ -411,9 +396,6 @@ OutputControl:Files,
         state->files.outputControl.end = false;
         state->files.outputControl.shd = false;
         state->files.outputControl.dfs = false;
-        state->files.outputControl.delightin = false;
-        state->files.outputControl.delighteldmp = false;
-        state->files.outputControl.delightdfdmp = false;
         state->files.outputControl.edd = false;
         state->files.outputControl.dbg = false;
         state->files.outputControl.perflog = false;

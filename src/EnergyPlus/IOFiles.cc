@@ -406,15 +406,6 @@ void IOFiles::OutputControl::getInput(EnergyPlusData &state)
             { // "output_dfs"
                 dfs = boolean_choice(find_input(fields, "output_dfs"));
             }
-            { // "output_delightin"
-                delightin = boolean_choice(find_input(fields, "output_delightin"));
-            }
-            { // "output_delighteldmp"
-                delighteldmp = boolean_choice(find_input(fields, "output_delighteldmp"));
-            }
-            { // "output_delightdfdmp"
-                delightdfdmp = boolean_choice(find_input(fields, "output_delightdfdmp"));
-            }
             { // "output_edd"
                 edd = boolean_choice(find_input(fields, "output_edd"));
             }

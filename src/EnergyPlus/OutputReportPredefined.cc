@@ -285,7 +285,7 @@ namespace OutputReportPredefined {
 
         s->pdchDyLtZone = newPreDefColumn(state, s->pdstDaylight, "Zone");
         s->pdchDyLtCtrlName = newPreDefColumn(state, s->pdstDaylight, "Control Name");
-        s->pdchDyLtKind = newPreDefColumn(state, s->pdstDaylight, "Daylighting Method"); // detailed or DElight
+        s->pdchDyLtKind = newPreDefColumn(state, s->pdstDaylight, "Daylighting Method");
         s->pdchDyLtCtrlType = newPreDefColumn(state, s->pdstDaylight, "Control Type");   // stepped or continuous
         s->pdchDyLtFrac = newPreDefColumn(state, s->pdstDaylight, "Fraction Controlled");
         s->pdchDyLtWInst = newPreDefColumn(state, s->pdstDaylight, "Lighting Installed in Zone [W]");

@@ -220,13 +220,6 @@ protected:
     // Will return true if string matches the stream and false if it does not
     bool compare_cerr_stream(std::string const &expected_string, bool reset_stream = true);
 
-    // Compare an expected string against the delightin stream. The default is to reset the delightin stream after every call.
-    // It is easier to test successive functions if the delightin stream is 'empty' before the next call.
-    // This calls EXPECT_* within the function as well as returns a boolean so you can call [ASSERT/EXPECT]_[TRUE/FALSE] depending
-    // if it makes sense for the unit test to continue after returning from function.
-    // Will return true if string matches the stream and false if it does not
-    bool compare_delightin_stream(std::string const &expected_string, bool reset_stream = true);
-
     // Compare an expected string against the DFS stream. The default is to reset the DFS stream after every call.
     // It is easier to test successive functions if the DFS stream is 'empty' before the next call.
     // This calls EXPECT_* within the function as well as returns a boolean so you can call [ASSERT/EXPECT]_[TRUE/FALSE] depending
@@ -251,9 +244,6 @@ protected:
 
     // Check if CERR stream has any output. Useful to make sure there are or are not outputs to CERR.
     bool has_cerr_output(bool reset_stream = true);
-
-    // Check if delightin stream has any output. Useful to make sure there are or are not outputs to delightin.
-    bool has_delightin_output(bool reset_stream = true);
 
     // Check if DFS stream has any output. Useful to make sure there are or are not outputs to DFS.
     bool has_dfs_output(bool reset_stream = true);
@@ -311,7 +301,6 @@ private:
 
     std::unique_ptr<std::ostringstream> m_cout_buffer;
     std::unique_ptr<std::ostringstream> m_cerr_buffer;
-    std::unique_ptr<std::ostringstream> m_delightin_stream;
     std::unique_ptr<RedirectCout> m_redirect_cout;
     std::unique_ptr<RedirectCerr> m_redirect_cerr;
 };

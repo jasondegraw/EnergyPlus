@@ -573,9 +573,6 @@ public:
         bool end = true;
         bool shd = true;
         bool dfs = true;
-        bool delightin = true;
-        bool delighteldmp = true;
-        bool delightdfdmp = true;
         bool edd = true;
         bool dbg = true;
         bool perflog = true;
@@ -635,8 +632,6 @@ public:
     InputOutputFilePath sci{"eplusout.sci"};
     InputOutputFilePath wrl{"eplusout.wrl"};
 
-    InputOutputFilePath delightIn{"eplusout.delightin"};
-
     InputOutputFile mtd{"eplusout.mtd"};
     InputOutputFile edd{"eplusout.edd", true}; // write to stdout if no file never opened
     InputOutputFile shade{"eplusshading.csv"};
@@ -648,9 +643,6 @@ public:
     InputOutputFilePath endFile{"eplusout.end"};
 
     InputFilePath iniFile{"EnergyPlus.ini"};
-
-    InputFilePath outputDelightEldmpFilePath{"eplusout.delighteldmp"};
-    InputFilePath outputDelightDfdmpFilePath{"eplusout.delightdfdmp"};
 
     // for transient uses of weather files
     // also, keeper of the currently set input weather file name

@@ -11678,16 +11678,6 @@ files and function key shortcuts are listed below:
 
 #. DXF - drawing file in AutoCAD DXF format (Shift+F12)
 
-#. Delight IN - DElight input generated from EnergyPlus processed input
-   (Shift+Ctrl+F4)
-
-#. Delight OUT - Detailed DElight output (Shift+Ctrl+F5)
-
-#. Delight ELDMP - DElight reference point illuminance per time step
-   (Shift+Ctrl+F6)
-
-#. Delight DFDMP - DElight warning and error messages (Shift+Ctrl+F7)
-
 #. EXPIDF - Expanded IDF when using HVACTemplate objects (Shift+Ctrl+F8)
 
 #. Group Error - combined error files for a group run. (Shift+Ctrl+F9)

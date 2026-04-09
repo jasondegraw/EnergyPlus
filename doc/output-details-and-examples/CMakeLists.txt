@@ -26,7 +26,6 @@ set(INCLUDED_TEX
     ${PROJECT_SOURCE_DIR}/output-details-and-examples/src/output-files/eplusout-svg.tex
     ${PROJECT_SOURCE_DIR}/output-details-and-examples/src/output-files/eplusout-sci.tex
     ${PROJECT_SOURCE_DIR}/output-details-and-examples/src/output-files/eplusout-wrl.tex
-    ${PROJECT_SOURCE_DIR}/output-details-and-examples/src/output-files/delight-output-files.tex
     ${PROJECT_SOURCE_DIR}/output-details-and-examples/src/example-input-files.tex
     ${PROJECT_SOURCE_DIR}/output-details-and-examples/src/data-sets.tex
     ${PROJECT_SOURCE_DIR}/output-details-and-examples/src/data-sets/simple-list-data-sets.tex

@@ -45,7 +45,7 @@ Begin VB.Form frmOpenFilePanel
       Height          =   255
       Left            =   3240
       TabIndex        =   27
-      ToolTipText     =   "DElight file"
+      ToolTipText     =   "VRML geometry file."
       Top             =   1680
       Width           =   900
    End
@@ -54,53 +54,16 @@ Begin VB.Form frmOpenFilePanel
       Height          =   255
       Left            =   3240
       TabIndex        =   26
-      ToolTipText     =   "DElight file"
+      ToolTipText     =   "Shading data file."
       Top             =   1320
-      Width           =   900
    End
    Begin VB.CommandButton cmdScreen
       Caption         =   "Screen"
       Height          =   255
       Left            =   3240
       TabIndex        =   25
-      ToolTipText     =   "DElight file"
+      ToolTipText     =   "Window screen output file."
       Top             =   840
-      Width           =   900
-   End
-   Begin VB.CommandButton cmdDFDMP
-      Caption         =   "DFDMP"
-      Height          =   255
-      Left            =   3240
-      TabIndex        =   24
-      ToolTipText     =   "DElight file"
-      Top             =   480
-      Width           =   900
-   End
-   Begin VB.CommandButton cmdELDMP
-      Caption         =   "ELDMP"
-      Height          =   255
-      Left            =   3240
-      TabIndex        =   23
-      ToolTipText     =   "DElight file"
-      Top             =   120
-      Width           =   900
-   End
-   Begin VB.CommandButton cmdOUT
-      Caption         =   "DE OUT"
-      Height          =   255
-      Left            =   2280
-      TabIndex        =   22
-      ToolTipText     =   "DElight output file."
-      Top             =   480
-      Width           =   900
-   End
-   Begin VB.CommandButton cmdIN
-      Caption         =   "DE IN"
-      Height          =   255
-      Left            =   2280
-      TabIndex        =   21
-      ToolTipText     =   "DElight input file."
-      Top             =   120
       Width           =   900
    End
    Begin VB.CommandButton cmdDXF
@@ -313,9 +276,6 @@ Private Sub cmdDBG_Click()
 Call eplUI.RunOutputEditorSingleFile(".DBG")
 End Sub
 
-Private Sub cmdDFDMP_Click()
-Call eplUI.RunOutputEditorSingleFile("DElight.dfdmp")
-End Sub
 
 Private Sub cmdDXF_Click()
 Call eplUI.runViewDrawing
@@ -329,9 +289,6 @@ Private Sub cmdEIO_Click()
 Call eplUI.RunOutputEditorSingleFile(".EIO")
 End Sub
 
-Private Sub cmdELDMP_Click()
-Call eplUI.RunOutputEditorSingleFile("DElight.eldmp")
-End Sub
 
 Private Sub cmdEPMDET_Click()
 Call eplUI.RunOutputEditorSingleFile(".EPMDET")
@@ -354,9 +311,6 @@ Call eplUI.RunOutputEditorSingleFile(".EXPIDF")
 End Sub
 
 
-Private Sub cmdIN_Click()
-Call eplUI.RunOutputEditorSingleFile("DElight.IN")
-End Sub
 
 Private Sub cmdMain_Click()
 Call eplUI.viewMainCSV
@@ -379,9 +333,6 @@ Private Sub cmdMTR_Click()
 Call eplUI.RunOutputEditorSingleFile(".MTR")
 End Sub
 
-Private Sub cmdOUT_Click()
-Call eplUI.RunOutputEditorSingleFile("DElight.out")
-End Sub
 
 Private Sub cmdProcCSV_Click()
 Call eplUI.runOutputSpreadsheetSingleFile("-Proc.csv")

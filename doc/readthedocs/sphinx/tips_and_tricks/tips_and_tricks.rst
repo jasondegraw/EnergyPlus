@@ -3838,7 +3838,7 @@ EnergyPlus is a multi-thread application but is not optimized for
 parallel runs on multi-core machines. However, multiple parametric runs
 can be launched in parallel if these runs are independent. One way to do
 it is to create multiple folders and copy files EnergyPlus.exe,
-Energy+.idd, DElight2.dll, libexpat.dll, bcvtb.dll, EPMacro.exe (if
+Energy+.idd, libexpat.dll, bcvtb.dll, EPMacro.exe (if
 macros are used), ExpandObjects.exe (if HVACTemplate or Compact HVAC
 objects are used) from the original EnergyPlus installed folder. Inside
 each folder, copy IDF file as in.idf and EPW file as in.epw, then run

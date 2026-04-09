@@ -156,8 +156,6 @@ set(SRC
     CrossVentMgr.hh
     CurveManager.cc
     CurveManager.hh
-    DElightManagerF.cc
-    DElightManagerF.hh
     DXCoils.cc
     DXCoils.hh
     DXFEarClipping.cc
@@ -176,7 +174,6 @@ set(SRC
     DataContaminantBalance.hh
     DataConvergParams.hh
     DataConversions.hh
-    DataDElight.hh
     DataDaylighting.hh
     DataDaylightingDevices.hh
     DataDefineEquip.hh
@@ -790,7 +787,6 @@ target_link_libraries(
          epexpat
          epfmiimport
          re2
-         DElight
          libkiva
          btwxt
          Windows-CalcEngine
