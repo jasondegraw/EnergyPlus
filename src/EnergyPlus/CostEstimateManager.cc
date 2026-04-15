@@ -61,7 +61,6 @@
 #include <EnergyPlus/Data/EnergyPlusData.hh>
 // #include <EnergyPlus/DataDaylighting.hh>
 #include <EnergyPlus/DataHeatBalance.hh>
-#include <EnergyPlus/DataIPShortCuts.hh>
 #include <EnergyPlus/DataPhotovoltaics.hh>
 #include <EnergyPlus/DataSurfaces.hh>
 #include <EnergyPlus/DaylightingManager.hh>
@@ -150,15 +149,14 @@ namespace CostEstimateManager {
         // Using/Aliasing
 
         // SUBROUTINE LOCAL VARIABLE DECLARATIONS:
-        int Item; // Item to be "gotten"
+        int Item;
         int NumCostAdjust;
         int NumRefAdjust;
-        int NumAlphas;           // Number of Alphas for each GetObjectItem call
-        int NumNumbers;          // Number of Numbers for each GetObjectItem call
-        int IOStatus;            // Used in GetObjectItem
         bool ErrorsFound(false); // Set to true if errors in input, fatal at end of routine
 
-        int NumLineItems = state.dataInputProcessing->inputProcessor->getNumObjectsFound(state, "ComponentCost:LineItem");
+        auto *inputProcessor = state.dataInputProcessing->inputProcessor.get();
+
+        int NumLineItems = inputProcessor->getNumObjectsFound(state, "ComponentCost:LineItem");
 
         if (NumLineItems == 0) {
             state.dataCostEstimateManager->DoCostEstimate = false;
@@ -170,52 +168,69 @@ namespace CostEstimateManager {
         if (!allocated(state.dataCostEstimateManager->CostLineItem)) {
             state.dataCostEstimateManager->CostLineItem.allocate(NumLineItems);
         }
-        auto &cCurrentModuleObject = state.dataIPShortCut->cCurrentModuleObject;
+        std::string cCurrentModuleObject;
         cCurrentModuleObject = "ComponentCost:LineItem";
 
-        for (Item = 1; Item <= NumLineItems; ++Item) {
-            state.dataInputProcessing->inputProcessor->getObjectItem(state,
-                                                                     cCurrentModuleObject,
-                                                                     Item,
-                                                                     state.dataIPShortCut->cAlphaArgs,
-                                                                     NumAlphas,
-                                                                     state.dataIPShortCut->rNumericArgs,
-                                                                     NumNumbers,
-                                                                     IOStatus);
-            state.dataCostEstimateManager->CostLineItem(Item).LineName = state.dataIPShortCut->cAlphaArgs(1);
-            state.dataCostEstimateManager->CostLineItem(Item).ParentObjType =
-                static_cast<ParentObject>(getEnumValue(ParentObjectNamesUC, state.dataIPShortCut->cAlphaArgs(3)));
-            state.dataCostEstimateManager->CostLineItem(Item).ParentObjName = state.dataIPShortCut->cAlphaArgs(4);
-            state.dataCostEstimateManager->CostLineItem(Item).PerEach = state.dataIPShortCut->rNumericArgs(1);
-            state.dataCostEstimateManager->CostLineItem(Item).PerSquareMeter = state.dataIPShortCut->rNumericArgs(2);
-            state.dataCostEstimateManager->CostLineItem(Item).PerKiloWattCap = state.dataIPShortCut->rNumericArgs(3);
-            state.dataCostEstimateManager->CostLineItem(Item).PerKWCapPerCOP = state.dataIPShortCut->rNumericArgs(4);
-            state.dataCostEstimateManager->CostLineItem(Item).PerCubicMeter = state.dataIPShortCut->rNumericArgs(5);
-            state.dataCostEstimateManager->CostLineItem(Item).PerCubMeterPerSec = state.dataIPShortCut->rNumericArgs(6);
-            state.dataCostEstimateManager->CostLineItem(Item).PerUAinWattperDelK = state.dataIPShortCut->rNumericArgs(7);
-            state.dataCostEstimateManager->CostLineItem(Item).Qty = state.dataIPShortCut->rNumericArgs(8);
+        auto const &lineItemSchemaProps = inputProcessor->getObjectSchemaProps(state, cCurrentModuleObject);
+        auto const lineItemObjects = inputProcessor->epJSON.find(cCurrentModuleObject);
+        Item = 0;
+        if (lineItemObjects != inputProcessor->epJSON.end()) {
+            for (auto const &lineItemInstance : lineItemObjects.value().items()) {
+                auto const &lineItemFields = lineItemInstance.value();
+
+                inputProcessor->markObjectAsUsed(cCurrentModuleObject, lineItemInstance.key());
+
+                ++Item;
+                auto &costLineItem = state.dataCostEstimateManager->CostLineItem(Item);
+                costLineItem.LineName = Util::makeUPPER(lineItemInstance.key());
+                costLineItem.ParentObjType = static_cast<ParentObject>(
+                    getEnumValue(ParentObjectNamesUC, inputProcessor->getAlphaFieldValue(lineItemFields, lineItemSchemaProps, "line_item_type")));
+                costLineItem.ParentObjName =
+                    Util::makeUPPER(inputProcessor->getAlphaFieldValue(lineItemFields, lineItemSchemaProps, "item_name"));
+                costLineItem.PerEach = inputProcessor->getRealFieldValue(lineItemFields, lineItemSchemaProps, "cost_per_each");
+                costLineItem.PerSquareMeter = inputProcessor->getRealFieldValue(lineItemFields, lineItemSchemaProps, "cost_per_area");
+                costLineItem.PerKiloWattCap =
+                    inputProcessor->getRealFieldValue(lineItemFields, lineItemSchemaProps, "cost_per_unit_of_output_capacity");
+                costLineItem.PerKWCapPerCOP =
+                    inputProcessor->getRealFieldValue(lineItemFields, lineItemSchemaProps, "cost_per_unit_of_output_capacity_per_cop");
+                costLineItem.PerCubicMeter = inputProcessor->getRealFieldValue(lineItemFields, lineItemSchemaProps, "cost_per_volume");
+                costLineItem.PerCubMeterPerSec = inputProcessor->getRealFieldValue(lineItemFields, lineItemSchemaProps, "cost_per_volume_rate");
+                costLineItem.PerUAinWattperDelK =
+                    inputProcessor->getRealFieldValue(lineItemFields, lineItemSchemaProps, "cost_per_energy_per_temperature_difference");
+                auto const quantityField = lineItemFields.find("quantity");
+                costLineItem.Qty =
+                    (quantityField != lineItemFields.end()) ? inputProcessor->getRealFieldValue(lineItemFields, lineItemSchemaProps, "quantity") : 0.0;
+            }
         }
 
         // most input error checking to be performed later within Case construct in Calc routine.
 
         cCurrentModuleObject = "ComponentCost:Adjustments";
-        NumCostAdjust = state.dataInputProcessing->inputProcessor->getNumObjectsFound(state, cCurrentModuleObject);
+        NumCostAdjust = inputProcessor->getNumObjectsFound(state, cCurrentModuleObject);
         if (NumCostAdjust == 1) {
-            state.dataInputProcessing->inputProcessor->getObjectItem(state,
-                                                                     cCurrentModuleObject,
-                                                                     1,
-                                                                     state.dataIPShortCut->cAlphaArgs,
-                                                                     NumAlphas,
-                                                                     state.dataIPShortCut->rNumericArgs,
-                                                                     NumNumbers,
-                                                                     IOStatus);
-            state.dataCostEstimateManager->CurntBldg.MiscCostperSqMeter = state.dataIPShortCut->rNumericArgs(1);
-            state.dataCostEstimateManager->CurntBldg.DesignFeeFrac = state.dataIPShortCut->rNumericArgs(2);
-            state.dataCostEstimateManager->CurntBldg.ContractorFeeFrac = state.dataIPShortCut->rNumericArgs(3);
-            state.dataCostEstimateManager->CurntBldg.ContingencyFrac = state.dataIPShortCut->rNumericArgs(4);
-            state.dataCostEstimateManager->CurntBldg.BondCostFrac = state.dataIPShortCut->rNumericArgs(5);
-            state.dataCostEstimateManager->CurntBldg.CommissioningFrac = state.dataIPShortCut->rNumericArgs(6);
-            state.dataCostEstimateManager->CurntBldg.RegionalModifier = state.dataIPShortCut->rNumericArgs(7);
+            auto const &costAdjustSchemaProps = inputProcessor->getObjectSchemaProps(state, cCurrentModuleObject);
+            auto const costAdjustObjects = inputProcessor->epJSON.find(cCurrentModuleObject);
+            if (costAdjustObjects != inputProcessor->epJSON.end()) {
+                auto const &costAdjustInstance = *costAdjustObjects.value().items().begin();
+                auto const &costAdjustFields = costAdjustInstance.value();
+
+                inputProcessor->markObjectAsUsed(cCurrentModuleObject, costAdjustInstance.key());
+
+                state.dataCostEstimateManager->CurntBldg.MiscCostperSqMeter =
+                    inputProcessor->getRealFieldValue(costAdjustFields, costAdjustSchemaProps, "miscellaneous_cost_per_conditioned_area");
+                state.dataCostEstimateManager->CurntBldg.DesignFeeFrac =
+                    inputProcessor->getRealFieldValue(costAdjustFields, costAdjustSchemaProps, "design_and_engineering_fees");
+                state.dataCostEstimateManager->CurntBldg.ContractorFeeFrac =
+                    inputProcessor->getRealFieldValue(costAdjustFields, costAdjustSchemaProps, "contractor_fee");
+                state.dataCostEstimateManager->CurntBldg.ContingencyFrac =
+                    inputProcessor->getRealFieldValue(costAdjustFields, costAdjustSchemaProps, "contingency");
+                state.dataCostEstimateManager->CurntBldg.BondCostFrac =
+                    inputProcessor->getRealFieldValue(costAdjustFields, costAdjustSchemaProps, "permits_bonding_and_insurance");
+                state.dataCostEstimateManager->CurntBldg.CommissioningFrac =
+                    inputProcessor->getRealFieldValue(costAdjustFields, costAdjustSchemaProps, "commissioning_fee");
+                state.dataCostEstimateManager->CurntBldg.RegionalModifier =
+                    inputProcessor->getRealFieldValue(costAdjustFields, costAdjustSchemaProps, "regional_adjustment_factor");
+            }
 
         } else if (NumCostAdjust > 1) {
             ShowSevereError(state, EnergyPlus::format("{}: Only one instance of this object is allowed.", cCurrentModuleObject));
@@ -223,24 +238,33 @@ namespace CostEstimateManager {
         }
 
         cCurrentModuleObject = "ComponentCost:Reference";
-        NumRefAdjust = state.dataInputProcessing->inputProcessor->getNumObjectsFound(state, cCurrentModuleObject);
+        NumRefAdjust = inputProcessor->getNumObjectsFound(state, cCurrentModuleObject);
         if (NumRefAdjust == 1) {
-            state.dataInputProcessing->inputProcessor->getObjectItem(state,
-                                                                     cCurrentModuleObject,
-                                                                     1,
-                                                                     state.dataIPShortCut->cAlphaArgs,
-                                                                     NumAlphas,
-                                                                     state.dataIPShortCut->rNumericArgs,
-                                                                     NumNumbers,
-                                                                     IOStatus);
-            state.dataCostEstimateManager->RefrncBldg.LineItemTot = state.dataIPShortCut->rNumericArgs(1);
-            state.dataCostEstimateManager->RefrncBldg.MiscCostperSqMeter = state.dataIPShortCut->rNumericArgs(2);
-            state.dataCostEstimateManager->RefrncBldg.DesignFeeFrac = state.dataIPShortCut->rNumericArgs(3);
-            state.dataCostEstimateManager->RefrncBldg.ContractorFeeFrac = state.dataIPShortCut->rNumericArgs(4);
-            state.dataCostEstimateManager->RefrncBldg.ContingencyFrac = state.dataIPShortCut->rNumericArgs(5);
-            state.dataCostEstimateManager->RefrncBldg.BondCostFrac = state.dataIPShortCut->rNumericArgs(6);
-            state.dataCostEstimateManager->RefrncBldg.CommissioningFrac = state.dataIPShortCut->rNumericArgs(7);
-            state.dataCostEstimateManager->RefrncBldg.RegionalModifier = state.dataIPShortCut->rNumericArgs(8);
+            auto const &referenceSchemaProps = inputProcessor->getObjectSchemaProps(state, cCurrentModuleObject);
+            auto const referenceObjects = inputProcessor->epJSON.find(cCurrentModuleObject);
+            if (referenceObjects != inputProcessor->epJSON.end()) {
+                auto const &referenceInstance = *referenceObjects.value().items().begin();
+                auto const &referenceFields = referenceInstance.value();
+
+                inputProcessor->markObjectAsUsed(cCurrentModuleObject, referenceInstance.key());
+
+                state.dataCostEstimateManager->RefrncBldg.LineItemTot =
+                    inputProcessor->getRealFieldValue(referenceFields, referenceSchemaProps, "reference_building_line_item_costs");
+                state.dataCostEstimateManager->RefrncBldg.MiscCostperSqMeter = inputProcessor->getRealFieldValue(
+                    referenceFields, referenceSchemaProps, "reference_building_miscellaneous_cost_per_conditioned_area");
+                state.dataCostEstimateManager->RefrncBldg.DesignFeeFrac =
+                    inputProcessor->getRealFieldValue(referenceFields, referenceSchemaProps, "reference_building_design_and_engineering_fees");
+                state.dataCostEstimateManager->RefrncBldg.ContractorFeeFrac =
+                    inputProcessor->getRealFieldValue(referenceFields, referenceSchemaProps, "reference_building_contractor_fee");
+                state.dataCostEstimateManager->RefrncBldg.ContingencyFrac =
+                    inputProcessor->getRealFieldValue(referenceFields, referenceSchemaProps, "reference_building_contingency");
+                state.dataCostEstimateManager->RefrncBldg.BondCostFrac = inputProcessor->getRealFieldValue(
+                    referenceFields, referenceSchemaProps, "reference_building_permits_bonding_and_insurance");
+                state.dataCostEstimateManager->RefrncBldg.CommissioningFrac =
+                    inputProcessor->getRealFieldValue(referenceFields, referenceSchemaProps, "reference_building_commissioning_fee");
+                state.dataCostEstimateManager->RefrncBldg.RegionalModifier =
+                    inputProcessor->getRealFieldValue(referenceFields, referenceSchemaProps, "reference_building_regional_adjustment_factor");
+            }
 
         } else if (NumRefAdjust > 1) {
             ShowSevereError(state, EnergyPlus::format("{} : Only one instance of this object is allowed.", cCurrentModuleObject));
