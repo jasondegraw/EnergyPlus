@@ -55,10 +55,12 @@
 #include <EnergyPlus/DataHeatBalFanSys.hh>
 #include <EnergyPlus/DataHeatBalance.hh>
 #include <EnergyPlus/DataIPShortCuts.hh>
+#include <EnergyPlus/DataRoomAirModel.hh>
 #include <EnergyPlus/HeatBalanceAirManager.hh>
 #include <EnergyPlus/HeatBalanceManager.hh>
 #include <EnergyPlus/IOFiles.hh>
 #include <EnergyPlus/InputProcessing/InputProcessor.hh>
+#include <EnergyPlus/RoomAirModelManager.hh>
 #include <EnergyPlus/SimulationManager.hh>
 #include <EnergyPlus/SurfaceGeometry.hh>
 
@@ -117,6 +119,46 @@ TEST_F(EnergyPlusFixture, HeatBalanceAirManager_RoomAirModelType_Test)
 
     EXPECT_TRUE(compare_err_stream(error_string, true));
 }
+
+TEST_F(EnergyPlusFixture, HeatBalanceAirManager_UserDefinedTemperaturePatternIgnoredForMixingZone)
+{
+    std::string const idf_objects = delimited_string({
+        "RoomAirModelType,",
+        "  Zone 1 Air Model,",
+        "  Zone 1,",
+        "  Mixing,",
+        "  Direct;",
+
+        "RoomAir:TemperaturePattern:UserDefined,",
+        "  Zone 1 Pattern Control,",
+        "  Zone 1,",
+        "  ,",
+        "  Pattern Schedule;",
+
+        "Schedule:Constant,",
+        "  Pattern Schedule,",
+        "  ,",
+        "  1;",
+    });
+
+    ASSERT_TRUE(process_idf(idf_objects));
+    state->init_state(*state);
+    state->dataGlobal->NumOfZones = 1;
+    state->dataHeatBal->Zone.allocate(1);
+    state->dataHeatBal->Zone(1).Name = "ZONE 1";
+
+    bool errorsFound = false;
+    HeatBalanceAirManager::GetRoomAirModelParameters(*state, errorsFound);
+    ASSERT_FALSE(errorsFound);
+
+    RoomAir::GetUserDefinedPatternData(*state, errorsFound);
+
+    EXPECT_FALSE(errorsFound);
+    ASSERT_TRUE(allocated(state->dataRoomAir->AirPatternZoneInfo));
+    EXPECT_FALSE(state->dataRoomAir->AirPatternZoneInfo(1).IsUsed);
+    EXPECT_TRUE(compare_err_stream_substring("This object will be ignored", true));
+}
+
 TEST_F(EnergyPlusFixture, HeatBalanceAirManager_GetInfiltrationAndVentilation)
 {
     // Test input processing of Infiltration objects with spaces

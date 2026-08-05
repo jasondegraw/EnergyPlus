@@ -4531,6 +4531,12 @@ TEST_F(EnergyPlusFixture, ZoneEquipmentManager_MixingRoomAirModelIgnoresUserDefi
     CalcZoneLeavingConditions(*state, true);
 
     EXPECT_DOUBLE_EQ(20.0, state->dataLoopNodes->Node(2).Temp);
+
+    // The user-defined leaving temperature is still used when it is the zone's active room-air model.
+    state->dataRoomAir->AirModel(1).AirModel = RoomAir::RoomAirModel::UserDefined;
+    CalcZoneLeavingConditions(*state, true);
+
+    EXPECT_DOUBLE_EQ(23.0, state->dataLoopNodes->Node(2).Temp);
 }
 
 TEST_F(EnergyPlusFixture, ZoneEquipmentManager_SizeZoneEquipment_NoLoadTest)

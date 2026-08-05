@@ -318,6 +318,17 @@ namespace RoomAir {
                 return; // halt to avoid hard crash
             }
 
+            if (state.dataRoomAir->AirModel(ZoneNum).AirModel != RoomAirModel::UserDefined) {
+                ShowWarningError(
+                    state,
+                    std::format(
+                        "{}{}=\"{}\" references Zone=\"{}\".", routineName, ipsc->cCurrentModuleObject, ipsc->cAlphaArgs(1), ipsc->cAlphaArgs(2)));
+                ShowContinueError(state,
+                                  std::format("...RoomAirModelType for this zone is \"{}\", not \"USERDEFINED\". This object will be ignored.",
+                                              roomAirModelNamesUC[(int)state.dataRoomAir->AirModel(ZoneNum).AirModel]));
+                continue;
+            }
+
             auto &airPatternZoneInfo = state.dataRoomAir->AirPatternZoneInfo(ZoneNum);
             airPatternZoneInfo.IsUsed = true;
             airPatternZoneInfo.Name = ipsc->cAlphaArgs(1);     // Name of this Control Object

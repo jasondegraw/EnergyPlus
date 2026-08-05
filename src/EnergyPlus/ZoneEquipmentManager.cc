@@ -5424,16 +5424,13 @@ void CalcZoneLeavingConditions(EnergyPlusData &state, bool const FirstHVACIterat
                 // thisSpaceHVACMixer.setOutletConditions
                 TempZoneAir = state.dataLoopNodes->Node(ReturnNode).Temp;
                 TempRetAir = TempZoneAir;
-            } else if (allocated(state.dataRoomAir->AirPatternZoneInfo)) {
-                if ((state.dataRoomAir->AirPatternZoneInfo(ZoneNum).IsUsed) && (!state.dataGlobal->BeginEnvrnFlag)) {
-                    TempZoneAir = state.dataRoomAir->AirPatternZoneInfo(ZoneNum).Tleaving;
-                    TempRetAir = TempZoneAir;
-                } else {
-                    TempZoneAir = state.dataLoopNodes->Node(ZoneNode).Temp;
-                    TempRetAir = TempZoneAir;
-                }
             } else {
                 TempZoneAir = state.dataLoopNodes->Node(ZoneNode).Temp;
+                if (allocated(state.dataRoomAir->AirModel) && (state.dataRoomAir->AirModel(ZoneNum).AirModel == RoomAir::RoomAirModel::UserDefined) &&
+                    allocated(state.dataRoomAir->AirPatternZoneInfo) && state.dataRoomAir->AirPatternZoneInfo(ZoneNum).IsUsed &&
+                    !state.dataGlobal->BeginEnvrnFlag) {
+                    TempZoneAir = state.dataRoomAir->AirPatternZoneInfo(ZoneNum).Tleaving;
+                }
                 TempRetAir = TempZoneAir;
             }
 
