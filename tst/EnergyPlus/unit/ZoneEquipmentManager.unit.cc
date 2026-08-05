@@ -65,6 +65,7 @@
 #include <EnergyPlus/DataHeatBalFanSys.hh>
 #include <EnergyPlus/DataHeatBalance.hh>
 #include <EnergyPlus/DataLoopNode.hh>
+#include <EnergyPlus/DataRoomAirModel.hh>
 #include <EnergyPlus/DataSizing.hh>
 #include <EnergyPlus/DataZoneEnergyDemands.hh>
 #include <EnergyPlus/DataZoneEquipment.hh>
@@ -4483,6 +4484,53 @@ TEST_F(EnergyPlusFixture, CZoeEquipmentManager_CalcZoneLeavingConditions_Test)
     // sum of return node temp diff = exhaust temp diff
     EXPECT_NEAR(
         state->dataLoopNodes->Node(4).Temp - 20.0 + state->dataLoopNodes->Node(5).Temp - 20.0, state->dataLoopNodes->Node(6).Temp - 20.0, 0.001);
+}
+
+TEST_F(EnergyPlusFixture, ZoneEquipmentManager_MixingRoomAirModelIgnoresUserDefinedLeavingTemperature)
+{
+    state->init_state(*state);
+    state->dataGlobal->NumOfZones = 1;
+
+    state->dataHeatBal->Zone.allocate(1);
+    state->dataHeatBal->Zone(1).Name = "ZONE 1";
+    state->dataHeatBal->Zone(1).spaceIndexes.emplace_back(1);
+
+    state->dataGlobal->numSpaces = 1;
+    state->dataHeatBal->space.allocate(1);
+    state->dataHeatBal->space(1).Name = "ZONE 1";
+    state->dataHeatBal->spaceIntGainDevices.allocate(1);
+
+    state->dataZoneEquip->ZoneEquipConfig.allocate(1);
+    auto &zoneEquipConfig = state->dataZoneEquip->ZoneEquipConfig(1);
+    zoneEquipConfig.IsControlled = true;
+    zoneEquipConfig.ZoneNode = 1;
+    zoneEquipConfig.NumReturnNodes = 1;
+    zoneEquipConfig.ReturnNode.allocate(1);
+    zoneEquipConfig.ReturnNode(1) = 2;
+    zoneEquipConfig.ReturnNodeExhaustNodeNum.allocate(1);
+    zoneEquipConfig.ReturnNodeExhaustNodeNum(1) = 0;
+
+    state->dataLoopNodes->Node.allocate(2);
+    state->dataLoopNodes->Node(1).Temp = 20.0;
+    state->dataLoopNodes->Node(1).HumRat = 0.001;
+    state->dataLoopNodes->Node(2).MassFlowRate = 1.0;
+
+    state->dataRoomAir->AirModel.allocate(1);
+    state->dataRoomAir->AirModel(1).AirModel = RoomAir::RoomAirModel::Mixing;
+    state->dataRoomAir->AirPatternZoneInfo.allocate(1);
+    state->dataRoomAir->AirPatternZoneInfo(1).IsUsed = true;
+    state->dataRoomAir->AirPatternZoneInfo(1).Tleaving = 23.0;
+
+    state->dataZoneEnergyDemand->ZoneSysEnergyDemand.allocate(1);
+    state->dataZoneEnergyDemand->ZoneSysMoistureDemand.allocate(1);
+    state->dataZoneEnergyDemand->CurDeadBandOrSetback.allocate(1);
+    state->dataZoneEnergyDemand->DeadBandOrSetback.allocate(1);
+    state->dataZoneEquip->ZoneEquipList.allocate(1);
+    state->dataZoneTempPredictorCorrector->zoneHeatBalance.allocate(1);
+
+    CalcZoneLeavingConditions(*state, true);
+
+    EXPECT_DOUBLE_EQ(20.0, state->dataLoopNodes->Node(2).Temp);
 }
 
 TEST_F(EnergyPlusFixture, ZoneEquipmentManager_SizeZoneEquipment_NoLoadTest)
